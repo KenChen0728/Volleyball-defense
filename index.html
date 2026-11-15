@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>排球防守站位</title>
+<meta name="description" content="拖球看誰接、看大家怎麼跑：給排球新手的防守站位練習。">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15171b" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="防守站位">
+<meta property="og:type" content="website">
+<meta property="og:title" content="排球防守站位">
+<meta property="og:description" content="拖球看誰接、看大家怎麼跑：給排球新手的防守站位練習。">
+<meta property="og:image" content="icons/og-image.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ===== 開始畫面 ===== -->
+<section id="home" class="screen" aria-labelledby="homeTitle">
+  <div class="home-inner">
+    <div class="home-hero">
+      <img src="icons/icon-192.png" alt="" width="72" height="72" class="home-icon">
+      <h1 id="homeTitle">排球防守站位</h1>
+      <p class="home-sub">拖球看誰接、看大家怎麼跑。<br>給剛開始打排球的人。</p>
+    </div>
+    <button class="btn btn-primary btn-big" id="btnStart">開始學習</button>
+    <div class="home-cards">
+      <button class="card-link" id="btnFree">
+        <svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="3.2"/><circle cx="16" cy="15" r="3.2"/><path d="M11 12l2 1.5"/></svg>
+        <span class="cl-text"><b>自己擺站位</b><small>拖球員到想站的位置，看每個人的範圍</small></span>
+        <span class="cl-go">打開 ›</span>
+      </button>
+      <button class="card-link" id="btnKnow">
+        <svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg>
+        <span class="cl-text"><b>防守觀念</b><small>誰接哪一球、兩人之間誰接，附資料來源</small></span>
+        <span class="cl-go">打開 ›</span>
+      </button>
+      <button class="card-link" id="btnHelpHome">
+        <svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6"/></svg>
+        <span class="cl-text"><b>使用說明</b><small>怎麼拖球、怎麼換情境、怎麼安裝到手機</small></span>
+        <span class="cl-go">打開 ›</span>
+      </button>
+    </div>
+    <footer class="foot">
+      <span id="verHome"></span>
+      <span>© 2026 陳則翰</span>
+      <button class="btn-link" id="btnReport">回報問題</button>
+    </footer>
+  </div>
+</section>
+
+<!-- ===== 主畫面：學習／自己擺 ===== -->
+<section id="main" class="screen" hidden aria-label="防守站位練習">
+  <header class="topbar">
+    <button class="btn btn-back" id="btnMainHome">‹ 首頁</button>
+    <div class="seg seg-mode" role="group" aria-label="模式">
+      <button data-mode="learn" aria-pressed="true">學習</button>
+      <button data-mode="free" aria-pressed="false">自己擺</button>
+    </div>
+    <button class="btn btn-icon" id="btnMainHelp" aria-label="這一頁怎麼用">?</button>
+  </header>
+  <div class="mainwrap">
+    <div class="courtbox" id="courtbox">
+      <svg id="court" viewBox="-0.45 -3.55 9.9 13.25" preserveAspectRatio="xMidYMid meet" role="img" aria-label="排球場防守站位圖。上方是對方場地，下方是我們的場地。"></svg>
+    </div>
+    <div class="panel" id="panel">
+      <div class="row row-sit">
+        <button class="btn btn-sit" id="btnSit"><span class="sit-k">情境</span><span id="sitText" class="sit-v"></span><span class="sit-go">調整 ›</span></button>
+        <button class="btn btn-ghost" id="btnResetFree" hidden>回到隊形</button>
+      </div>
+      <div class="row row-play">
+        <div class="seg seg-type" role="group" aria-label="攻擊方式">
+          <button data-type="spike" aria-pressed="true">扣球</button>
+          <button data-type="tip" aria-pressed="false">吊球</button>
+        </div>
+        <div class="stepbtns" role="group" aria-label="播放控制">
+          <button class="btn btn-icon" id="btnPrev" aria-label="上一步">‹</button>
+          <button class="btn btn-icon btn-play" id="btnPlay" aria-label="播放">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-play"><path d="M8 5l11 7-11 7z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-replay"><path d="M12 5a7 7 0 1 1-6.6 4.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M3 4.5l2.6 5.4 5-2.7z"/></svg>
+          </button>
+          <button class="btn btn-icon" id="btnNext" aria-label="下一步">›</button>
+        </div>
+      </div>
+      <div class="capbox">
+        <div class="cap-head">
+          <span id="stepTitle" class="step-title"></span>
+          <button class="btn-link" id="btnDetail">每個人在做什麼 ›</button>
+          <button class="btn-link" id="btnHintOk" hidden>知道了</button>
+        </div>
+        <div class="capscroll" id="capscroll" tabindex="0">
+          <p id="caption" class="caption" aria-live="polite"></p>
+          <p id="ruleLine" class="rule-line" hidden></p>
+        </div>
+      </div>
+      <div id="panelSit" class="panel-sit" hidden></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 防守觀念 ===== -->
+<section id="know" class="screen" hidden aria-labelledby="knowTitle">
+  <header class="topbar">
+    <button class="btn btn-back" id="btnKnowHome">‹ 首頁</button>
+    <h1 id="knowTitle" class="topbar-title">防守觀念</h1>
+    <button class="btn btn-icon" id="btnKnowHelp" aria-label="這一頁怎麼用">?</button>
+  </header>
+  <div class="know-body">
+    <p class="know-lead">這一頁整理 App 用到的規則和根據。標「規則」的是排球比賽規則；標「慣例」的是教練常用的分工，重點是全隊用同一套、接球前喊出來。</p>
+
+    <details open>
+      <summary>誰接哪一球（App 用的五條）</summary>
+      <ol class="rules">
+        <li><b>吊球：交給這個隊形負責吊球的人。</b>心跟進是跟進的人；邊跟進是攔網那一側往前的後排；心後是 1 號位（或 5 號位）看到吊球往前；攔網那一側的前排沒有攔網時（例如只有攔中攔），就是她退下來守。<span class="tag">慣例</span></li>
+        <li><b>球只在一個人的範圍裡：她接。</b></li>
+        <li><b>兩個人都接得到：離球最近的人接，往前或往旁邊移動優先，往後退最難。</b>所以「短的給離攻擊手近的人、深的給遠的人」；沒接的人站到她後面保護。<span class="tag">慣例</span></li>
+        <li><b>舉球員也接得到時，讓旁邊的人接。</b>舉球員能不接第一球就不接，她要留著舉第二球；只有她接得到才由她接。<span class="tag">慣例</span></li>
+        <li><b>沒有人的範圍（空檔）：最近的人衝。</b>常常來不及，代表站位要調整。</li>
+      </ol>
+      <p class="note">兩人之間誰接，沒有「科學證明」的唯一答案，是教練之間的約定。查到的說法都一樣：距離最近、往前比往後容易的人接，另一個人補位。如果一個人明顯比較會接（例如自由），也可以把她的範圍放大，但要先講好。</p>
+    </details>
+
+    <details>
+      <summary>攔網陰影、出界球</summary>
+      <ul>
+        <li><b>攔網陰影</b>（圖上灰色）：攔網手擋住的地方，重扣打不進去，所以後排不要站在陰影裡，要站在陰影兩邊；只有守吊球的人站在攔網後面。</li>
+        <li><b>出界球不要碰</b>：站在邊線、底線內側一點。腰以上的高度朝妳飛來的球，通常會出界（除非攔網碰過）。碰了反而變成我們失分。<span class="tag">慣例</span></li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>不夠高、攔不到、來不及的時候</summary>
+      <ul>
+        <li><b>手過不了網的人要不要攔：</b>教練的看法不一樣。有人主張照攔網的位置做動作，長高後就會攔；比賽時手過不了網，攔網擋不到球，退下來防守比較有用。練習時可以照攔網位置練，比賽時退下來。<span class="tag">慣例</span></li>
+        <li><b>沒去攔網的前排：</b>退到離網 3 公尺、離邊線 3 公尺左右（常叫「10×10」，10 英尺約 3 公尺），守吊球。對方從她這一邊打、她又不攔的時候，就站在攔網後面一點守吊球。</li>
+        <li><b>攔中不夠高：</b>對方打邊線時，由邊上的人單人攔；攔中退到攔網內側、三米線附近，守中間的吊球和短球。對方打中間時，由旁邊會攔的人到中間攔。</li>
+        <li><b>攔中來不及：</b>不要硬跳。晚到的攔網，兩個人中間會留一條縫，對方會往縫裡打。直接退到攔網內側、三米線附近守吊球，比跳了還有縫好。</li>
+        <li><b>三個前排都不攔：</b>前排三個人平均分開，離網 1.5～2.4 公尺左右蹲低，不要擋到後排看球；後排站深、站開。</li>
+      </ul>
+      <p class="note">在 App 的「情境 → 誰會攔網」把不夠高的人取消勾選，就會看到她退到哪裡。</p>
+    </details>
+
+    <details>
+      <summary>有人去接球時，其他人做什麼（補位）</summary>
+      <ul>
+        <li><b>最近的人上前接，另一個人跟到她後面保護。</b>球接飛了、從她手臂彈出去，後面的人可以救。</li>
+        <li><b>旁邊的人往她空出來的地方移一點。</b>例如邊跟進時 1 號位往前守吊球，6 號位就往直線那邊移過去補。</li>
+        <li><b>舉球員</b>看到別人接，就往目標區跑；<b>攔網的人</b>落地轉身看球；<b>其他人</b>眼睛跟著球、身體轉向球。</li>
+        <li><b>球接起來以後</b>大家往前移動（往目標區、往攻擊手），不要往後退。</li>
+      </ul>
+      <p class="note">App 裡接球的人標「接」，跟到後面的人標「補位」，往空位移的人標「補空位」。</p>
+    </details>
+
+    <details>
+      <summary>大斜線、小斜線、直線：誰負責</summary>
+      <ul>
+        <li><b>小斜線</b>（很斜、落在網前三米線附近）：沒去攔網的前排（退到三米線、靠邊線）。</li>
+        <li><b>大斜線</b>（斜斜打到對角深區）：斜線那一邊的後排。對方大砲從我們右邊打，大斜線會到我們的 5 號位，所以很多隊讓自由守 5 號位。</li>
+        <li><b>直線</b>（沿著邊線打）：直線那一邊的後排，站在攔網陰影外面。</li>
+        <li><b>打手出界</b>：打在攔網手上飛出去，很難救，靠攔網手型（手往場內轉）減少。</li>
+        <li>頂尖女排的數據（2024 世界女排聯賽，2,599 次扣球）：打深球約 31%、直線約 24%、吊球約 18%、斜線約 18%、打手出界約 8%。連頂尖選手都有將近五分之一是吊球，所以一定要有人守吊球。</li>
+      </ul>
+    </details>
+
+    <details>
+      <summary>固定防守位置（專位防守）</summary>
+      <p>發球一出手，大家就可以走到自己固定的防守位置，不用照輪轉的號位站。<span class="tag">規則</span> 2025–2028 新規則還規定：發球隊在發球那一刻可以自由站位，接發球隊還是要照輪轉站。</p>
+      <p>常見的固定法：</p>
+      <ul>
+        <li>前排：大砲守 4、攔中守 3、輔舉（或前排的舉球員）守 2。</li>
+        <li>後排：舉球員（或輔舉）守 1，自由守 5（或 6），後排大砲守 6（或 5）。</li>
+        <li>為什麼舉球員守 1：離舉球位最近，沒輪到她接就能很快跑去舉。</li>
+      </ul>
+      <p>接發球的時候，要等第一次攻擊打完、進入防守，才換到固定位置。</p>
+    </details>
+
+    <details>
+      <summary>舉球員（後排）留在網前，可以嗎？</summary>
+      <p><b>規則上可以</b>：發球後，後排球員可以站在場上任何地方。<span class="tag">規則</span> 但有兩件事不能做：</p>
+      <ul>
+        <li>不能攔網：在網子附近、手高過網子去碰對方打過來的球，就算攔網犯規。</li>
+        <li>在三米線前面，不能把整顆高過網子的球打過去（不能「二次球直接打過去」）。</li>
+      </ul>
+      <p><b>好處</b>：每一球都有舉球員在網前等，防起來的球不用很準；她順便守右前的短球、吊球。</p>
+      <p><b>代價</b>：輔舉要退到 1 號位防守，右邊少一個攻擊點，後排也多一個不習慣防守的人。一般隊伍是舉球員守 1 號位、輔舉在前排退下來守右前的短球，右邊還能攻擊。兩種都可以，在 App 裡選「舉球留網前」跟「心後」比比看。</p>
+    </details>
+
+    <details>
+      <summary>球接起來之後</summary>
+      <ol>
+        <li><b>往哪接</b>：高高的、往場中間、離網兩三公尺。太靠網容易直接過網給對方。</li>
+        <li><b>舉球員</b>：看到別人接，就跑去球下面舉。</li>
+        <li><b>舉球員接了第一球</b>：她喊「修正」，由自由或輔舉來舉，高高送到 4 號位。自由在三米線前面用手舉的話，攻擊手不能在網子上方打，所以自由用下手舉，或在三米線後面舉。<span class="tag">規則</span></li>
+        <li><b>攻擊手</b>：攔完網落地轉身退開，退到起跑點準備助跑。</li>
+        <li><b>保護攻擊手</b>：舉球出去後，離攻擊手最近的三個人蹲低靠近，另外兩個站後面一點，球被攔回來才接得到。</li>
+        <li><b>回防</b>：球過網後回到基本站位，看對方怎麼舉。</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary>參考資料</summary>
+      <ul class="refs">
+        <li><a href="https://coachingvb.com/whose-ball-seam-responsibilities" target="_blank" rel="noopener">Coaching Volleyball：Whose ball? Seam responsibilities</a>（兩人之間誰接）</li>
+        <li><a href="https://coachesinsider.com/volleyball/positioning-defensively-as-a-team-article" target="_blank" rel="noopener">Coaches Insider / Human Kinetics：Positioning defensively as a team</a>（縫隙、出界球、站位距離）</li>
+        <li><a href="https://coachesinsider.com/volleyball/digging-tactics" target="_blank" rel="noopener">Coaches Insider：Digging tactics</a>（防起來往哪送、沒攔網的前排守哪裡）</li>
+        <li><a href="https://coachesinsider.com/volleyball/effectively-using-the-libero/" target="_blank" rel="noopener">Coaches Insider：Effectively using the libero</a>（舉球員接第一球時誰舉）</li>
+        <li><a href="https://coachingvb.com/hitter-coverage-strategy" target="_blank" rel="noopener">Coaching Volleyball：Hitter coverage strategy</a>（保護攻擊手）</li>
+        <li><a href="https://goldmedalsquared.com/post/volleyball-terms" target="_blank" rel="noopener">Gold Medal Squared：Volleyball terms</a>（沒去攔網的人站 10×10、三人都不攔時怎麼站、邊跟進時 6 號位補過去）</li>
+        <li><a href="https://www.theartofcoachingvolleyball.com/should-kids-block-before-they-can-block/" target="_blank" rel="noopener">The Art of Coaching Volleyball：Should kids block before they can block?</a>（手過不了網要不要攔）</li>
+        <li><a href="https://usavolleyball.org/resource/staying-square-to-the-volleyball-net-while-blocking-five-steps/" target="_blank" rel="noopener">USA Volleyball：Staying square to the net while blocking</a>（兩個攔網中間的縫）</li>
+        <li><a href="https://coachingvb.com/master-one-defense-or-develop-familiarity-with-multiple/" target="_blank" rel="noopener">Coaching Volleyball：心後時 1 號位往前守吊球</a></li>
+        <li><a href="https://volleyballvault.com/volleyball-base-positions/" target="_blank" rel="noopener">Volleyball Vault：Base positions</a>（基本站位、舉球員守 1 號位）</li>
+        <li><a href="https://www.theartofcoachingvolleyball.com/up-defense/" target="_blank" rel="noopener">The Art of Coaching Volleyball：Man up（心跟進）</a></li>
+        <li><a href="https://www.nbcolympics.com/news/volleyball-101-rules" target="_blank" rel="noopener">Volleyball 101 rules</a>（後排不能攔網、後排在前區的攻擊限制）</li>
+        <li><a href="https://www.ctusf.org.tw/upload/news/20250930120612_2.pdf" target="_blank" rel="noopener">2025～2028 新增、修訂中文排球規則</a>（7.4、7.4.4 站位）</li>
+        <li><a href="https://www.frontiersin.org/articles/10.3389/fspor.2025.1630870/full" target="_blank" rel="noopener">Sitti &amp; Rangubhet（2025）女排扣球類型分析</a>（2024 世界女排聯賽數據）</li>
+      </ul>
+    </details>
+    <footer class="foot foot-know"><span id="verKnow"></span><span>© 2026 陳則翰</span></footer>
+  </div>
+</section>
+
+<!-- ===== 情境設定（手機直放用底部面板，不加遮罩） ===== -->
+<div class="sheet" id="sitSheet" role="dialog" aria-modal="false" aria-labelledby="sitTitle" hidden>
+  <div class="sheet-grab" aria-hidden="true"><span></span></div>
+  <div class="sheet-head"><h2 id="sitTitle">情境設定</h2><button class="btn btn-text" data-close>完成</button></div>
+  <div class="sheet-body" id="sitSheetBody">
+    <div id="sitForm" class="sitform">
+      <fieldset>
+        <legend>防守隊形</legend>
+        <div class="chips" data-key="formation">
+          <button data-v="up">心跟進</button><button data-v="rot">邊跟進</button><button data-v="per">心後</button><button data-v="ours">舉球留網前</button>
+        </div>
+        <p class="hint-line" id="formDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>舉球員在哪</legend>
+        <div class="chips" data-key="setter">
+          <button data-v="back">後排</button><button data-v="front">前排</button>
+        </div>
+        <p class="hint-line" id="setterDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>誰會攔網（可以複選，不夠高的人取消）</legend>
+        <div class="chips chips-multi">
+          <button data-k="canOH">大砲</button><button data-k="canMB">攔中</button><button data-k="canR" id="chipR">輔舉</button>
+        </div>
+        <p class="hint-line" id="blockDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>攔中跟得上邊線嗎</legend>
+        <div class="chips" data-key="mbLate">
+          <button data-v="0">跟得上</button><button data-v="1">來不及</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>自由固定守</legend>
+        <div class="chips" data-key="libero">
+          <button data-v="5">5 號位</button><button data-v="6">6 號位</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>防守範圍半徑（公尺）</legend>
+        <div class="chips" data-key="radius">
+          <button data-v="1.2">1.2</button><button data-v="1.6">1.6</button><button data-v="2">2.0</button><button data-v="2.4">2.4</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>播放速度</legend>
+        <div class="chips" data-key="speed">
+          <button data-v="normal">正常</button><button data-v="slow">慢</button>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 每個人在做什麼 ===== -->
+<div class="sheet" id="detSheet" role="dialog" aria-modal="false" aria-labelledby="detTitle" hidden>
+  <div class="sheet-grab" aria-hidden="true"><span></span></div>
+  <div class="sheet-head"><h2 id="detTitle">每個人在做什麼</h2><button class="btn btn-text" data-close>關閉</button></div>
+  <div class="sheet-body"><ul class="tasks" id="detList"></ul></div>
+</div>
+
+<!-- ===== 使用說明 ===== -->
+<div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+  <div class="ov-card" id="helpCard">
+    <div class="sheet-grab" aria-hidden="true"><span></span></div>
+    <header class="ov-head">
+      <button class="btn btn-back" id="helpBack">‹ 目錄</button>
+      <h2 id="helpTitle">使用說明</h2>
+      <button class="btn btn-text" id="helpClose">關閉</button>
+    </header>
+    <div class="ov-body">
+      <div id="helpToc" class="help-toc"></div>
+      <div id="helpTopic" class="help-topic" hidden>
+        <div class="cards-viewport" id="helpViewport"><div class="cards-track" id="helpTrack"></div></div>
+        <div class="cards-nav">
+          <button class="btn btn-ghost" id="helpPrev">‹ 上一張</button>
+          <span id="helpCount" class="help-count"></span>
+          <button class="btn btn-primary" id="helpNext">下一張 ›</button>
+        </div>
+      </div>
+    </div>
+    <p class="ov-foot" id="verHelp"></p>
+  </div>
+</div>
+
+<!-- ===== 回報問題 ===== -->
+<div class="overlay" id="report" role="dialog" aria-modal="true" aria-labelledby="reportTitle" hidden>
+  <div class="ov-card ov-small">
+    <div class="sheet-grab" aria-hidden="true"><span></span></div>
+    <header class="ov-head"><span></span><h2 id="reportTitle">回報問題</h2><button class="btn btn-text" data-close>關閉</button></header>
+    <div class="ov-body report-body">
+      <p>遇到問題或有建議，請截圖（畫面上要看得到版本號）傳給教練。</p>
+      <p>目前版本：<b id="verReport"></b></p>
+      <p class="small" id="reportRepo"></p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button class="btn-link" id="toastAct" hidden></button></div>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>

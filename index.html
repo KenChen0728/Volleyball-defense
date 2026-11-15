@@ -81,8 +81,9 @@
   </nav>
   <div class="mainwrap">
     <div class="courtbox" id="courtbox">
-      <svg id="court" viewBox="-0.45 -3.55 9.9 13.25" preserveAspectRatio="xMidYMid meet" role="img" aria-label="排球場站位圖。上方是對方場地，下方是我們的場地。"></svg>
+      <svg id="court" viewBox="-0.45 -3.55 9.9 13.55" preserveAspectRatio="xMidYMid meet" role="img" aria-label="排球場站位圖。上方是對方場地，下方是我們的場地。"></svg>
       <canvas id="court3d" hidden aria-label="立體畫面：點地板可以把球打到那裡"></canvas>
+      <canvas id="court3dLabels" hidden aria-hidden="true"></canvas>
       <div class="court-tools">
         <div class="seg seg-view" role="group" aria-label="畫面">
           <button data-view="2d" aria-pressed="true">平面</button><button data-view="3d" aria-pressed="false">立體</button>
@@ -95,7 +96,7 @@
             <option value="S">舉球員</option>
             <option value="MB">攔中</option>
             <option value="OH1">前排大砲</option>
-            <option value="OPP">輔舉</option>
+            <option value="OPP">舉對</option>
             <option value="OH2">後排大砲</option>
             <option value="L">自由</option>
           </select>
@@ -171,12 +172,24 @@
       <ul>
         <li><b>發球那一刻要照輪轉的順序站</b>：前排要比同一直排的後排靠網（4 比 5、3 比 6、2 比 1）；同一排左右順序不能換（4 在 3 左邊、3 在 2 左邊；5、6、1 也一樣）。只比相鄰的人，所以可以斜著站。發球員一擊球，就可以到處移動。<span class="tag">規則</span></li>
         <li><b>五人 W 型</b>：舉球員以外五個人排成 W，前面三個、後面兩個。USA Volleyball 說明這種站法常給年輕、經驗少的隊伍用，每個人的範圍小；比較靠後面的人負責比較深的球。缺點是接的人多、縫也多。</li>
-        <li><b>四人接、三人接</b>：讓攔中（四人）或攔中、輔舉（三人）不接，專心準備攻擊。三人接通常是兩個大砲加自由，範圍大，適合比較會接的隊伍。</li>
+        <li><b>四人接、三人接</b>：讓攔中（四人）或攔中、舉對（三人）不接，專心準備攻擊。三人接通常是兩個大砲加自由，範圍大，適合比較會接的隊伍。</li>
         <li><b>舉球員躲起來</b>：舉球員不接發球，在後排時躲在前面那個人的後面（只要比她靠後就合法），發球員一擊球就跑到網前。</li>
         <li><b>傳到哪裡</b>：網前中間偏右、離網 1～1.5 公尺。Gold Medal Squared 提到美國女排國家隊的目標離網約 4 英尺（1.2 公尺），很多大學隊放在 5 英尺：離網一點比較不會直接過網。</li>
         <li><b>誰接</b>：發球前講好；兩人之間，離球近、往前或往旁邊移動的人喊「我的」去接，另一個人喊「妳的」讓開、轉身看她接。<span class="tag">慣例</span></li>
         <li><b>發球出界不要碰</b>：腰以上的高度朝妳飛過來的球，常常會出界；碰到了就變成我們的球。</li>
       </ul>
+    </details>
+
+    <details>
+      <summary>隊上的單舉站法（教練畫的）</summary>
+      <ul>
+        <li><b>接發球</b>：大多是四個人接：兩個人站在三米線後面一點、兩個人站更後面；前排攔中和舉球員不接。舉球員在 6 號位那一輪只有三個人接（兩個大砲和後排攔中）。</li>
+        <li><b>舉球員</b>：在後排時躲在前面那個人的後面，發球員一擊球就跑到網前 2 號位偏中間舉；在前排時沿著網子移過去。</li>
+        <li><b>第一波攻擊</b>：先從站的那一邊攻擊，打完再換到固定位置（例如舉球員在 1 號位那一輪，前排的舉對和大砲第一波打完再交換）。</li>
+        <li><b>我們發球</b>：發球前先站到方便換位的地方，發球一出手就換：舉球員到 2 號位、舉對到 1 號位、大砲到 4 號位、攔中到 3 號位，自由守 5 號位、後排大砲守 6 號位。</li>
+        <li><b>後排攔中發球時</b>：自由還不能換上來，攔中發完球守 6 號位，後排大砲到 5 號位。</li>
+      </ul>
+      <p class="note">App 的「1 輪轉」按播放，可以看我們發球時怎麼換位；「2 接發球」選「隊上的站法」，就是這裡的接發球。站位圖解也有六輪的圖。</p>
     </details>
 
     <details>
@@ -195,7 +208,7 @@
       <summary>進攻系統：單舉、雙輔舉、雙舉</summary>
       <ul>
         <li><b>單舉（5-1）</b>：一位舉球員六輪都舉。她在後排時，前排有三個攻擊手；她在前排時只剩兩個。</li>
-        <li><b>雙輔舉（6-2）</b>：兩位舉球員對角站。在後排的那位插上舉球，在前排的那位當輔舉攻擊，所以前排一直有三個攻擊手。</li>
+        <li><b>雙輔舉（6-2）</b>：兩位舉球員對角站。在後排的那位插上舉球，在前排的那位當舉對攻擊，所以前排一直有三個攻擊手。</li>
         <li><b>雙舉（4-2）</b>：兩位舉球員對角站。在前排的那位舉球，後排的那位當一般防守；前排只有兩個攻擊手，但舉球員本來就在網前，比較簡單。</li>
         <li>App 的「設定 → 進攻系統」可以隨時切換，輪轉和接發球站位會跟著改。</li>
       </ul>
@@ -260,8 +273,8 @@
       <summary>固定防守位置（專位防守）</summary>
       <p>發球一出手，大家就可以走到自己固定的防守位置，不用照輪轉的號位站。<span class="tag">規則</span> 2025–2028 新規則還規定：發球隊在發球那一刻可以自由站位，接發球隊還是要照輪轉站。</p>
       <ul>
-        <li>前排：大砲守 4、攔中守 3、輔舉（或前排的舉球員）守 2。</li>
-        <li>後排：舉球員（或輔舉）守 1，自由守 5（或 6），後排大砲守 6（或 5）。</li>
+        <li>前排：大砲守 4、攔中守 3、舉對（或前排的舉球員）守 2。</li>
+        <li>後排：舉球員（或舉對）守 1，自由守 5（或 6），後排大砲守 6（或 5）。</li>
         <li>為什麼舉球員守 1：離舉球位最近，沒輪到她接就能很快跑去舉。</li>
       </ul>
       <p>接發球的時候，要等第一次攻擊打完、進入防守，才換到固定位置。App 的「2 接發球」最後一步會示範怎麼換。</p>
@@ -275,7 +288,7 @@
         <li>在三米線前面，不能把整顆高過網子的球打過去（不能「二次球直接打過去」）。</li>
       </ul>
       <p><b>好處</b>：每一球都有舉球員在網前等，防起來的球不用很準；她順便守右前的短球、吊球。</p>
-      <p><b>代價</b>：輔舉要退到 1 號位防守，右邊少一個攻擊點，後排也多一個不習慣防守的人。兩種都可以，在 App 裡選「舉球留網前」跟「心後」比比看。</p>
+      <p><b>代價</b>：舉對要退到 1 號位防守，右邊少一個攻擊點，後排也多一個不習慣防守的人。兩種都可以，在 App 裡選「舉球留網前」跟「心後」比比看。</p>
     </details>
 
     <details>
@@ -283,7 +296,7 @@
       <ol>
         <li><b>往哪接</b>：防起來的球要高、往場中間、離網兩三公尺；接發球則傳到網前中間偏右、離網 1 公尺多。太靠網容易直接過網給對方。</li>
         <li><b>舉球員</b>：看到別人接，就跑去球下面舉。</li>
-        <li><b>舉球員接了第一球</b>：她喊「修正」，由自由或輔舉來舉，高高送到 4 號位。自由在三米線前面用手舉的話，攻擊手不能在網子上方打，所以自由用下手舉，或在三米線後面舉。<span class="tag">規則</span></li>
+        <li><b>舉球員接了第一球</b>：她喊「修正」，由自由或舉對來舉，高高送到 4 號位。自由在三米線前面用手舉的話，攻擊手不能在網子上方打，所以自由用下手舉，或在三米線後面舉。<span class="tag">規則</span></li>
         <li><b>攻擊手</b>：接完球或攔完網，馬上退到起跑點準備助跑。</li>
         <li><b>保護攻擊手</b>：舉球出去後，離攻擊手最近的三個人蹲低靠近，另外兩個站後面一點，球被攔回來才接得到。</li>
         <li><b>回防</b>：球過網後回到基本站位，看對方怎麼舉。</li>
@@ -340,21 +353,27 @@
       <fieldset>
         <legend>接發球隊形</legend>
         <div class="chips" data-key="recv">
-          <button data-v="w5">五人 W</button><button data-v="p4">四人</button><button data-v="p3">三人</button>
+          <button data-v="team">隊上的站法</button><button data-v="w5">五人 W</button><button data-v="p4">四人</button><button data-v="p3">三人</button>
         </div>
         <p class="hint-line" id="recvDesc"></p>
       </fieldset>
       <fieldset>
+        <legend>自由球員</legend>
+        <div class="chips" data-key="useLib">
+          <button data-v="true">有自由</button><button data-v="false">沒有（後排攔中自己接）</button>
+        </div>
+      </fieldset>
+      <fieldset>
         <legend>防守隊形</legend>
         <div class="chips" data-key="formation">
-          <button data-v="up">心跟進</button><button data-v="rot">邊跟進</button><button data-v="per">心後</button><button data-v="ours">舉球留網前</button>
+          <button data-v="ours">舉球留網前（隊上）</button><button data-v="up">心跟進</button><button data-v="rot">邊跟進</button><button data-v="per">心後</button>
         </div>
         <p class="hint-line" id="formDesc"></p>
       </fieldset>
       <fieldset>
         <legend>誰會攔網（可以複選，不夠高的人取消）</legend>
         <div class="chips chips-multi">
-          <button data-k="canOH">大砲</button><button data-k="canMB">攔中</button><button data-k="canR" id="chipR">輔舉</button>
+          <button data-k="canOH">大砲</button><button data-k="canMB">攔中</button><button data-k="canR" id="chipR">舉對</button>
         </div>
         <p class="hint-line" id="blockDesc"></p>
       </fieldset>
@@ -441,6 +460,7 @@
 
 <script src="js/rotation.js" defer></script>
 <script src="js/render3d.js" defer></script>
+<script src="js/gl3d.js" defer></script>
 <script src="js/diagrams.js" defer></script>
 <script src="js/app.js" defer></script>
 </body>

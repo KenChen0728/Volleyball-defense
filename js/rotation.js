@@ -40,6 +40,7 @@ function rotation(system, rot){
 
 // 接發球隊形：誰接、站哪裡
 const FORMS = {
+  team:{ name:'隊上的站法', short:'隊上', spots:[], passer: () => true, desc:'教練畫的單舉站法：大多是四個人接（前排攔中和舉球員不接，舉球員在 6 號位時三個人接）；我們發球時怎麼換位也照教練的圖。只有單舉有，雙輔舉、雙舉會用五人 W。' },
   w5:{ name:'五人 W 型', short:'五人W', spots:[[1.4,4.2],[4.5,3.9],[7.6,4.2],[2.9,7.0],[6.1,7.0]],
        passer: r => r !== 'S', desc:'舉球員以外的五個人排成 W：前面三個、後面兩個站在縫上。新手最常用，每個人負責的範圍小。' },
   p4:{ name:'四人接', short:'四人', spots:[[1.3,5.0],[3.4,6.3],[5.6,6.3],[7.8,5.0]],
@@ -48,6 +49,43 @@ const FORMS = {
        passer: r => r === 'OH1' || r === 'OH2' || r === 'L', desc:'只有兩個大砲和自由接，其他人躲開。每人範圍大，適合比較會接的隊伍。' },
 };
 
+// 隊上的單舉站法（教練畫的圖），照舉球員所在的號位。座標：x 由左到右、y 離網多遠（公尺）
+const TEAM = {
+  recv:{
+    1:{ pos:{ MB:[4.5,1.1], OPP:[1.0,4.2], OH1:[7.2,4.2], S:[8.35,5.5], OH2:[2.8,6.7], L:[6.0,6.7] }, hidden:['S','MB'],
+        moves:[['S',[6.5,1.0]]], swap:['OPP','OH1'], note:'前排的舉對和大砲，第一波攻擊打完再交換：舉對到右邊、大砲到左邊。' },
+    6:{ pos:{ OPP:[4.4,1.1], MB:[6.4,2.0], S:[4.9,2.5], OH1:[1.35,4.9], OH2:[7.6,5.7], L:[3.7,7.1] }, hidden:['S','MB','OPP'],
+        moves:[['OPP',[8.5,2.0]], ['S',[6.5,1.0]]], note:'只有三個人接：兩個大砲和後排攔中（自由）。舉對發球後往右移到 2 號位準備攻擊。' },
+    5:{ pos:{ MB:[0.9,1.1], S:[1.6,2.5], OH1:[1.85,4.5], OPP:[7.2,4.8], OH2:[3.1,6.5], L:[6.0,6.5] }, hidden:['S','MB'],
+        moves:[['MB',[4.0,2.75]], ['S',[6.5,1.0]]], note:'舉球員躲在左前攔中的後面，發球後沿著網子跑到右邊；攔中往中間移，準備快攻。' },
+    4:{ pos:{ S:[0.85,0.85], MB:[1.2,2.4], OH1:[1.75,4.45], OPP:[7.6,4.95], OH2:[3.2,6.7], L:[5.9,6.7] }, hidden:['S','MB'],
+        moves:[['S',[6.5,1.0]], ['MB',[4.8,3.4]]], note:'前排三個人都疊在左邊：舉球員沿著網子跑到右邊，攔中往中間移，大砲在左邊接球後直接攻擊。' },
+    3:{ pos:{ S:[4.95,0.9], MB:[6.2,2.1], OH1:[1.5,4.65], OH2:[7.6,4.45], L:[3.2,7.1], OPP:[6.0,7.1] }, hidden:['S','MB'],
+        moves:[['S',[6.5,1.0]]], note:'舉球員本來就在網前中間，攔中靠右；四個人接。' },
+    2:{ pos:{ MB:[0.8,0.9], S:[6.6,0.9], OH1:[1.7,4.65], L:[7.4,4.65], OPP:[3.2,6.9], OH2:[6.0,6.9] }, hidden:['S','MB'],
+        moves:[], note:'攔中靠左邊網前，舉球員本來就在右邊網前；四個人接。' },
+  },
+  // 我們發球：at 是發球前站的位置（發球員另外站到底線後面），noLib 代表發球的是後排攔中，自由還不能上場
+  serve:{
+    4:{ server:'OPP', at:{ MB:[4.55,.85], S:[3.45,2.05], OH1:[5.65,3.4], L:[4.55,5.7], OH2:[4.0,7.3] },
+        note:'舉球員站在攔中左後方、大砲站在右邊靠中間，發球後兩個人交叉：舉球員到 2 號位、大砲到 4 號位。自由從中間移到 5 號位，後排大砲守 6 號位。' },
+    2:{ server:'L', noLib:true, at:{ MB:[4.3,.95], OH1:[5.05,2.4], S:[7.3,1.5], OPP:[3.85,4.7], OH2:[4.45,6.3] },
+        note:'發球的是後排攔中，自由還不能上場：攔中發完球守 6 號位，後排大砲到 5 號位，舉對到 1 號位。前排大砲從中間往左到 4 號位。' },
+    3:{ server:'OH2', at:{ OH1:[1.6,1.5], MB:[5.05,.95], S:[4.0,2.45], L:[1.55,5.75], OPP:[7.4,5.9] },
+        note:'舉球員在網前中間，發球後往右到 2 號位；攔中到中間。後排大砲發完球守 6 號位，自由守 5 號位。' },
+    1:{ server:'S', at:{ MB:[4.55,.85], OH1:[5.05,2.4], OPP:[3.7,2.95], L:[5.35,6.0], OH2:[4.45,7.45] },
+        note:'舉球員發球：發完球直接跑到網前 2 號位；前排的舉對退到 1 號位防守，大砲到 4 號位，自由到 5 號位。' },
+    6:{ server:'OH2', at:{ OH1:[1.55,1.5], MB:[5.1,.9], OPP:[4.4,2.3], L:[1.55,5.6], S:[7.8,4.3] },
+        note:'舉球員（後排）站在右邊，發球後往前到網前 2 號位；前排的舉對退到 1 號位防守，自由守 5 號位。' },
+    5:{ server:'L', noLib:true, at:{ MB:[3.8,.9], OH1:[4.45,2.3], OPP:[7.4,1.5], S:[3.85,4.05], OH2:[4.5,6.3] },
+        note:'發球的是後排攔中，自由還不能上場：舉球員往右前到 2 號位，舉對退到 1 號位，後排大砲到 5 號位，攔中發完球守 6 號位。' },
+  },
+  // 防守的基本站位：舉球員一律在 2 號位、舉對在 1 號位
+  base:{ lib:{ OH1:[1.6,1.7], MB:[4.5,.85], S:[7.4,1.7], L:[1.65,5.7], OH2:[4.5,7.45], OPP:[7.4,5.9] },
+         noLib:{ OH1:[1.6,1.7], MB:[4.5,.85], S:[7.4,1.7], OH2:[1.5,5.7], L:[4.5,7.5], OPP:[7.4,5.9] } },
+  baseZone:{ lib:{ OH1:4, MB:3, S:2, L:5, OH2:6, OPP:1 }, noLib:{ OH1:4, MB:3, S:2, OH2:5, L:6, OPP:1 } },
+  target:[6.5, 1.0],
+};
 function prefHidden(role, zone){
   if (role === 'S') return FRONT(zone) ? [6.2, 0.8] : ({1:[7.7,1.5], 6:[5.4,1.6], 5:[2.8,1.6]}[zone]);
   if (role === 'MB') return [4.5, 0.8];
@@ -86,8 +124,16 @@ function repair(pos, roleZone, weight){
   }
   return pos;
 }
+function teamOK(system, form){ return form === 'team' && system === '51'; }
 function receive(system, rot, form){
   const R = rotation(system, rot);
+  if (teamOK(system, form)){
+    const t = TEAM.recv[R.roleZone.S], pos = {};
+    for (const r in t.pos) pos[r] = t.pos[r].slice();
+    const passers = Object.keys(R.roleZone).filter(r => !t.hidden.includes(r));
+    return { pos, passers, hidden:t.hidden.slice(), R, legal: violations(pos, R.roleZone).length === 0, note:t.note, moves:t.moves, swap:t.swap || null, team:true };
+  }
+  if (form === 'team') form = 'w5';
   const F = FORMS[form] || FORMS.w5;
   const roles = Object.keys(R.roleZone);
   const passers = roles.filter(F.passer);
@@ -121,7 +167,23 @@ function receive(system, rot, form){
     repair(best, R.roleZone, weight);
     if (!moved) break;
   }
-  return { pos:best, passers, hidden, R, legal: violations(best, R.roleZone).length === 0 };
+  return { pos:best, passers, hidden, R, legal: violations(best, R.roleZone).length === 0, note:'', moves:[], swap:null, team:false };
+}
+// 我們發球：發球前怎麼站、發球員是誰、發球後換到哪裡（隊上的單舉照圖；其他用輪轉的號位）
+function serveSeq(system, rot, form){
+  const R = rotation(system, rot);
+  const at = {}; for (const r in R.roleZone) at[R.roleZone[r]] = r;
+  const server = at[1];
+  if (teamOK(system, form)){
+    const t = TEAM.serve[R.roleZone.S];
+    const pos = {}; for (const r in t.at) pos[r] = t.at[r].slice();
+    pos[server] = [7.5, 9.45];
+    return { R, server, at:pos, noLib:!!t.noLib, note:t.note, team:true };
+  }
+  const ZC = { 4:[1.5,1.6], 3:[4.5,1.6], 2:[7.5,1.6], 5:[1.5,6.3], 6:[4.5,6.3], 1:[7.5,6.3] };
+  const pos = {}; for (const r in R.roleZone) pos[r] = ZC[R.roleZone[r]].slice();
+  pos[server] = [7.5, 9.45];
+  return { R, server, at:pos, noLib: server === 'L', note:'', team:false };
 }
 // 某個人要注意的站位規則（給畫面說明用）
 function rulesFor(role, roleZone){
@@ -132,5 +194,5 @@ function rulesFor(role, roleZone){
   return out;
 }
 
-window.VBRot = { SYSTEMS, FORMS, FB_PAIRS, LR_PAIRS, rotation, receive, violations, rulesFor, FRONT };
+window.VBRot = { SYSTEMS, FORMS, FB_PAIRS, LR_PAIRS, TEAM, rotation, receive, serveSeq, teamOK, violations, rulesFor, FRONT };
 })();

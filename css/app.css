@@ -123,6 +123,7 @@ button, select{font:inherit; color:inherit}
 #court{width:100%; height:100%; display:block; touch-action:none; user-select:none; -webkit-user-select:none}
 #court.is-hidden{visibility:hidden}
 #court3d{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; border-radius:8px}
+#court3dLabels{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; border-radius:8px}
 .court-tools{position:absolute; top:6px; right:8px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; z-index:5}
 .court-tools .seg{background:var(--surface); box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .cam-pick{display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:0 4px 0 10px; box-shadow:0 2px 8px rgba(0,0,0,.12)}

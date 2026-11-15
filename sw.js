@@ -1,11 +1,11 @@
 /* 排球站位教室：離線快取。先問網站有沒有新版（最多等 3 秒），連不上或回錯誤就用存好的版本。 */
 const PREFIX = 'vbdef-';
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const CACHE = PREFIX + VERSION;
 const ASSETS = [
-  './', 'index.html', 'css/app.css', 'js/rotation.js', 'js/render3d.js', 'js/diagrams.js', 'js/app.js', 'manifest.webmanifest',
+  './', 'index.html', 'css/app.css', 'js/rotation.js', 'js/render3d.js', 'js/gl3d.js', 'js/diagrams.js', 'js/app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/maskable-512.png',
-  'help/screen-1.webp', 'help/screen-2.webp', 'help/screen-3.webp', 'help/rot-1.webp', 'help/rot-2.webp',
+  'help/screen-1.webp', 'help/screen-2.webp', 'help/screen-3.webp', 'help/rot-1.webp', 'help/rot-2.webp', 'help/rot-3.webp',
   'help/recv-1.webp', 'help/recv-2.webp', 'help/recv-3.webp',
   'help/learn-1.webp', 'help/learn-2.webp', 'help/learn-3.webp', 'help/learn-4.webp',
   'help/3d-1.webp', 'help/3d-2.webp', 'help/sit-1.webp', 'help/sit-2.webp',

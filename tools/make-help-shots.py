@@ -10,7 +10,7 @@ URL = os.environ.get('VB_URL', 'http://localhost:8765/index.html')
 CHROME = os.environ.get('CHROME', '/usr/bin/google-chrome')
 OUT = 'help'
 W, H, DPR = 390, 844, 2
-BASE = "{system:'51', rot:1, recv:'w5', formation:'up', canOH:true, canMB:true, canR:true, mbLate:false, libero:5, radius:2, attacker:{x:8.2,y:-1.3}, serveX:1.6, mode:'learn', view:'2d', cam:'dig'}"
+BASE = "{system:'51', rot:1, recv:'team', useLib:true, formation:'ours', canOH:true, canMB:true, canR:true, mbLate:false, libero:5, radius:2, attacker:{x:8.2,y:-1.3}, serveX:1.6, mode:'learn', view:'2d', cam:'dig'}"
 
 
 def save(png_bytes, name, crop=None, max_w=760):
@@ -47,7 +47,7 @@ async def drag_ball(pg, to, hold=True):
 async def main():
     os.makedirs(OUT, exist_ok=True)
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path=CHROME, args=['--no-sandbox'])
+        b = await p.chromium.launch(executable_path=CHROME, args=['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
         ctx = await b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=DPR, has_touch=False, color_scheme='light')
         pg = await ctx.new_page()
         await pg.goto(URL)
@@ -64,6 +64,12 @@ async def main():
         save(await pg.screenshot(), 'rot-1')
         await pg.click('#btnRotNext'); await pg.wait_for_timeout(800)
         save(await pg.screenshot(), 'rot-2')
+        for i in range(2):
+            await pg.click('#btnRotNext'); await pg.wait_for_timeout(300)
+        await pg.evaluate("VB.markHintSeen()")
+        await pg.click('#btnPlay'); await pg.wait_for_timeout(200)
+        await pg.evaluate("VB.play.auto = false; VB.applyStep(1, false)"); await pg.wait_for_timeout(400)
+        save(await pg.screenshot(), 'rot-3')
         # 接發球
         await step(pg, 'recv')
         cb = await box(pg, '#court')
@@ -86,11 +92,13 @@ async def main():
         save(await pg.screenshot(), 'learn-4')
         # 立體
         await step(pg, 'spike', "{cam:'stand'}")
-        await pg.evaluate("VB.set3D(true)"); await pg.wait_for_timeout(600)
+        await pg.evaluate("VB.set3D(true)"); await pg.wait_for_timeout(900)
         cb = await box(pg, '#courtbox')
+        await pg.evaluate("VB.startSim([1.6, 6.6]); VB.play.auto=false"); await pg.wait_for_timeout(900)
         save(await pg.screenshot(), '3d-1', (0, 0, W, cb[3]))
-        await pg.evaluate("VB.S.cam='dig'; document.getElementById('camSel').value='dig'; VB.startSim([1.6, 6.6]); VB.play.auto=false"); await pg.wait_for_timeout(160)
+        await pg.evaluate("VB.S.cam='dig'; document.getElementById('camSel').value='dig'; VB.S.speed='slow'; VB.startSim([1.6, 6.6]); VB.play.auto=false"); await pg.wait_for_timeout(1250)
         save(await pg.screenshot(), '3d-2', (0, cb[1], W, cb[3]))
+        await pg.evaluate("VB.S.speed='normal'")
         await pg.evaluate("VB.set3D(false)"); await pg.wait_for_timeout(200)
         # 設定
         await step(pg, 'spike')

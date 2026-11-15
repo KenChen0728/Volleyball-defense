@@ -59,10 +59,13 @@ function court(o){
 }
 
 function topics(api){
-  const { ROLE_INFO, groupOf, RT } = api;
+  const { ROLE_INFO, groupOf } = api;
+  const RT = api.rt();
   const R = window.VBRot;
   const S = api.S || { recv:'w5', system:'51', serveX:1.6 };
-  const form = R.FORMS[S.recv] ? S.recv : 'w5', F = R.FORMS[form];
+  const form = R.FORMS[S.recv] && S.recv !== 'team' ? S.recv : 'w5', F = R.FORMS[form];
+  const short = r => ROLE_INFO[r].name;
+  const withLib = (noLib, fn) => { api.setLibOff(noLib); try{ return fn(); } finally { api.setLibOff(!api.useLib()); } };
   const pl = (pos, lu, extra) => api.ROLES.map(r => Object.assign({ x:pos[r][0], y:pos[r][1], t:ROLE_INFO[r].tok, g:groupOf(r, lu), z:lu[r].zone }, (extra && extra[r]) || {}));
   const luOf = Rr => { const lu = {}; for (const r of api.ROLES) lu[r] = { zone:Rr.roleZone[r], front:R.FRONT(Rr.roleZone[r]) }; return lu; };
   const radiusOf = f => f === 'p3' ? 2.6 : (f === 'p4' ? 2.3 : 2.0);
@@ -75,7 +78,6 @@ function topics(api){
     const sp = rc.pos.S, ends = shorten(sp, [RT[0] + .1, RT[1] + .25], .55, .2);
     const lines = [];
     for (const [a, b] of R.FB_PAIRS.concat(R.LR_PAIRS)) lines.push([rc.pos[at[a]], rc.pos[at[b]]]);
-    const short = r => ROLE_INFO[r].name;
     const setterTxt = lu.S.front ? `舉球員在前排（${lu.S.zone} 號位），發球後沿著網子移到目標區。` : `舉球員在後排（${lu.S.zone} 號位），躲在前面的人後面，發球員一擊球就插上到目標區。`;
     return { h:title, svg:() => court({ label:title, players:pl(rc.pos, lu, ex), circles, lines, target:[RT[0], RT[1]], arrows:[{ from:ends[0], to:ends[1], c:'var(--setter)', dash:'.18 .12', w:.08 }],
       opp:[{ x:S.serveX || 1.6, y:-1.45, t:'發' }], texts:[{ x:4.5, y:-.75, t:'虛線：發球前不能前後、左右交換的兩個人', size:.3, bold:false, c:'var(--muted)' }] }),
@@ -97,6 +99,27 @@ function topics(api){
   }
   const att = { x:8.2, y:-1.3 };
   const baseComp = api.defense({}, att);
+  // 隊上的單舉（教練畫的圖）
+  const TM = R.TEAM;
+  function teamRecvCard(rot){
+    const rc = R.receive('51', rot, 'team'), lu = luOf(rc.R), at = {};
+    for (const r of api.ROLES) at[lu[r].zone] = r;
+    const ex = {}; for (const r of rc.hidden) ex[r] = { tag:'不接' };
+    const lines = R.FB_PAIRS.concat(R.LR_PAIRS).map(([a, b]) => [rc.pos[at[a]], rc.pos[at[b]]]);
+    const arrows = rc.moves.map(([r, to]) => { const e = shorten(rc.pos[r], to, .55, .12); return { from:e[0], to:e[1], dash:'.18 .12', c: r === 'S' ? 'var(--setter)' : 'var(--ink)', w:.07 }; });
+    if (rc.swap){ const a = rc.pos[rc.swap[0]], b = rc.pos[rc.swap[1]], e = shorten(a, b, .6, .6); arrows.push({ from:e[0], to:e[1], c:'var(--opp)', dash:'.16 .1', w:.06 }); arrows.push({ from:e[1], to:e[0], c:'var(--opp)', dash:'.16 .1', w:.06 }); }
+    const texts = rc.swap ? [{ x:(rc.pos[rc.swap[0]][0] + rc.pos[rc.swap[1]][0]) / 2, y:rc.pos[rc.swap[0]][1] - .55, t:'第一波打完交換', size:.32, c:'var(--opp)' }] : [];
+    texts.push({ x:4.5, y:-.75, t:'虛線：發球前不能前後、左右交換的兩個人', size:.3, bold:false, c:'var(--muted)' });
+    return { h:`接發球：舉球員在 ${rot} 號位`, p:`${rc.note}接發球：${rc.passers.map(short).join('、')}。`,
+      svg:() => withLib(!api.useLib(), () => court({ label:`隊上接發球：舉球員在 ${rot} 號位`, players:pl(rc.pos, lu, ex), lines, arrows, texts, target:RT, opp:[{ x:1.6, y:-1.45, t:'發' }] })) };
+  }
+  function teamServeCard(rot){
+    const sq = R.serveSeq('51', rot, 'team'), noLib = sq.noLib || !api.useLib(), lu = luOf(sq.R), kk = noLib ? 'noLib' : 'lib', base = TM.base[kk];
+    const arrows = api.ROLES.filter(r => Math.hypot(sq.at[r][0] - base[r][0], sq.at[r][1] - base[r][1]) > .5).map(r => { const e = shorten(sq.at[r], base[r], .55, .15); return { from:e[0], to:e[1], c:'var(--opp)', w:.07 }; });
+    const ghosts = api.ROLES.map(r => ({ x:base[r][0], y:base[r][1], t:'', ghost:true, g:groupOf(r, lu), r:.3 }));
+    return { h:`我們發球：舉球員在 ${rot} 號位`, p:sq.note + '紅色箭頭是發球後要換去的位置（虛線圈）。',
+      svg:() => withLib(noLib, () => court({ vb:[-0.6, -1.4, 10.2, 11.75], label:`我們發球：舉球員在 ${rot} 號位`, players:ghosts.concat(pl(sq.at, lu, { [sq.server]:{ tag:'發球', tagBelow:false } })), arrows })) };
+  }
   const T = [];
   T.push({ id:'basics', title:'號位和站位規則', sub:'先看這個', cards:[
     { h:'號位和輪轉方向', p:'網前從左到右是 4、3、2，後排是 5、6、1（站在自己底線看網子）。發球的人在 1 號位，到底線後面發球。贏回發球權時，大家順時針轉一格：2→1、1→6、6→5、5→4、4→3、3→2。',
@@ -111,20 +134,23 @@ function topics(api){
         return court({ label:'舉球員躲起來', players:pl(rc.pos, lu, { S:{ ring:true, tag:'躲' } }), lines:[[rc.pos[at[2]], rc.pos[at[1]], 'var(--ink)', .07], [rc.pos[at[6]], rc.pos[at[1]], 'var(--ink)', .07]], target:RT,
           arrows:[{ from:shorten(rc.pos.S, RT, .55, .3)[0], to:shorten(rc.pos.S, RT, .55, .3)[1], c:'var(--setter)', dash:'.18 .12', w:.08 }] }); } },
   ]});
+  T.push({ id:'team-recv', title:'隊上單舉：接發球', sub:'教練畫的六輪', cards:[1,6,5,4,3,2].map(teamRecvCard) });
+  T.push({ id:'team-serve', title:'隊上單舉：我們發球怎麼換位', sub:'教練畫的六輪', cards:[1,6,5,4,3,2].map(teamServeCard) });
   T.push({ id:'recvforms', title:'接發球隊形', sub:'五人W、四人、三人', cards:[
     Object.assign(recvCard('51', 1, 'w5', '五人 W 型（新手最常用）'), { p:'舉球員以外的五個人排成 W：前面三個、後面兩個站在前面兩人的縫後面。每個人負責的範圍小，適合剛開始的隊伍；後面的人負責比較深的球。缺點是接的人多、縫也多，要先講好誰接。', src:'根據：USA Volleyball《Volleyball Systems & Strategies》' }),
     Object.assign(recvCard('51', 1, 'p4', '四人接'), { p:'舉球員和前排攔中不接，攔中可以專心準備快攻；其他四個人排成一排或淺 U 型。比五人 W 少一點縫，每個人的範圍大一點。', src:'根據：Sportplan、Coaching Volleyball' }),
     Object.assign(recvCard('51', 1, 'p3', '三人接（大砲＋自由）'), { p:'只有兩個大砲和自由接，其他人躲開、準備進攻。縫最少、溝通最簡單，但每個人範圍大，適合比較會接的隊伍。大部分高水準的隊伍用這個。', src:'根據：Hoopsking、Sportplan' }),
   ]});
   T.push({ id:'r51', title:'單舉（5-1）六輪', sub:`${F.short}接發`, cards:sysCards('51', [1,6,5,4,3,2]) });
-  T.push({ id:'r62', title:'雙輔舉（6-2）三種輪', sub:`${F.short}接發`, cards:sysCards('62', [1,6,5]).map(c => Object.assign(c, { p:c.p + '另一位舉球員在前排當輔舉攻擊，所以前排一直有三個攻擊手。' })) });
+  T.push({ id:'r62', title:'雙輔舉（6-2）三種輪', sub:`${F.short}接發`, cards:sysCards('62', [1,6,5]).map(c => Object.assign(c, { p:c.p + '另一位舉球員在前排當舉對攻擊，所以前排一直有三個攻擊手。' })) });
   T.push({ id:'r42', title:'雙舉（4-2）三種輪', sub:`${F.short}接發`, cards:sysCards('42', [4,3,2]).map(c => Object.assign(c, { p:c.p + '前排的舉球員舉球，前排只剩兩個攻擊手，但舉球員本來就在網前，比較簡單。' })) });
   T.push({ id:'defense', title:'防守隊形', sub:'對方從我們右邊打', cards:[
     { h:'基本站位：先站好再看', p:'對方還沒舉球時，前排靠網準備攔網，後排站在自己的區域。看對方舉給誰，再移動到防守位置。', svg:() => court({ label:'基本站位', players:pl(baseComp.base, baseComp.lu), opp:[{ x:4.5, y:-1.3, t:'舉' }] }) },
+    defCard({ formation:'ours' }, att, '舉球留網前（隊上）', '舉球員一律守 2 號位：在後排時也留在右邊網前守短球、隨時舉球（不能攔網）；舉對退到 1 號位防守。紅色是扣球打得到的地方，橘色斜線是只能吊球的地方。'),
     defCard({ formation:'up' }, att, '心跟進（man-up）', '6 號位（或舉球員）站到攔網後面、三米線附近專守吊球，兩邊的後排站深。對手吊球、推球多時適合。紅色是扣球打得到的地方，橘色斜線是只能吊球的地方。'),
     defCard({ formation:'rot' }, att, '邊跟進（rotation）', '攔網那一側的後排（1 號位）往前守吊球，6 號位轉到直線深球，5 號位守斜線。'),
     defCard({ formation:'per' }, att, '心後（perimeter）', '後排三個人靠邊線、底線站，重扣最好接；吊球靠 1 號位往前和退下來的前排，離得比較遠。'),
-    defCard({ formation:'up', canOH:false, canR:false }, att, '只有攔中會攔網', '大砲、輔舉不夠高時：攔中自己攔，邊上的前排退到三米線附近守吊球和小斜線。紅色變多，因為攔網擋住的地方變少了。'),
+    defCard({ formation:'up', canOH:false, canR:false }, att, '只有攔中會攔網', '大砲、舉對不夠高時：攔中自己攔，邊上的前排退到三米線附近守吊球和小斜線。紅色變多，因為攔網擋住的地方變少了。'),
     defCard({ formation:'up', canOH:false, canMB:false, canR:false }, att, '沒有人攔網', '前排三個人平均分開、離網兩公尺左右蹲低，不要擋到後排看球；後排站深、站開。紅色最多，對方可以打任何地方。'),
   ]});
   // 保護攻擊手

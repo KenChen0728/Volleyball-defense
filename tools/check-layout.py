@@ -57,7 +57,7 @@ MEASURE = r"""
     if (px < 11.5 && !t.classList.contains('zn')) issues.push([state === 'main-sheet' ? '設定時的預覽球場字小於 12px' : '球場字小於 12px', 'svg「' + t.textContent.trim().slice(0, 8) + '」', px.toFixed(1) + 'px']);
   }
   // 主要按鈕要不用捲動就看得到
-  const prim = state === 'home' ? document.getElementById('btnStart') : (state.startsWith('main') ? document.getElementById('btnPlay') : null);
+  const prim = state === 'home' ? document.getElementById('btnStart') : (state === 'main-rot' ? document.getElementById('btnRotNext') : (state.startsWith('main') ? document.getElementById('btnPlay') : null));
   if (prim){ const r = prim.getBoundingClientRect(); if (r.bottom > vh + 1 || r.top < 0) issues.push(['主要按鈕要捲動才看得到', name(prim), Math.round(r.bottom) + '>' + vh]); }
   // 球場不能被擠到太小
   if (state.startsWith('main')){ const r = document.getElementById('court').getBoundingClientRect(); if (r.height < 220) issues.push(['球場太矮', '#court', Math.round(r.height) + 'px']); }
@@ -70,18 +70,26 @@ async def set_state(pg, st):
     if st == 'home':
         return
     if st.startswith('main'):
-        await pg.evaluate("VB.S.mode='learn'; VB.showScreen('main', false); VB.markHintSeen()")
+        step = 'rot' if st == 'main-rot' else ('recv' if st.startswith('main-recv') else 'spike')
+        await pg.evaluate(f"VB.S.mode='learn'; VB.S.view='2d'; VB.S.step='{step}'; VB.S.attackType='spike'; VB.showScreen('main', false); VB.set3D(false, true); VB.markHintSeen()")
         await pg.wait_for_timeout(150)
+        if st == 'main-recv-serve':
+            await pg.evaluate("VB.startSim([3.0,5.6]); VB.play.auto=false; VB.applyStep(1,false)")
         if st == 'main-dig':
             await pg.evaluate("VB.startSim([1.5,6.5]); VB.play.auto=false; VB.applyStep(1,false)")
         if st == 'main-set':
             await pg.evaluate("VB.startSim([1.5,6.5]); VB.play.auto=false; VB.applyStep(3,false)")
         if st == 'main-free':
             await pg.evaluate("VB.setMode('free')")
+        if st == 'main-3d':
+            await pg.evaluate("VB.set3D(true, true); VB.startSim([1.5,6.5]); VB.play.auto=false; VB.applyStep(1,false)")
+            await pg.wait_for_timeout(200)
         if st == 'main-sheet':
             await pg.evaluate("VB.openSheet('sitSheet')")
         if st == 'main-help':
             await pg.evaluate("VB.openHelp('learn')")
+        if st == 'main-diag':
+            await pg.evaluate("VB.openCards('diag'); VB.openHelpTopic('r51', 0)")
     if st == 'know':
         await pg.evaluate("VB.showScreen('know', false); document.querySelectorAll('details').forEach(d=>d.open=true)")
     await pg.wait_for_timeout(250)
@@ -97,14 +105,14 @@ async def main():
                 ctx = await b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1, has_touch=touch, color_scheme=scheme)
                 pg = await ctx.new_page()
                 await pg.goto(URL); await pg.wait_for_timeout(250)
-                for st in ['home', 'main', 'main-dig', 'main-set', 'main-free', 'main-sheet', 'main-help', 'know']:
+                for st in ['home', 'main-rot', 'main-recv', 'main-recv-serve', 'main', 'main-dig', 'main-set', 'main-free', 'main-3d', 'main-sheet', 'main-help', 'main-diag', 'know']:
                     await set_state(pg, st)
                     iss = await pg.evaluate(MEASURE, st)
                     for i in iss:
                         results[i[0]].append((f'{w}x{h}', scheme, st, i[1], i[2]))
                     if iss:
                         await pg.screenshot(path=f'{OUT}/{w}x{h}-{scheme}-{st}.png')
-                    await pg.evaluate("VB.closeTop && (VB.closeTop(true), VB.closeTop(true))")
+                    await pg.evaluate("VB.closeTop && (VB.closeTop(true), VB.closeTop(true), VB.closeTop(true))")
                 await ctx.close()
         await b.close()
     if not results:

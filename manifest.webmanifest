@@ -1,7 +1,7 @@
 {
-  "name": "排球防守站位",
-  "short_name": "防守站位",
-  "description": "拖球看誰接、看大家怎麼跑：給排球新手的防守站位練習。",
+  "name": "排球站位教室",
+  "short_name": "排球站位",
+  "description": "從輪轉、接發球到防扣球、防吊球：誰站哪裡、誰接、怎麼跑。",
   "lang": "zh-Hant",
   "start_url": "./",
   "scope": "./",

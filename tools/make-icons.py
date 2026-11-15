@@ -56,9 +56,9 @@ def main():
         f2 = ImageFont.truetype(reg if os.path.exists(reg) else bold, 40, index=3)
     except Exception:
         f1 = f2 = ImageFont.load_default()
-    d.text((510, 210), '排球防守站位', font=f1, fill=WHITE)
-    d.text((514, 330), '拖球看誰接、看大家怎麼跑', font=f2, fill=(220, 240, 245))
-    d.text((514, 390), '給剛開始打排球的人', font=f2, fill=(220, 240, 245))
+    d.text((510, 210), '排球站位教室', font=f1, fill=WHITE)
+    d.text((514, 330), '輪轉、接發球、防扣球、防吊球', font=f2, fill=(220, 240, 245))
+    d.text((514, 390), '誰站哪裡、誰接、怎麼跑', font=f2, fill=(220, 240, 245))
     og.save(os.path.join(OUT, 'og-image.png'), optimize=True)
     print('ok')
 

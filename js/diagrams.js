@@ -158,9 +158,9 @@ function topics(api){
   T.push({ id:'cover', title:'保護和補位', cards:[
     { h:'保護攻擊手：3 近 2 遠', p:'舉球出去後，離攻擊手最近的三個人蹲低靠近（像一個半圓），另外兩個人站後面一點。球被攔回來時，才接得到。', src:'根據：Coaching Volleyball（Hitter coverage）',
       svg:() => court({ label:'保護攻擊手', players:[{ x:H[0], y:H[1] + .2, t:'攻', g:'front', tag:'攻擊' }].concat(cs.close.map(p => ({ x:p[0], y:p[1], t:'近', g:'back' })), cs.deep.map(p => ({ x:p[0], y:p[1], t:'遠', g:'lib' }))), block:[.4, 1.6] }) },
-    { h:'有人接球時，其他人做什麼', p:'最近的人上前接（標「接」），另一個人跟到她後面保護（補位），旁邊的人往她空出來的地方移一點；舉球員往目標區跑。球接起來後，大家往前移動，不要往後退。',
-      svg:() => court({ label:'補位', players:[{ x:1.6, y:6.2, t:'接', g:'lib', ring:true }, { x:2.6, y:7.6, t:'補', g:'back', ring:'dash', tag:'補位', tagBelow:true }, { x:4.0, y:6.6, t:'移', g:'back' }, { x:6.6, y:4.2, t:'舉', g:'set' }],
-        arrows:[{ from:[2.4, 4.4], to:[1.75, 5.7], c:'var(--opp)', w:.07 }, { from:[7.6, 6.2], to:[6.8, 4.6], c:'var(--setter)', dash:'.16 .1' }], target:api.TARGET }) },
+    { h:'有人接球時，其他人做什麼', p:'最近的人上前接（標「接」），另一個人跟到她後面保護（補位），旁邊的人往她空出來的地方移一點；舉球員往網前的舉球位置跑，大家都把球往那裡接。球接起來後，大家往前移動，不要往後退。',
+      svg:() => court({ label:'補位', players:[{ x:1.6, y:6.2, t:'接', g:'lib', ring:true }, { x:2.6, y:7.6, t:'補', g:'back', ring:'dash', tag:'補位', tagBelow:true }, { x:4.0, y:6.6, t:'移', g:'back' }, { x:6.7, y:2.6, t:'舉', g:'set' }],
+        arrows:[{ from:[2.4, 4.4], to:[1.75, 5.7], c:'var(--opp)', w:.07 }, { from:[7.6, 4.4], to:[6.8, 3.0], c:'var(--setter)', dash:'.16 .1' }], target:api.rt() }) },
   ]});
   T.push({ id:'stance', title:'準備姿勢和步法', cards:STANCE });
   return T;

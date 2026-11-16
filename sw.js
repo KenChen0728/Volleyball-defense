@@ -1,6 +1,6 @@
 /* 排球站位教室：離線快取。先問網站有沒有新版（最多等 3 秒），連不上或回錯誤就用存好的版本。 */
 const PREFIX = 'vbdef-';
-const VERSION = '2.3.0';
+const VERSION = '2.4.0';
 const CACHE = PREFIX + VERSION;
 const ASSETS = [
   './', 'index.html', 'css/app.css', 'js/rotation.js', 'js/render3d.js', 'js/gl3d.js', 'js/diagrams.js', 'js/app.js', 'manifest.webmanifest',

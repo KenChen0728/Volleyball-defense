@@ -343,3 +343,7 @@ details > :last-child{margin-bottom:14px}
   max-width:calc(100vw - 32px); font-size:.9375rem; box-shadow:0 6px 20px rgba(0,0,0,.2);
 }
 .toast .btn-link{color:var(--bg)}
+
+/* 隊員版：只留隊上的站法和自己擺，教練用的選項藏起來 */
+body.simple .coach-only, body.simple [data-coach]{ display:none !important; }
+#btnShareTeam{ margin-top:8px; width:100%; }

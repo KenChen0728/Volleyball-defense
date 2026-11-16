@@ -206,7 +206,7 @@
       </ul>
     </details>
 
-    <details>
+    <details data-coach>
       <summary>進攻系統：單舉、雙輔舉、雙舉</summary>
       <ul>
         <li><b>單舉（5-1）</b>：一位舉球員六輪都舉。她在後排時，前排有三個攻擊手；她在前排時只剩兩個。</li>
@@ -345,14 +345,14 @@
   <div class="sheet-head"><h2 id="sitTitle">設定</h2><button class="btn btn-text" data-close>完成</button></div>
   <div class="sheet-body" id="sitSheetBody">
     <div id="sitForm" class="sitform">
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>進攻系統</legend>
         <div class="chips" data-key="system">
           <button data-v="51">單舉 5-1</button><button data-v="62">雙輔舉 6-2</button><button data-v="42">雙舉 4-2</button>
         </div>
         <p class="hint-line" id="sysDesc"></p>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>接發球隊形</legend>
         <div class="chips" data-key="recv">
           <button data-v="team">隊上的站法</button><button data-v="w5">五人 W</button><button data-v="p4">四人</button><button data-v="p3">三人</button>
@@ -365,14 +365,14 @@
           <button data-v="true">有自由</button><button data-v="false">沒有（後排攔中自己接）</button>
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>防守隊形</legend>
         <div class="chips" data-key="formation">
           <button data-v="ours">舉球留網前（隊上）</button><button data-v="up">心跟進</button><button data-v="rot">邊跟進</button><button data-v="per">心後</button>
         </div>
         <p class="hint-line" id="formDesc"></p>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>誰會攔網（可以複選，不夠高的人取消）</legend>
         <div class="chips chips-multi">
           <button data-k="canOH">大砲</button><button data-k="canMB">攔中</button><button data-k="canR" id="chipR">舉對</button>
@@ -386,19 +386,19 @@
         </div>
         <p class="hint-line" id="blockResDesc"></p>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>攔中跟得上邊線嗎</legend>
         <div class="chips" data-key="mbLate">
           <button data-v="0">跟得上</button><button data-v="1">來不及</button>
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>自由固定守</legend>
         <div class="chips" data-key="libero">
           <button data-v="5">5 號位</button><button data-v="6">6 號位</button>
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset class="coach-only">
         <legend>防守範圍半徑（公尺）</legend>
         <div class="chips" data-key="radius">
           <button data-v="1.2">1.2</button><button data-v="1.6">1.6</button><button data-v="2">2.0</button><button data-v="2.4">2.4</button>
@@ -416,6 +416,14 @@
           <button data-v="flow">連續（像比賽）</button><button data-v="step">每一步停下來</button>
         </div>
         <p class="hint-line" id="flowDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>給誰用</legend>
+        <div class="chips" id="modeChips">
+          <button data-v="team">隊員版（簡單）</button><button data-v="coach">教練版（全部功能）</button>
+        </div>
+        <p class="hint-line" id="modeDesc"></p>
+        <button class="btn btn-ghost coach-only" id="btnShareTeam">傳隊員版連結給隊員</button>
       </fieldset>
     </div>
   </div>

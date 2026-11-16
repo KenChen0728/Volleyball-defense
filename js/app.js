@@ -4,11 +4,11 @@
 (() => {
 'use strict';
 
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.4.0';
 const BUILD_DATE = '2026-11-16';
 const VERSION_TEXT = `v${APP_VERSION}（${BUILD_DATE}）`;
 const COPY = '© 2026 Ken Chen';
-const KEY = { settings:'vbdef.settings.v1', custom:'vbdef.custom.v1', hint:'vbdef.hint.drag.v1', hint2:'vbdef.hint.v2', screen:'vbdef.screen' };
+const KEY = { simple:'vbdef.simple.v1', settings:'vbdef.settings.v1', custom:'vbdef.custom.v1', hint:'vbdef.hint.drag.v1', hint2:'vbdef.hint.v2', screen:'vbdef.screen' };
 const NS = 'http://www.w3.org/2000/svg';
 const VB = { x:-0.45, y:-3.55, w:9.9, h:13.55 };
 const TARGET = [4.8, 2.6];                       // （舊的目標區，只留給測試對照）
@@ -128,6 +128,21 @@ function sanitizeCustom(o){
   return r;
 }
 const S = Object.assign({}, DEFAULTS, sanitizeSettings(store.get(KEY.settings, {})));
+// 隊員版：網址加 ?team=1 打開就是隊員版（記在這台裝置），?coach=1 換回教練版
+let simple = store.get(KEY.simple, false) === true;
+try{
+  const qp = new URLSearchParams(location.search);
+  if (qp.has('team')){ simple = true; store.set(KEY.simple, true); }
+  if (qp.has('coach')){ simple = false; store.set(KEY.simple, false); }
+  if (qp.has('team') || qp.has('coach')) history.replaceState(history.state, '', location.pathname + location.hash);
+}catch(e){}
+// 隊員版固定用隊上的做法：單舉、隊上的接發球、舉球留網前、只有大砲和攔中攔網
+function applySimple(){
+  document.body.classList.toggle('simple', simple);
+  if (!simple) return;
+  Object.assign(S, { system:'51', recv:'team', formation:'ours', canOH:true, canMB:true, canR:false, mbLate:false, libero:5, radius:2 });
+}
+applySimple();
 S.attacker = Object.assign({}, S.attacker);
 let custom = sanitizeCustom(store.get(KEY.custom, null));
 function saveSettings(){
@@ -569,17 +584,18 @@ function buildSteps(L, type, comp, dec, att){
   const H = HIT[hitter];
   const P3 = clonePos(P2);
   P3[hitter] = [H[0], H[1] + .2];
-  const others = ROLES.filter(r => r !== hitter).sort((p, q) => dist(P2[p], H) - dist(P2[q], H));
+  // 舉球的人留在原地把球舉出去（球從她手上出去），其他人才去保護
+  const others = ROLES.filter(r => r !== hitter && r !== setterRole).sort((p, q) => dist(P2[p], H) - dist(P2[q], H));
   const close = others.slice(0, 3), deep = others.slice(3);
   const sp = coverSpots(H);
   assignSpots(close, sp.close, P2, P3); assignSpots(deep, sp.deep, P2, P3);
   const over = [H[0] < 4.5 ? H[0] + 2.6 : H[0] - 2.6, -2.8];
   const toSide = hitter === 'OH1' ? '4 號位' : (hitter === 'OPP' ? '2 號位' : '中間');
   steps.push({ key:'set', title:'舉球・保護', pos:P3, face:H, ball:{ from:TG, to:H, dur:900, arc:1.0, z:[2.4, 2.95, 4.8], then:{ to:over, dur:300, arc:.1, z:[2.95, .05, 0] } },
-    cap:`${short(setterRole)}舉高球到${toSide}給${short(hitter)}攻擊。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，另外兩個人站後面一點：球被攔回來才接得到。`,
-    rule:'依據：離攻擊手最近的三個人近距離保護，最遠的兩個人守後面（教練慣例）。',
-    marks:{ hit:hitter, target: d === 'S' ? 'fix' : 'rt' }, hitter,
-    notes:allNotes(r => r === hitter ? '助跑攻擊' : close.includes(r) ? '靠近攻擊手、蹲低保護' : '站後面一點，保護比較遠的球') });
+    cap:`${short(setterRole)}站在球下面，把球舉高到${toSide}給${short(hitter)}攻擊，舉完就近保護。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，${deep.length ? `${deep.map(short).join('、')}站後面一點` : '其他人站後面一點'}：球被攔回來才接得到。`,
+    rule:'依據：離攻擊手最近的人近距離保護，最遠的人守後面（教練慣例）。',
+    marks:{ hit:hitter, set:setterRole, target: d === 'S' ? 'fix' : 'rt' }, hitter,
+    notes:allNotes(r => r === hitter ? '助跑攻擊' : r === setterRole ? '站在球下面舉球，舉完就近保護' : close.includes(r) ? '靠近攻擊手、蹲低保護' : '站後面一點，保護比較遠的球') });
   // 4. 回防
   steps.push({ key:'reset', title:'回防', pos:clonePos(comp.base), ball:null, face:A,
     cap:'球過網後，大家回到基本站位，看對方舉給誰，再移動到防守位置。', marks:{},
@@ -737,7 +753,9 @@ function buildRecvSteps(L, rc, dec){
   const H = HIT[spot[hitter] || 'OH1'];
   const P3 = clonePos(P2);
   P3[hitter] = [H[0], H[1] + .2];
-  const others = ROLES.filter(r => r !== hitter).sort((p, q) => dist(P2[p], H) - dist(P2[q], H));
+  const setterRole = 'S';
+  // 舉球員留在原地把球舉出去（球從她手上出去），其他人才去保護
+  const others = ROLES.filter(r => r !== hitter && r !== setterRole).sort((p, q) => dist(P2[p], H) - dist(P2[q], H));
   const close = others.slice(0, 3), deep = others.slice(3);
   const sp = coverSpots(H);
   assignSpots(close, sp.close, P2, P3); assignSpots(deep, sp.deep, P2, P3);
@@ -745,10 +763,10 @@ function buildRecvSteps(L, rc, dec){
   const toSide = spot[hitter] === 'OPP' ? '2 號位' : (spot[hitter] === 'MB' ? '中間' : '4 號位');
   steps.push({ key:'set', title:'舉球・保護', pos:P3, face:H, off:[], hitter,
     ball:{ from:rt(), to:H, dur:950, arc:1.0, z:[2.4, 2.95, 4.8], then:{ to:over, dur:320, arc:.1, z:[2.95, .05, 0] } },
-    cap:`舉球員舉高球到${toSide}給${short(hitter)}攻擊。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，另外兩個人站後面一點。` +
+    cap:`舉球員站在球下面，把球舉高到${toSide}給${short(hitter)}攻擊，舉完就近保護。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，其他人站後面一點。` +
       (rc.swap ? `第一波打完，${short(rc.swap[0])}和${short(rc.swap[1])}再交換位置。` : ''),
-    rule:'依據：離攻擊手最近的三個人近距離保護，最遠的兩個人守後面（教練慣例）。', marks:{ hit:hitter, target:'rt' },
-    notes:allNotes(r => r === hitter ? '助跑攻擊' : close.includes(r) ? '靠近攻擊手、蹲低保護' : '站後面一點，保護比較遠的球') });
+    rule:'依據：離攻擊手最近的人近距離保護，最遠的人守後面（教練慣例）。', marks:{ hit:hitter, set:'S', target:'rt' },
+    notes:allNotes(r => r === hitter ? '助跑攻擊' : r === 'S' ? '站在球下面舉球，舉完就近保護' : close.includes(r) ? '靠近攻擊手、蹲低保護' : '站後面一點，保護比較遠的球') });
   // 4. 換到防守位置
   if (rc.team){
     const tb = teamBase(libOff);
@@ -1748,6 +1766,8 @@ function refreshSitUI(){
   $('chipR').textContent = rName();
   $('blockDesc').textContent = blockDesc();
   $('blockResDesc').textContent = BLOCKRES_DESC[S.blockRes];
+  document.querySelectorAll('#modeChips button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.v === 'team') === simple)));
+  $('modeDesc').textContent = simple ? '隊員版：只有隊上的站法和自己擺，設定只留常用的幾項。' : '教練版：可以換進攻系統、接發球隊形、防守隊形、誰會攔網。傳給隊員時用下面的按鈕，她們打開就是隊員版。';
   $('flowDesc').textContent = S.flow === 'step' ? '每一步停下來讓你看說明，再自動播下一步。' : '球在空中不停下來，像真的比賽；想看每一步的說明，按暫停或用 ‹ › 前後看。';
   document.querySelectorAll('.chips[data-key="mbLate"] button').forEach(b => { b.setAttribute('aria-pressed', String((S.mbLate ? '1' : '0') === b.dataset.v)); b.setAttribute('aria-disabled', String(!S.canMB)); });
 }
@@ -1763,6 +1783,20 @@ function onChip(key, v){
   saveSettings(); refreshSitUI(); refreshStepUI();
   resetPlay(false, 400);
   if (msg) toast(msg, '復原', () => { Object.assign(S, prev); saveSettings(); refreshSitUI(); resetPlay(false, 400); });
+}
+
+function setSimple(on){
+  if (simple === on) return;
+  simple = on; store.set(KEY.simple, on); applySimple(); DIAG = null;
+  saveSettings(); refreshSitUI(); refreshStepUI(); resetPlay(false, 400);
+  toast(on ? '換成隊員版：只留隊上的站法和自己擺' : '換成教練版：所有選項都打開了');
+}
+function shareTeamLink(){
+  const url = location.origin + location.pathname + '?team=1&openExternalBrowser=1';
+  const done = () => toast('已複製隊員版連結，可以貼到 LINE 群組');
+  if (navigator.share){ navigator.share({ title:'排球站位教室（隊員版）', text:'隊上的站法：輪轉、接發球、防守，可以自己擺站位', url }).catch(() => {}); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => toast(url, null, null, 8000));
+  else toast(url, null, null, 8000);
 }
 
 /* ---------- 底部（或側邊）面板、說明 ---------- */
@@ -1877,7 +1911,7 @@ const HELP = [
     { img:'help/rot-1.webp', h:'每一輪誰站哪裡', p:'6 個人站在這一輪的號位。下面的說明寫出前排、後排是誰，舉球員在幾號位。' },
     { img:'help/rot-2.webp', h:'按 ↻ 換下一輪', p:'按輪次旁邊的 ↻，大家順時針轉一格（2→1→6→5→4→3），轉到 1 號位的人發球。後排的攔中會換成自由（攔中發球時除外）。' },
     { img:'help/rot-3.webp', h:'按 ▶ 看我們發球怎麼換位', p:'按播放：發球員走到底線後面，其他人先站到方便換位的地方（紅色箭頭是要換去的位置），發球一出手就換到防守位置。選「隊上的站法」時，照教練畫的圖。' },
-    { img:'help/sit-1.webp', h:'換單舉、雙輔舉、雙舉', p:'點下面的「設定」，選進攻系統和接發球隊形。「隊上的站法」是教練畫的單舉；學姐跑雙輔舉時，切換一下就能看怎麼站。' },
+    { coach:true, img:'help/sit-1.webp', h:'換單舉、雙輔舉、雙舉', p:'點下面的「設定」，選進攻系統和接發球隊形。「隊上的站法」是教練畫的單舉；學姐跑雙輔舉時，切換一下就能看怎麼站。' },
   ]},
   { id:'recv', title:'2 接發球', cards:[
     { img:'help/recv-1.webp', h:'發球前怎麼站', p:'標「不接」的人不接發球。細虛線連起來的兩個人，發球那一刻不能前後或左右交換（站位規則）；有箭頭的虛線是舉球員發球後要跑的路線。圈圈是每個接發球的人負責的範圍。' },
@@ -1896,7 +1930,7 @@ const HELP = [
   ]},
   { id:'situation', title:'設定', cards:[
     { img:'help/sit-1.webp', h:'點「設定」打開', p:'手機直放時，設定從下面打開，上面的球場還看得到；手機橫放、平板橫放和電腦，設定從右邊打開。改了馬上看得到結果。' },
-    { img:'help/sit-2.webp', h:'誰會攔網、攔網碰到球', p:'「誰會攔網」可以複選；隊上舉球員、舉對不攔，所以只勾大砲和攔中。「攔網碰到球的時候」預設是碰手變小球，可以看攔網後面誰去接；也可以選攔死或沒攔到。' },
+    { coach:true, img:'help/sit-2.webp', h:'誰會攔網、攔網碰到球', p:'「誰會攔網」可以複選；隊上舉球員、舉對不攔，所以只勾大砲和攔中。「攔網碰到球的時候」預設是碰手變小球，可以看攔網後面誰去接；也可以選攔死或沒攔到。' },
   ]},
   { id:'free', title:'自己擺站位', cards:[
     { img:'help/free-1.webp', h:'按「自己擺」', p:'在「3 防扣球」或「4 防吊球」按「自己擺」，6 個人都可以拖。前排拉到網前就算攔網，後排拉到網前也不能攔。' },
@@ -1930,10 +1964,11 @@ function diagApi(){
     cover(H){ return coverSpots(H); },
   };
 }
+const COACH_TOPICS = ['recvforms', 'r51', 'r62', 'r42', 'defense'];
 function cardTopics(){
-  if (cardSet !== 'diag') return HELP;
+  if (cardSet !== 'diag') return simple ? HELP.map(t => Object.assign({}, t, { cards:t.cards.filter(c => !c.coach) })).filter(t => t.cards.length) : HELP;
   if (!DIAG) DIAG = VBDiag.topics(diagApi());
-  return DIAG;
+  return simple ? DIAG.filter(t => !COACH_TOPICS.includes(t.id)) : DIAG;
 }
 function buildHelpToc(){
   const toc = $('helpToc'); toc.innerHTML = '';
@@ -2057,6 +2092,8 @@ function bind(){
   document.querySelectorAll('.seg-view button').forEach(b => b.addEventListener('click', () => { if ((b.dataset.view === '3d') !== v3.on) set3D(b.dataset.view === '3d'); }));
   $('camSel').addEventListener('change', e => { if (CAMS.includes(e.target.value)){ S.cam = e.target.value; saveSettings(); v3.cam = null; } });
   document.querySelectorAll('.chips[data-key]').forEach(c => c.querySelectorAll('button').forEach(b => b.addEventListener('click', () => onChip(c.dataset.key, b.dataset.v))));
+  document.querySelectorAll('#modeChips button').forEach(b => b.addEventListener('click', () => setSimple(b.dataset.v === 'team')));
+  $('btnShareTeam').addEventListener('click', shareTeamLink);
   document.querySelectorAll('.chips-multi button').forEach(b => b.addEventListener('click', () => onChip(b.dataset.k)));
   $('btnSit').addEventListener('click', () => openSheet('sitSheet'));
   $('btnDetail').addEventListener('click', () => { renderDetail(); openSheet('detSheet'); });

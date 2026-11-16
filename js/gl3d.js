@@ -116,7 +116,7 @@ const POSES = {
   set:       { lean:2,  hip:[14,14], knee:[24,24], sh:[150,150], abd:[30,30],  el:[30,30],  wide:.30, stag:.14, ik:'set' },
   block:     { lean:0,  hip:[10,10], knee:[22,22], sh:[172,172], abd:[6,6],    el:[4,4],    wide:.24, stag:0 },
   blockReady:{ lean:4,  hip:[16,16], knee:[30,30], sh:[110,110], abd:[22,22],  el:[30,30],  wide:.30, stag:0, ik:'blockReady' },
-  spike:     { lean:-6, hip:[16,30], knee:[30,52], sh:[150,168], abd:[20,26],  el:[40,-105], wide:.22, stag:0 },
+  spike:     { lean:-6, hip:[16,30], knee:[30,52], sh:[165,150], abd:[8,30],   el:[10,30],   wide:.22, stag:0, ik:'spike' },
   serve:     { lean:6,  hip:[8,8],   knee:[14,14], sh:[160,120], abd:[16,30],  el:[10,-95], wide:.28, stag:-.22 },
   // 跨步壓低接球：右腳跨出去、膝蓋接近地板，雙手平台伸向球（左腳在前時整個左右對調）
   lunge:     { lean:38, hip:[18,80], knee:[44,104], sh:[64,64],   abd:[-19,-19], el:[0,0],   wide:.78, stag:.48 },
@@ -127,13 +127,13 @@ const POSES = {
 };
 // 跑步：放開手擺臂（不抱著手跑）；amp 是快慢，慢跑擺幅小
 // 兩段手臂（上臂 .29、前臂 .27）：肩膀到目標，手肘往外、往下彎
-function armIK(S0, T, sd){
+function armIK(S0, T, sd, pole){
   const a = .29, c = .27;
   let v = [T[0] - S0[0], T[1] - S0[1], T[2] - S0[2]];
   let d = Math.hypot(v[0], v[1], v[2]) || 1e-3;
   const u = [v[0] / d, v[1] / d, v[2] / d];
   d = Math.min(a + c - .002, Math.max(Math.abs(a - c) + .02, d));
-  let p = [sd, 0, -.5]; const pr = p[0] * u[0] + p[1] * u[1] + p[2] * u[2];
+  let p = pole || [sd, 0, -.5]; const pr = p[0] * u[0] + p[1] * u[1] + p[2] * u[2];
   p = [p[0] - u[0] * pr, p[1] - u[1] * pr, p[2] - u[2] * pr];
   const pl = Math.hypot(p[0], p[1], p[2]) || 1; p = [p[0] / pl, p[1] / pl, p[2] / pl];
   const ca = (a * a + d * d - c * c) / (2 * a * d), sa = Math.sqrt(Math.max(0, 1 - ca * ca));
@@ -323,6 +323,7 @@ function create(canvas, overlay){
     sphere(add(headC, add(mul(F, -.03), [0, 0, .025])), .113, HAIR);
     sphere(add(headC, add(mul(F, -.13), [0, 0, -.02])), .052, HAIR);
     // 手
+    const wrists = [];
     for (let i = 0; i < 2; i++){
       const sd = i ? 1 : -1;
       const shl = [sd * .19, pel[1] + spine[1] * .45, pel[2] + spine[2] * .45];
@@ -331,10 +332,11 @@ function create(canvas, overlay){
       let b = [0, 1, .6]; const pr = dot(b, up); b = norm(sub(b, mul(up, pr)));
       const fore = norm(add(mul(up, Math.cos(el)), mul(b, Math.sin(el))));
       let elb = add(shl, mul(up, .29)), wr = add(elb, mul(fore, .27));
-      if (s.ikW > .01 && s.ikKind){
+      if (s.ikW > .01 && s.ikKind && !(s.ikKind === 'spike' && sd < 0)){
         const head = add(add(add(pel, mul(spine, .58)), [0, .02, .1]), [0, 0, 0]);
-        const T = s.ikKind === 'set' ? add(head, [sd * .1, .2, .2]) : add(shl, [sd * .05, .16, .32]);
-        const ik = armIK(shl, T, sd);
+        // 扣球：右手拉到頭的右後上方，手肘抬高往外（左手照角度往上指著球）
+        const T = s.ikKind === 'set' ? add(head, [sd * .1, .2, .2]) : s.ikKind === 'spike' ? add(head, [.16, -.16, .16]) : add(shl, [sd * .05, .16, .32]);
+        const ik = armIK(shl, T, sd, s.ikKind === 'spike' ? [1, -.3, .6] : null);
         elb = add(elb, mul(sub(ik[0], elb), s.ikW)); wr = add(wr, mul(sub(ik[1], wr), s.ikW));
       }
       const S0 = pt(shl), E0 = pt(elb), W0 = pt(wr);
@@ -344,42 +346,46 @@ function create(canvas, overlay){
       sphere(E0, .041, SKIN);
       limb(E0, W0, .036, SKIN);
       sphere(add(W0, mul(norm(sub(W0, E0)), .04)), .044, SKIN);
+      wrists.push(add(W0, mul(norm(sub(W0, E0)), .05)));
     }
+    s.hand = mul(add(wrists[0], wrists[1]), .5);
     return add(headC, [0, 0, .2]);
   }
   // 第一人稱：自己的兩隻手（雙手前臂合起來，球接進手裡）
   // 第一人稱的手：只畫前臂和手（上臂、肩膀太靠近眼睛，畫出來會變成擋住畫面的大柱子）
-  function drawArms(a){
+  // 手的位置慢慢跟過去：剛出現時從畫面下面抬上來，收手時往下放出畫面，不會一下子跳走
+  const arm = { c:null, sep:.035 };
+  function drawArms(a, dt){
     const e = cam.eye, r = cam.r, Zu = [0, 0, 1];
     const fh = norm([cam.f[0], cam.f[1], 0]);              // 水平的前方
-    const fore = (elb, h) => { limb(elb, h, .032, SKIN); };
+    let tgt, sep;
     if (a.pose === 'set'){
-      // 舉球：雙手在額頭前上方張開成三角形，手肘往外、往下；球來了手迎到球下面
-      let c = add(add(e, mul(Zu, .3)), mul(fh, .26));
-      if (a.at){ const b = a.at; c = [b[0] - fh[0] * .04, b[1] - fh[1] * .04, b[2] - .12]; }
-      for (const sd of [-1, 1]){
-        const h = add(c, mul(r, sd * .085));
-        const elb = add(add(add(h, mul(Zu, -.26)), mul(r, sd * .17)), mul(fh, -.06));
-        fore(elb, h);
-        ellip(h, mul(r, .035), mul(fh, .03), mul(Zu, .055), SKIN);
-      }
-      return;
+      tgt = add(add(e, mul(Zu, .36)), mul(fh, .36)); sep = .09;
+      if (a.at){ const b = a.at; tgt = [b[0] - fh[0] * .04, b[1] - fh[1] * .04, b[2] - .12]; }
+    } else if (a.pose === 'down'){
+      tgt = add(add(e, mul(fh, .35)), mul(Zu, -1.0)); sep = .12;
+    } else {
+      tgt = add(add(e, mul(fh, .6)), mul(Zu, -.6)); sep = .035;
+      if (a.at){ const d = sub(a.at, e), L = Math.hypot(d[0], d[1], d[2]) || 1, kk = Math.max(.5, Math.min(.85, L)) / L; tgt = add(add(e, mul(d, kk)), mul(Zu, -.08)); }
     }
-    let hand = add(add(e, mul(fh, .6)), mul(Zu, -.6));
-    if (a.at){
-      // 接球：雙手併攏成平台，迎到球的下面
-      const d = sub(a.at, e), L = Math.hypot(d[0], d[1], d[2]) || 1, kk = Math.max(.5, Math.min(.85, L)) / L;
-      hand = add(add(e, mul(d, kk)), mul(Zu, -.08));
-    }
-    // 前臂從手往身體方向（往後、往下、稍微往外）
-    const toBody = norm(sub(add(e, mul(Zu, -.45)), hand));
+    if (!arm.c) arm.c = add(add(tgt, mul(Zu, -.55)), mul(fh, .25));
+    const k = 1 - Math.exp(-(dt || 1 / 60) * 11);
+    arm.c = add(arm.c, mul(sub(tgt, arm.c), k));
+    arm.sep += (sep - arm.sep) * k;
+    const c = arm.c, setLike = arm.sep > .06;
     for (const sd of [-1, 1]){
-      const h = add(hand, mul(r, sd * .035));
-      const elb = add(add(h, mul(toBody, .27)), mul(r, sd * .07));
-      fore(elb, h);
-      ellip(h, mul(r, .03), mul(fh, .05), mul(Zu, .022), SKIN);
+      const h = add(c, mul(r, sd * arm.sep));
+      let elb;
+      if (setLike) elb = add(add(add(h, mul(Zu, -.26)), mul(r, sd * .17)), mul(fh, -.06));
+      else { const toBody = norm(sub(add(e, mul(Zu, -.45)), h)); elb = add(add(h, mul(toBody, .27)), mul(r, sd * .07)); }
+      // 只畫靠手的那一段前臂：靠近眼睛的那一段畫出來會變成擋住畫面的大柱子
+      limb(add(h, mul(sub(elb, h), .55)), h, .03, SKIN);
+      if (setLike){ ellip(h, mul(r, .045), mul(fh, .03), mul(Zu, .07), SKIN); ellip(add(h, mul(Zu, .07)), mul(r, .04), mul(fh, .025), mul(Zu, .04), SKIN); }
+      else ellip(h, mul(r, .03), mul(fh, .05), mul(Zu, .022), SKIN);
     }
   }
+  function armHand(){ return arm.c; }
+  function handOf(id){ const s = people.get(id); return s && s.hand; }
   /* ---------- 畫一張 ---------- */
   let lastT = 0;
   function render(scene){
@@ -433,7 +439,7 @@ function create(canvas, overlay){
     }
     if (scene.ball){ const b = scene.ball, sp = (b.spin || 0); const c = Math.cos(sp), sn = Math.sin(sp), r = .105;
       draw(mesh.ball, [c * r, sn * r, 0], [-sn * r, c * r, 0], [0, 0, r], [b.x, b.y, b.z], [1, 1, 1, 1]); }
-    if (scene.arms && scene.arms.on) drawArms(scene.arms);
+    if (scene.arms && scene.arms.on) drawArms(scene.arms, dt); else arm.c = null;
     // 3. 半透明的網子最後畫
     gl.depthMask(false);
     drawStatic(world.net, [1, 1, 1, 1], .2);
@@ -487,7 +493,7 @@ function create(canvas, overlay){
     return [cam.eye[0] + dir[0] * k, cam.eye[1] + dir[1] * k];
   }
   function forget(id){ people.delete(id); }
-  return { resize, render, pick, forget, webgl:true };
+  return { resize, render, pick, forget, handOf, armHand, webgl:true };
 }
 window.VBGL = { create, POSES };
 })();

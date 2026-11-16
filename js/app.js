@@ -4,7 +4,7 @@
 (() => {
 'use strict';
 
-const APP_VERSION = '2.5.1';
+const APP_VERSION = '2.5.2';
 const BUILD_DATE = '2026-11-16';
 const VERSION_TEXT = `v${APP_VERSION}（${BUILD_DATE}）`;
 const COPY = '© 2026 Ken Chen';
@@ -579,7 +579,7 @@ function buildSteps(L, type, comp, dec, att){
   // 2. 送到舉球位置（舉球員接第一球時送修正球）
   const P2 = clonePos(P1);
   const moved = new Set([setterRole]);
-  P2[setterRole] = [TG[0] + .15, TG[1] + .3];
+  P2[setterRole] = [TG[0] + .42, TG[1] + .06];   // 舉球員面向 4 號位、站在球的右邊一點：球落在額頭前上方
   const attackers = ['OH1','MB','OPP'].filter(r => lu[r].front && r !== setterRole && !(r === d && L[1] > 5));
   for (const r of attackers){ P2[r] = APPROACH[r].slice(); moved.add(r); }
   if (!moved.has(d)){
@@ -754,7 +754,7 @@ function buildRecvSteps(L, rc, dec){
       : rc.passers.includes(r) ? '轉身面向接球的人，準備移動' : '看球，準備攻擊') });
   // 2. 傳到舉球員
   const P2 = clonePos(P1);
-  P2.S = [rt()[0] + .1, rt()[1] + .25];
+  P2.S = [rt()[0] + .42, rt()[1] + .06];
   // 前排攻擊手退到起跑點：攔中在中間，另外兩個照現在左右的位置（第一波先從站的那一邊攻擊）
   const attackers = ['OH1','MB','OPP'].filter(r => lu[r].front);
   const wing = attackers.filter(r => r !== 'MB').sort((a, b) => P1[a][0] - P1[b][0]);
@@ -1620,7 +1620,12 @@ function camera3(now, role, dt, st){
   const eye = [p[0], p[1], (setting ? 1.55 : 1.3) + jumpZ('us:' + role, now)];
   let tg;
   if (!st || key === 'read' || key === 'stand') tg = S.step === 'recv' ? [S.serveX, SERVER_Y, 2.4] : [S.attacker.x, S.attacker.y, 2.6];
-  else if (ball3.show) tg = [ball3.x, ball3.y, ball3.z];
+  else if (setting && st.ball && key === 'pass' && ball3.show && Math.hypot(ball3.x - st.ball.to[0], ball3.y - st.ball.to[1]) < 2.6){
+    // 舉球員：球快到時眼睛先盯著要接球的地方（額頭前上方），頭不要跟著球甩
+    const c = ballEnd3(st.ball); tg = [c[0], c[1], c[2] + .1];
+  } else if (setting && key === 'set' && st.ball && now - play.t0 < 450 * speedK()){
+    tg = [st.ball.from[0], st.ball.from[1], zAt(st.ball.z, 0) + .1];
+  } else if (ball3.show) tg = [ball3.x, ball3.y, ball3.z];
   else tg = [4.5, -4, 1.4];
   const dx = tg[0] - eye[0], dy = tg[1] - eye[1], dz = tg[2] - eye[2], hd = Math.hypot(dx, dy);
   // 舉球時球會到頭上：可以抬頭看到快 75 度
@@ -1693,6 +1698,24 @@ function zones3(){
   if (z.shadow){ const c = clipRect(z.shadow); if (c.length > 2) out.push({ pts:c, color:[.85, .47, .02, .42], fill:'rgba(217,119,6,.42)' }); }
   return out;
 }
+// 接球、舉球那一刻：球慢慢靠到那個人的手上（離接觸點 1.2 公尺內開始靠），離開手時再慢慢回到原本的路線
+function ballToHands(ball, st, role){
+  const m = st.marks || {}, b = st.ball; if (!b || !b.from) return;
+  const prev = play.steps[play.i - 1], pm = (prev && prev.marks) || {};
+  let toWho = null, fromWho = null;
+  if (st.key === 'dig' || st.key === 'serve') toWho = m.dig;
+  if (st.key === 'pass'){ fromWho = pm.dig; toWho = m.set; }
+  if (st.key === 'set') fromWho = m.set;
+  const handAt = who => { if (!who) return null; const h = who === role ? v3.r.armHand() : v3.r.handOf('us:' + who); return h ? [h[0], h[1], h[2] + (who === role ? .1 : .07)] : null; };
+  const pull = (who, C) => {
+    const h = handAt(who); if (!h || !C) return;
+    const d = Math.hypot(ball.x - C[0], ball.y - C[1], ball.z - C[2]); const w = clamp(1 - d / 1.2, 0, 1); if (!w) return;
+    const e = w * w * (3 - 2 * w);
+    ball.x += (h[0] - ball.x) * e; ball.y += (h[1] - ball.y) * e; ball.z += (h[2] - ball.z) * e;
+  };
+  pull(toWho, ballEnd3(b));
+  const f3 = b.from3 || b.from; pull(fromWho, [f3[0], f3[1], zAt(b.z, 0)]);
+}
 function frame3(now){
   v3.raf = requestAnimationFrame(frame3);
   if (document.hidden || !v3.r || !play.comp) return;
@@ -1726,13 +1749,26 @@ function frame3(now){
   const ball = ball3.show ? { x:ball3.x, y:ball3.y, z:ball3.z, spin:now / 150 } : null;
   const mk2 = (st && st.marks) || {}, rp = role ? (posNow(role, now) || comp.pos[role]) : null;
   const bd = role && ball ? Math.hypot(ball.x - rp[0], ball.y - rp[1]) : 99;
-  // 只有這一球接球的人才伸手接；舉球的人在球快到時雙手舉到額頭
-  const setNow = role && ball && mk2.set === role && (st.key === 'pass' || (st.key === 'set' && now - play.t0 < 260 * speedK())) && bd < 2.2 && ball.z > 1.3;
+  // 球碰到手的那一刻，球畫在手上（接球、舉球都是），不會從腳邊或身體穿過去
+  if (ball && st && v3.r.handOf) ballToHands(ball, st, role);
+  // 只有這一球接球的人才伸手接；舉球的人：球快到時雙手舉到額頭、接到球往攻擊手推出去、推完手放下
+  let armPose = null, armAt = null;
+  if (role && ball && mk2.set === role && st.key === 'pass' && bd < 2.4 && ball.z > 1.2){
+    armPose = 'set'; const c = ballEnd3(st.ball); if (bd < 1.3) armAt = c;
+  } else if (role && mk2.set === role && st.key === 'set'){
+    const t = (now - play.t0) / speedK(), c = st.ball ? [st.ball.from[0], st.ball.from[1], zAt(st.ball.z, 0)] : null;
+    if (t < 420 && c){ const H = st.ball.to, v = unit([H[0] - c[0], H[1] - c[1]]), e = Math.min(1, t / 300); armPose = 'set'; armAt = [c[0] + v[0] * .18 * e, c[1] + v[1] * .18 * e, c[2] + .22 * e]; }
+    else if (t < 1100) armPose = 'down';
+  }
   const near = role && ball && mk2.dig === role && bd < 1.6 && ball.z < 2;
-  const scene = { camera:camera3(now, role, dt, st), people: v3.gl ? people : people.filter(p => !p.hidden), ball,
+  const setNow = !!armPose;
+  const cam3 = camera3(now, role, dt, st);
+  // 第一人稱時，貼在鏡頭旁邊（0.6 公尺內）的隊友先不畫，不然整個畫面會被一顆頭擋住
+  if (role) for (const pp of people) if (!pp.hidden && Math.hypot(pp.x - cam3.eye[0], pp.y - cam3.eye[1]) < .6) pp.hidden = true;
+  const scene = { camera:cam3, people: v3.gl ? people : people.filter(p => !p.hidden), ball,
     dark:darkMQ.matches, zones:zones3(), target: mk ? (mk === 'fix' ? FIX_T : rt()) : null,
     hud:(role ? `第一人稱：${ROLE_INFO[role].name}的眼睛` : '看台視角') + '・慢動作',
-    arms: role && (near || setNow) ? { on:true, pose: setNow ? 'set' : (near ? 'platform' : 'ready'), at: (near || (setNow && bd < 1.2)) ? [ball.x, ball.y, ball.z] : null, color:v3.colors[groupOf(role, lu)] } : null };
+    arms: role && (near || setNow) ? { on:true, pose: setNow ? armPose : 'platform', at: setNow ? armAt : [ball.x, ball.y, ball.z], color:v3.colors[groupOf(role, lu)] } : null };
   v3.r.render(scene);
 }
 function makeRenderer(){

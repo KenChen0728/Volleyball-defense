@@ -200,7 +200,7 @@ button, select{font:inherit; color:inherit}
 
 /* ---------- SVG 球場 ---------- */
 .zn{font-size:1.15px; font-weight:700; fill:var(--zone-num); text-anchor:middle; dominant-baseline:central; pointer-events:none}
-.pl, .tagpos{transition:transform var(--mv,600ms) cubic-bezier(.3,.1,.2,1); cursor:default}
+.pl, .tagpos{cursor:default}
 .tagpos{pointer-events:none}
 .tagpos.dragging{transition:none}
 .pl .tok{transition:transform .2s}
@@ -214,7 +214,7 @@ button, select{font:inherit; color:inherit}
 .pl.is-dig .ring{stroke:var(--ink); stroke-width:.09; fill:none; opacity:1}
 .pl .ring{opacity:0; transition:opacity .2s}
 .pl.is-backup .ring{stroke:var(--ink); stroke-width:.06; stroke-dasharray:.14 .1; fill:none; opacity:1}
-.rg{transition:transform var(--mv,600ms) cubic-bezier(.3,.1,.2,1), opacity .25s}
+.rg{transition:opacity .25s}
 .rg.dragging{transition:none}
 .rg circle{stroke-width:.04}
 .rg.hot circle{stroke-width:.09; fill-opacity:.32}
@@ -347,3 +347,14 @@ details > :last-child{margin-bottom:14px}
 /* 隊員版：只留隊上的站法和自己擺，教練用的選項藏起來 */
 body.simple .coach-only, body.simple [data-coach]{ display:none !important; }
 #btnShareTeam{ margin-top:8px; width:100%; }
+.plat-t{font-weight:700; fill:var(--accent); text-anchor:middle; dominant-baseline:central; paint-order:stroke; stroke:var(--court); stroke-width:.08px}
+
+/* 誰接小遊戲、隊員名字 */
+.quiz-btns{display:flex; align-items:center; gap:12px; margin-left:auto}
+.btn-sm{min-height:44px; padding:0 14px; font-size:.95rem}
+.pl.quiz-pick .body{stroke:var(--opp); stroke-width:.12}
+body.quiz-on .pl{cursor:pointer}
+.name-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; margin-top:8px}
+.name-grid label{display:flex; flex-direction:column; gap:4px; font-size:.85rem; color:var(--muted)}
+.name-grid input{min-height:44px; font-size:16px; padding:0 10px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink)}
+.quiz-btns .btn, .quiz-btns .btn-link{white-space:nowrap} .cap-head{flex-wrap:wrap; row-gap:4px}

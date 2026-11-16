@@ -114,6 +114,7 @@
         </button>
         <button class="btn btn-ghost" id="btnFreeToggle" aria-pressed="false" hidden>自己擺</button>
         <button class="btn btn-ghost" id="btnResetFree" hidden>回到隊形</button>
+        <button class="btn btn-ghost" id="btnQuiz" aria-pressed="false" hidden>誰接？</button>
       </div>
       <div class="row row-ctl">
         <div class="rotctl" id="rotctl" role="group" aria-label="輪次">
@@ -142,6 +143,7 @@
           <span id="stepTitle" class="step-title"></span>
           <button class="btn-link" id="btnDetail">每個人在做什麼 ›</button>
           <button class="btn-link" id="btnHintOk" hidden>知道了</button>
+          <span class="quiz-btns" id="quizBtns" hidden><button class="btn-link" id="btnQuizAnim">看動畫</button><button class="btn btn-primary btn-sm" id="btnQuizNext">下一題 ›</button></span>
         </div>
         <div class="capscroll" id="capscroll" tabindex="0">
           <p id="caption" class="caption" aria-live="polite"></p>
@@ -219,7 +221,7 @@
     <details>
       <summary>誰接哪一球（防守用的五條）</summary>
       <ol class="rules">
-        <li><b>吊球：交給這個隊形負責吊球的人。</b>心跟進是跟進的人；邊跟進是攔網那一側往前的後排；心後是 1 號位（或 5 號位）看到吊球往前；攔網那一側的前排沒有攔網時（例如只有攔中攔），就是她退下來守。<span class="tag">慣例</span></li>
+        <li><b>吊球：交給這個隊形負責吊球的人。</b>後中靠前是跟進的人；邊上的人往前是攔網那一側往前的後排；後中靠後是 1 號位（或 5 號位）看到吊球往前；攔網那一側的前排沒有攔網時（例如只有攔中攔），就是她退下來守。<span class="tag">慣例</span></li>
         <li><b>球只在一個人的範圍裡：她接。</b></li>
         <li><b>兩個人都接得到：離球最近的人接，往前或往旁邊移動優先，往後退最難。</b>所以「短的給離攻擊手近的人、深的給遠的人」；沒接的人站到她後面保護。<span class="tag">慣例</span></li>
         <li><b>舉球員也接得到時，讓旁邊的人接。</b>舉球員能不接第一球就不接，她要留著舉第二球；只有她接得到才由她接。<span class="tag">慣例</span></li>
@@ -254,7 +256,7 @@
       <summary>有人去接球時，其他人做什麼（補位）</summary>
       <ul>
         <li><b>最近的人上前接，另一個人跟到她後面保護。</b>球接飛了、從她手臂彈出去，後面的人可以救。</li>
-        <li><b>旁邊的人往她空出來的地方移一點。</b>例如邊跟進時 1 號位往前守吊球，6 號位就往直線那邊移過去補。</li>
+        <li><b>旁邊的人往她空出來的地方移一點。</b>例如邊上的人往前時 1 號位往前守吊球，6 號位就往直線那邊移過去補。</li>
         <li><b>舉球員</b>看到別人接，就往網前的舉球位置跑；<b>攔網的人</b>落地轉身看球；<b>其他人</b>眼睛跟著球、身體轉向球。</li>
         <li><b>球接起來以後</b>大家往前移動（往舉球員、往攻擊手），不要往後退。</li>
       </ul>
@@ -290,7 +292,7 @@
         <li>在三米線前面，不能把整顆高過網子的球打過去（不能「二次球直接打過去」）。</li>
       </ul>
       <p><b>好處</b>：每一球都有舉球員在網前等，防起來的球不用很準；她順便守右前的短球、吊球。</p>
-      <p><b>代價</b>：舉對要退到 1 號位防守，右邊少一個攻擊點，後排也多一個不習慣防守的人。兩種都可以，在 App 裡選「舉球留網前」跟「心後」比比看。</p>
+      <p><b>代價</b>：舉對要退到 1 號位防守，右邊少一個攻擊點，後排也多一個不習慣防守的人。兩種都可以，在 App 裡選「舉球留網前」跟「後中靠後」比比看。</p>
     </details>
 
     <details>
@@ -329,7 +331,7 @@
         <li><a href="https://www.theartofcoachingvolleyball.com/defense-for-beginners-focus-on-the-first-step/" target="_blank" rel="noopener">The Art of Coaching Volleyball：Defense for beginners, the first step</a></li>
         <li><a href="https://usavolleyball.org/resource/staying-square-to-the-volleyball-net-while-blocking-five-steps/" target="_blank" rel="noopener">USA Volleyball：Staying square to the net while blocking</a>（兩個攔網中間的縫）</li>
         <li><a href="https://volleyballvault.com/volleyball-base-positions/" target="_blank" rel="noopener">Volleyball Vault：Base positions</a>（基本站位、舉球員守 1 號位）</li>
-        <li><a href="https://www.theartofcoachingvolleyball.com/up-defense/" target="_blank" rel="noopener">The Art of Coaching Volleyball：Man up（心跟進）</a></li>
+        <li><a href="https://www.theartofcoachingvolleyball.com/up-defense/" target="_blank" rel="noopener">The Art of Coaching Volleyball：Man up（後中靠前／心跟進）</a></li>
         <li><a href="https://www.nbcolympics.com/news/volleyball-101-rules" target="_blank" rel="noopener">Volleyball 101 rules</a>（後排不能攔網、後排在前區的攻擊限制）</li>
         <li><a href="https://www.ctusf.org.tw/upload/news/20250930120612_2.pdf" target="_blank" rel="noopener">2025～2028 新增、修訂中文排球規則</a>（7.4、7.4.4 站位）</li>
         <li><a href="https://www.frontiersin.org/articles/10.3389/fspor.2025.1630870/full" target="_blank" rel="noopener">Sitti &amp; Rangubhet（2025）女排扣球類型分析</a>（2024 世界女排聯賽數據）</li>
@@ -368,7 +370,7 @@
       <fieldset class="coach-only">
         <legend>防守隊形</legend>
         <div class="chips" data-key="formation">
-          <button data-v="ours">舉球留網前（隊上）</button><button data-v="up">心跟進</button><button data-v="rot">邊跟進</button><button data-v="per">心後</button>
+          <button data-v="ours">舉球留網前（隊上）</button><button data-v="up">後中靠前</button><button data-v="rot">邊上的人往前</button><button data-v="per">後中靠後</button>
         </div>
         <p class="hint-line" id="formDesc"></p>
       </fieldset>
@@ -405,6 +407,13 @@
         </div>
       </fieldset>
       <fieldset>
+        <legend>對方怎麼扣</legend>
+        <div class="chips" data-key="hitStyle">
+          <button data-v="mix">每球換</button><button data-v="power">轉身重扣</button><button data-v="wrist">轉手腕</button>
+        </div>
+        <p class="hint-line" id="hitDesc"></p>
+      </fieldset>
+      <fieldset>
         <legend>播放速度</legend>
         <div class="chips" data-key="speed">
           <button data-v="normal">正常</button><button data-v="slow">慢</button>
@@ -416,6 +425,14 @@
           <button data-v="flow">連續（像比賽）</button><button data-v="step">每一步停下來</button>
         </div>
         <p class="hint-line" id="flowDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>隊員名字（可以不填）</legend>
+        <div class="chips" id="nameShow">
+          <button data-v="role">圓點寫角色</button><button data-v="name">圓點寫名字</button>
+        </div>
+        <div class="name-grid" id="nameGrid"></div>
+        <p class="hint-line">大砲 1、攔中 1 是輪轉順序排在前面的那位（舉球後面第一個大砲、第一個攔中）。名字只存在這支手機。圓點最多顯示 3 個字。</p>
       </fieldset>
       <fieldset>
         <legend>給誰用</legend>

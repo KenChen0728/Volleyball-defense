@@ -118,11 +118,28 @@ const POSES = {
   blockReady:{ lean:4,  hip:[16,16], knee:[30,30], sh:[118,118], abd:[18,18],  el:[72,72],  wide:.30, stag:0 },
   spike:     { lean:-6, hip:[16,30], knee:[30,52], sh:[150,168], abd:[20,26],  el:[40,-105], wide:.22, stag:0 },
   serve:     { lean:6,  hip:[8,8],   knee:[14,14], sh:[160,120], abd:[16,30],  el:[10,-95], wide:.28, stag:-.22 },
+  // 跨步壓低接球：右腳跨出去、膝蓋接近地板，雙手平台伸向球（左腳在前時整個左右對調）
+  lunge:     { lean:38, hip:[18,80], knee:[44,104], sh:[64,64],   abd:[-19,-19], el:[0,0],   wide:.78, stag:.48 },
+  // 撲救：身體往前倒、手伸長
+  dive:      { lean:64, hip:[8,72],  knee:[18,64], sh:[104,104], abd:[-12,-12], el:[0,0],   wide:.52, stag:.62 },
+  // 側併步：重心低、兩腳一開一合
+  shuffle:   { lean:28, hip:[46,46], knee:[74,74], sh:[42,42],   abd:[14,14],  el:[30,30],  wide:.52, stag:.06 },
 };
-function runPose(ph){
-  const s = Math.sin(ph), c = Math.cos(ph);
-  return { lean:16, hip:[32 * s + 10, -32 * s + 10], knee:[30 + 40 * Math.max(0, -c), 30 + 40 * Math.max(0, c)],
+// 跑步：放開手擺臂（不抱著手跑）；amp 是快慢，慢跑擺幅小
+function runPose(ph, amp){
+  const a = amp == null ? 1 : amp, s = Math.sin(ph) * a, c = Math.cos(ph);
+  return { lean:10 + 10 * a, hip:[32 * s + 10, -32 * s + 10], knee:[30 + 40 * a * Math.max(0, -c), 30 + 40 * a * Math.max(0, c)],
            sh:[34 - 40 * s, 34 + 40 * s], abd:[10, 10], el:[80, 80], wide:.18, stag:0 };
+}
+function shufflePose(ph){
+  const o = Object.assign({}, POSES.shuffle); for (const k of ['hip','knee','sh','abd','el']) o[k] = POSES.shuffle[k].slice();
+  o.wide = .36 + .2 * Math.abs(Math.sin(ph)); return o;
+}
+// 左腳在前：左右手腳對調
+function mirrorPose(p){
+  const o = { lean:p.lean, wide:p.wide, stag:-p.stag };
+  for (const k of ['hip','knee','sh','abd','el']) o[k] = [p[k][1], p[k][0]];
+  return o;
 }
 const KEYS = ['lean', 'wide', 'stag'], PAIRS = ['hip', 'knee', 'sh', 'abd', 'el'];
 function copyPose(p){ const o = { lean:p.lean, wide:p.wide, stag:p.stag }; for (const k of PAIRS) o[k] = p[k].slice(); return o; }
@@ -235,9 +252,12 @@ function create(canvas, overlay){
   const SKIN = hex('#efc7a4'), HAIR = hex('#2a1d17'), SHORTS = hex('#1f2430'), PAD = hex('#17191d'), SOCK = hex('#f3f4f6'), SHOE = hex('#e5e7eb');
   function personState(p, dt){
     let s = people.get(p.id);
-    const tgt = p.pose === 'run' ? runPose(p.phase || 0) : (POSES[p.pose] || POSES.ready);
+    let tgt = p.pose === 'run' ? runPose(p.phase || 0, p.runAmp) : p.pose === 'shuffle' ? shufflePose(p.phase || 0) : (POSES[p.pose] || POSES.ready);
+    if (p.foot < 0) tgt = mirrorPose(tgt);
     if (!s){ s = { pose:copyPose(tgt), yaw:p.yaw || 0 }; people.set(p.id, s); }
-    const a = p.pose === 'run' ? 1 : 1 - Math.exp(-dt * (p.pose === 'dig' || p.pose === 'block' || p.pose === 'spike' ? 14 : 7));
+    // 姿勢慢慢過渡，不要一下子換掉；跑步、側併步跟著步伐，反應快一點
+    const fast = ['dig','lunge','dive','block','spike'].includes(p.pose) ? 12 : (p.pose === 'run' || p.pose === 'shuffle' ? 16 : 6);
+    const a = 1 - Math.exp(-dt * fast);
     easePose(s.pose, tgt, a);
     let dy = (p.yaw || 0) - s.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
     s.yaw += dy * (1 - Math.exp(-dt * 6));

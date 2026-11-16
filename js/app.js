@@ -4,11 +4,11 @@
 (() => {
 'use strict';
 
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 const BUILD_DATE = '2026-11-16';
 const VERSION_TEXT = `v${APP_VERSION}（${BUILD_DATE}）`;
 const COPY = '© 2026 Ken Chen';
-const KEY = { simple:'vbdef.simple.v1', settings:'vbdef.settings.v1', custom:'vbdef.custom.v1', hint:'vbdef.hint.drag.v1', hint2:'vbdef.hint.v2', screen:'vbdef.screen' };
+const KEY = { names:'vbdef.names.v1', simple:'vbdef.simple.v1', settings:'vbdef.settings.v1', custom:'vbdef.custom.v1', hint:'vbdef.hint.drag.v1', hint2:'vbdef.hint.v2', screen:'vbdef.screen' };
 const NS = 'http://www.w3.org/2000/svg';
 const VB = { x:-0.45, y:-3.55, w:9.9, h:13.55 };
 const TARGET = [4.8, 2.6];                       // （舊的目標區，只留給測試對照）
@@ -36,11 +36,11 @@ const BLOCKRES_DESC = {
   kill:'球打進攔網的範圍就算攔死，直接擋回對方場地。',
   miss:'攔網沒碰到球，球照原本的路線飛過來。',
 };
-const FORM_NAME = { up:'心跟進', rot:'邊跟進', per:'心後', ours:'舉球留網前' };
+const FORM_NAME = { up:'後中靠前', rot:'邊上的人往前', per:'後中靠後', ours:'舉球留網前' };
 const FORM_DESC = {
-  up:'一個人站在攔網後面專守吊球，兩邊站深。對手吊球、推球多時適合。',
-  rot:'攔網那一側的後排往前守吊球，6 號位轉去守直線深球。',
-  per:'後排三個人靠邊線、底線站，重扣最好接；吊球靠 1 號位（或 5 號位）往前和退下來的前排。',
+  up:'後排中間的人（6 號位）往前，站在攔網後面專守吊球，兩邊站深。對手吊球、推球多時適合。',
+  rot:'攔網那一側邊上的後排往前守吊球，6 號位轉去守直線深球。',
+  per:'後排中間的人留在底線，後排三個人靠邊線、底線站，重扣最好接；吊球靠 1 號位（或 5 號位）往前和退下來的前排。',
   ours:'隊上的做法：舉球員和舉對都不攔網。舉球員一律守 2 號位，接 2 號位前面的短球（在後排時也留在右邊網前、隨時舉球）；比較長的球給後面 1 號位的舉對。',
 };
 const STEPS = ['rot','recv','spike','tip'];
@@ -81,7 +81,7 @@ const darkMQ = (() => { try{ return window.matchMedia('(prefers-color-scheme: da
 
 /* ---------- 狀態 ---------- */
 const DEFAULTS = { system:'51', rot:1, recv:'team', useLib:true, step:'rot', serveX:1.6, view:'2d', cam:'dig',
-  formation:'ours', canOH:true, canMB:true, canR:false, mbLate:false, blockRes:'soft', libero:5, radius:2, speed:'normal', flow:'flow', attackType:'spike', mode:'learn', attacker:{ x:8.2, y:-1.3 } };
+  formation:'ours', canOH:true, canMB:true, canR:false, mbLate:false, blockRes:'soft', libero:5, radius:2, speed:'normal', flow:'flow', hitStyle:'mix', attackType:'spike', mode:'learn', attacker:{ x:8.2, y:-1.3 } };
 const CAMS = ['dig','stand','S','MB','OH1','OPP','OH2','L'];
 function sanitizeSettings(o){
   const r = {};
@@ -100,6 +100,7 @@ function sanitizeSettings(o){
   if (['spike','tip'].includes(o.attackType)) r.attackType = o.attackType;
   if (['soft','kill','miss'].includes(o.blockRes)) r.blockRes = o.blockRes;
   if (['flow','step'].includes(o.flow)) r.flow = o.flow;
+  if (['mix','power','wrist'].includes(o.hitStyle)) r.hitStyle = o.hitStyle;
   if (['learn','free'].includes(o.mode)) r.mode = o.mode;
   if (o.attacker && isFinite(o.attacker.x) && isFinite(o.attacker.y)) r.attacker = { x:clamp(+o.attacker.x, .3, 8.7), y:clamp(+o.attacker.y, -3.2, -.6) };
   if (['51','62','42'].includes(o.system)) r.system = o.system;
@@ -146,7 +147,7 @@ applySimple();
 S.attacker = Object.assign({}, S.attacker);
 let custom = sanitizeCustom(store.get(KEY.custom, null));
 function saveSettings(){
-  store.set(KEY.settings, { sv:4, blockRes:S.blockRes, flow:S.flow, system:S.system, rot:S.rot, recv:S.recv, useLib:S.useLib, step:S.step, serveX:+S.serveX.toFixed(2), view:S.view, cam:S.cam,
+  store.set(KEY.settings, { sv:4, blockRes:S.blockRes, flow:S.flow, hitStyle:S.hitStyle, system:S.system, rot:S.rot, recv:S.recv, useLib:S.useLib, step:S.step, serveX:+S.serveX.toFixed(2), view:S.view, cam:S.cam,
     formation:S.formation, canOH:S.canOH, canMB:S.canMB, canR:S.canR, mbLate:S.mbLate, libero:S.libero, radius:S.radius,
     speed:S.speed, attackType:S.attackType, mode:S.mode, attacker:{ x:+S.attacker.x.toFixed(2), y:+S.attacker.y.toFixed(2) } });
 }
@@ -269,7 +270,7 @@ function compute(att){
     P[nb] = [X(8.3), 6.6]; P[fb] = [X(1.2), 6.2]; P[6] = [X(5.0), 8.3]; tipZ = outer;
     N[nb] = '守直線：靠邊線，站在攔網陰影外'; N[fb] = '守斜線：站在陰影外的斜線上，重扣最常來這裡'; N[6] = '守深球：底線前一步，往攻擊那一側偏';
   } else if (S.formation === 'rot'){
-    P[nb] = [X(7.0), 3.4]; N[nb] = '邊跟進：往前守攔網後面的吊球'; tipZ = nb;
+    P[nb] = [X(7.0), 3.4]; N[nb] = '邊上的人往前：守攔網後面的吊球'; tipZ = nb;
     P[6] = [X(8.3), 7.8]; N[6] = '轉去守直線深球';
     P[fb] = [X(1.2), 6.9]; N[fb] = '守斜線深球';
   } else if (S.formation === 'up'){
@@ -301,7 +302,7 @@ function compute(att){
   let blockText = !blockRoles.length ? '沒有人攔網：前排三個人平均分開、離網兩公尺左右，後排站深站開' : (blockRoles.map(nm).join('和') + (blockRoles.length === 2 ? '雙人攔網' : '攔網'));
   if (blockRoles.length && side !== 'M' && !blockRoles.includes('MB') && canBlock(3) && S.mbLate) blockText += '（攔中來不及，退下來守吊球）';
   const perTip = !frontCover && side !== 'M' && blockRoles.length && (S.formation === 'per' || S.formation === 'ours');
-  let extra = tip ? (perTip ? `吊球靠${roleName(tip, lu)}看到就往前撲（離得遠，這是心後的弱點）。` : `吊球由${roleName(tip, lu)}守。`)
+  let extra = tip ? (perTip ? `吊球靠${roleName(tip, lu)}看到就往前撲（離得遠，這是後中靠後的弱點）。` : `吊球由${roleName(tip, lu)}守。`)
                   : (blockRoles.length ? '短球由退下來的前排守。' : '');
   if (frontCover && S.formation !== 'per' && S.formation !== 'ours') extra += '前排已經有人守吊球，後排三個人都站深。';
   if (tip === 'S') extra += '舉球員接了吊球，第二球由舉對（輔舉）舉。';
@@ -444,17 +445,26 @@ function speedK(){ return (S.speed === 'slow' ? 1.8 : 1) * (v3.on ? SLOW3 : 1); 
 function slowK(b){ return v3.on && b && b.slow ? 1.6 : 1; }
 
 /* ---------- 接法（給說明用） ---------- */
+// 接球的方法：球在身體附近就正面接；在範圍邊緣就跨步壓低；超出範圍就撲出去
+function digKind(P, L, type){
+  const d = dist(P, L), R = S.radius;
+  if (d < (type === 'spike' ? .9 : .7)) return 'front';
+  if (d <= R * 1.05) return 'lunge';
+  return 'dive';
+}
+const DIG_KIND_TAG = { front:'接', lunge:'跨步接', dive:'撲' };
 function digTech(type, P, L){
-  const d = dist(P, L);
-  if (type === 'soft') return d < .6 ? '碰手的小球比較慢：往前踩一步、壓低身體，用雙手前臂把球托高。'
-    : '碰手的小球比較慢：看到球碰到攔網的手就往前衝，壓低身體，用雙手前臂把球托高；來不及就單手撈起來。';
-  if (type === 'tip'){
-    if (d < .6) return '吊球比較慢：往前踩一步、壓低身體，用雙手前臂把球托高。';
-    return '吊球比較慢：看到對方手放軟就往前衝，壓低身體，用雙手前臂把球托高；來不及就單手撈起來。';
+  const kind = digKind(P, L, type === 'spike' ? 'spike' : 'tip');
+  const plat = '手臂平台斜斜轉向舉球員，球就往那裡飛。';
+  if (type === 'soft' || type === 'tip'){
+    const what = type === 'soft' ? '碰手的小球比較慢' : '吊球比較慢';
+    if (kind === 'front') return `${what}：往前踩一步、壓低身體，用雙手前臂把球托高。` + plat;
+    if (kind === 'lunge') return `${what}：看到就往前衝，最後一步跨大步、膝蓋壓低接近地板，雙手伸到球下面托高。` + plat;
+    return `${what}：離得遠，衝過去最後撲出去，手伸長把球撈起來；來不及就單手撈。`;
   }
-  if (d < .6) return '扣球很快：球朝她來，也要往前踩一步迎球，雙手前臂接，球才不會太低。';
-  if (d < 1.7) return '扣球很快：球不是朝她來，要往球的方向跨一步（靠近球的腳先跨、另一腳推），身體壓低，雙手伸過去把球接高。';
-  return '扣球很快：離得遠，看攻擊手手臂的方向先動；新手來不及時，先求把球碰起來。';
+  if (kind === 'front') return '扣球很快：球朝她來，也要往前踩一步迎球，雙手前臂接，球才不會太低。' + plat;
+  if (kind === 'lunge') return '扣球很快：球不是朝她來，靠近球的那一腳往球跨一大步、另一腳推，重心壓低，雙手伸過去把球接高。' + plat;
+  return '扣球很快：離得遠，看攻擊手手臂的方向先動，跨不到就撲出去，手伸長先把球碰起來。';
 }
 function recvTech(P, L){
   const dx = L[0] - P[0], dy = L[1] - P[1], d = Math.hypot(dx, dy);
@@ -501,9 +511,16 @@ function buildSteps(L, type, comp, dec, att){
   const d = dec.digger;
   const away = unit([L[0] - A[0], L[1] - A[1]]);
   const P1 = clonePos(P0);
-  P1[d] = clampCourt([L[0] + away[0]*.45, L[1] + away[1]*.45]);   // 站在球的後面一點，球在身體前面接
-  const busy = new Set([d, ...comp.blockers]);
   const TG = digTarget(d);
+  const kind = digKind(P0[d], L, soft ? 'tip' : type);
+  if (kind === 'front') P1[d] = clampCourt([L[0] + away[0]*.45, L[1] + away[1]*.45]);   // 站在球的後面一點，球在身體前面接
+  else {
+    // 跨步或撲：人停在球旁邊，手伸過去接（不是整個人跑到球後面）
+    const v = unit([L[0] - P0[d][0], L[1] - P0[d][1]]), reach = kind === 'lunge' ? .75 : 1.15;
+    const dd = dist(P0[d], L);
+    P1[d] = dd > reach ? clampCourt([L[0] - v[0] * reach, L[1] - v[1] * reach]) : P0[d].slice();
+  }
+  const busy = new Set([d, ...comp.blockers]);
   const setterGoes = d !== 'S' && !comp.blockers.includes('S');
   if (setterGoes) busy.add('S');
   // 舉球員接第一球：舉對（輔舉）要去舉，不去補位
@@ -518,7 +535,8 @@ function buildSteps(L, type, comp, dec, att){
     const near = ROLES.filter(canHelp).map(r => ({ r, d:dist(P0[r], L) })).filter(c => c.d <= 4.2).sort((p, q) => p.d - q.d);
     if (near.length) backup = near[0].r;
   }
-  if (backup){ busy.add(backup); P1[backup] = clampCourt([L[0] + away[0]*1.5, L[1] + away[1]*1.5]); }
+  // 補位站在接球的人後面一點（順著球飛來的方向），不要跟她疊在一起
+  if (backup){ busy.add(backup); const bx = P1[d]; P1[backup] = clampCourt([bx[0] + away[0]*1.15, bx[1] + away[1]*1.15]); }
   const fillers = [];
   const hole = P0[d];
   if (dist(hole, L) > 1.0){
@@ -537,7 +555,7 @@ function buildSteps(L, type, comp, dec, att){
   if (setterGoes) P1.S = lerp(P0.S, TG, .35);
   if (fixGoes && !comp.blockers.includes('OPP')) P1.OPP = lerp(P0.OPP, TG, .3);
   const tech = digTech(soft ? 'soft' : type, P0[d], L);
-  let cap1 = (soft ? '這球打到攔網的手，速度變慢，掉在攔網後面變成小球。' : '') + reasonText(dec, lu) + tech;
+  let cap1 = (type === 'spike' && !soft ? HIT_TEXT[curHit] : '') + (soft ? '這球打到攔網的手，速度變慢，掉在攔網後面變成小球。' : '') + reasonText(dec, lu) + tech;
   if (backup && backup !== dec.backup) cap1 += `${short(backup)}跟過去站在她後面，球接飛了可以救。`;
   if (fillers.length) cap1 += `${fillers.map(short).join('、')}往她空出來的地方移一點。`;
   if (leaners.length) cap1 += '其他人往球的方向靠一步，眼睛跟著球。';
@@ -545,12 +563,15 @@ function buildSteps(L, type, comp, dec, att){
   if (fixGoes) cap1 += '舉對（輔舉）看到舉球員去接，就往前跑，準備舉第二球。';
   const rules1 = [ruleText(dec)];
   if (backup || fillers.length) rules1.push('補位：最近的隊友跟到接球的人後面保護，旁邊的人往空出來的地方移（教練慣例）。');
-  const faceMap = {}; for (const r of ROLES) faceMap[r] = L; faceMap[d] = A;
+  const faceMap = {}; for (const r of ROLES) faceMap[r] = L;
+  // 接球的人：正面接時面向攻擊手、平台斜斜轉向舉球的地方；跨步或撲時身體朝球
+  if (kind === 'front'){ const a1 = unit([A[0] - L[0], A[1] - L[1]]), a2 = unit([TG[0] - L[0], TG[1] - L[1]]); faceMap[d] = [L[0] + a1[0] + a2[0], L[1] + a1[1] + a2[1]]; }
+  else faceMap[d] = L;
   if (soft) rules1.push('攔網碰到的球：設定裡可以改成「攔死」或「沒攔到」。');
   steps.push({ key:'dig', title: soft ? '碰手・接小球' : (type === 'tip' ? '吊球・接球' : '攻擊・接球'), pos:P1, faceMap,
     ball: soft ? { from:hand, to:soft.bp, dur:330, arc:.08, z:[2.75, 2.5, 0], then:{ to:L, dur:950, arc:.55, z:[2.5, .55, 3.0] } }
-      : type === 'tip' ? { from:hand, to:L, dur:900, arc:.7, z:[2.6, .55, 3.1] } : { from:hand, to:L, dur:480, arc:.1, z:[2.75, .65, 0], slow:true },
-    cap:cap1, rule:rules1.filter(Boolean).join(' '), marks:{ dig:d, backup, fillers, gap: dec.rule === 'gap' },
+      : type === 'tip' ? { from:hand, to:L, dur:900, arc:.7, z:[2.6, .55, 3.1] } : (curHit === 'wrist' ? { from:hand, to:L, dur:650, arc:.16, z:[2.75, .7, 0], slow:true } : { from:hand, to:L, dur:480, arc:.1, z:[2.75, .65, 0], slow:true }),
+    cap:cap1, rule:rules1.filter(Boolean).join(' '), marks:{ dig:d, digKind:kind, platform:[L, TG], backup, fillers, gap: dec.rule === 'gap' },
     notes:allNotes(r => r === d ? `接球：${tech}` : r === backup ? '補位：跟到接球的人後面，球接飛了可以救'
       : fillers.includes(r) ? '補空位：往接球的人空出來的地方移一點'
       : leaners.includes(r) ? '往球的方向靠一步，準備救接飛的球'
@@ -969,7 +990,7 @@ function refreshPlayerLooks(comp){
   for (const r of ROLES){
     const g = plG[r], grp = groupOf(r, lu), col = GROUP_COLOR[grp];
     g.querySelector('.body').style.fill = col;
-    const t = g.querySelector('.t'); t.textContent = ROLE_INFO[r].tok; t.setAttribute('font-size', ROLE_INFO[r].tok.length > 1 ? .33 : .38);
+    const tk = tokOf(r), t = g.querySelector('.t'); t.textContent = tk; t.setAttribute('font-size', tk.length > 2 ? .22 : (tk.length > 1 ? .33 : .38));
     g.querySelector('.badge text').textContent = lu[r].zone;
     g.setAttribute('aria-label', roleName(r, lu));
     const c = rgG[r].querySelector('circle');
@@ -980,20 +1001,47 @@ function refreshPlayerLooks(comp){
 const tw = {};
 let mvMs = 0;
 function setMoveDur(ms){ mvMs = Math.round(ms); svg.style.setProperty('--mv', `${mvMs}ms`); }
+// 起步加速、快到時煞車（不是等速滑過去）
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 function posNow(r, now){
   const a = tw[r]; if (!a) return null;
   if (!a.dur) return a.to;
-  const t = clamp((now - a.t0) / a.dur, 0, 1), e = 1 - Math.pow(1 - t, 3);
+  const t = clamp((now - a.t0) / a.dur, 0, 1), e = easeIO(t);
   return [a.from[0] + (a.to[0] - a.from[0]) * e, a.from[1] + (a.to[1] - a.from[1]) * e];
 }
+// 這個人現在是不是在移動、用什麼步法（側併步、交叉步、跑）
+function moveNow(r, now){
+  const a = tw[r]; if (!a || !a.dur) return null;
+  const t = (now - a.t0) / a.dur; if (t <= 0 || t >= 1) return null;
+  return a;
+}
+function stepStyle(d){ return d < 1.3 ? 'shuffle' : (d < 3 ? 'cross' : 'run'); }
 const faceAng = {};
-function placePlayers(P, off, face){
+let twRAF = 0;
+function setTf(r, p){
+  const tf = `translate(${p[0].toFixed(3)}px, ${p[1].toFixed(3)}px)`;
+  plG[r].style.transform = tf; rgG[r].style.transform = tf; if (tgG[r]) tgG[r].style.transform = tf;
+}
+function tick2D(){
+  twRAF = 0;
+  const now = performance.now(); let busy = false;
+  for (const r of ROLES){
+    const a = tw[r]; if (!a || !a.dur || a.done) continue;
+    setTf(r, posNow(r, now));
+    if (now >= a.t0 + a.dur) a.done = true; else busy = true;
+  }
+  if (busy) twRAF = requestAnimationFrame(tick2D);
+}
+// timing(r, from, to) 回傳 { delay, dur }（毫秒）：每個人看到球才起步，距離越遠跑越久
+function placePlayers(P, off, face, timing){
   const now = performance.now();
   for (const r of ROLES){
     const p = P[r]; if (!p) continue;
-    tw[r] = { from: posNow(r, now) || p.slice(), to:p.slice(), t0:now, dur:mvMs };
-    const tf = `translate(${p[0].toFixed(3)}px, ${p[1].toFixed(3)}px)`;
-    plG[r].style.transform = tf; rgG[r].style.transform = tf; if (tgG[r]) tgG[r].style.transform = tf;
+    const from = posNow(r, now) || p.slice(), d = Math.hypot(p[0] - from[0], p[1] - from[1]);
+    let delay = 0, dur = mvMs;
+    if (dur && timing && d > .03){ const tm = timing(r, from, p, d); delay = tm.delay; dur = tm.dur; }
+    tw[r] = { from, to:p.slice(), t0:now + delay, dur: d > .03 ? dur : 0, style:stepStyle(d) };
+    if (!tw[r].dur) setTf(r, p);
     rgG[r].classList.toggle('off', !!(off && off.includes(r)));
     const fp = face ? (Array.isArray(face) ? face : face[r]) : null;
     if (fp){
@@ -1004,6 +1052,17 @@ function placePlayers(P, off, face){
     }
   }
   drawFaces();
+  if (!twRAF) twRAF = requestAnimationFrame(tick2D);
+}
+// 平台面向：手臂平台朝哪裡，球就往哪裡飛（畫一支短箭頭指向舉球的地方）
+function drawPlatform(L, T){
+  const v = unit([T[0] - L[0], T[1] - L[1]]), len = Math.min(1.5, dist(L, T) * .5);
+  const a = [L[0] + v[0] * .3, L[1] + v[1] * .3], b = [L[0] + v[0] * (.3 + len), L[1] + v[1] * (.3 + len)];
+  const g = el('g', { class:'platform' }, G.paths);
+  const ln = el('line', { x1:a[0], y1:a[1], x2:b[0], y2:b[1], 'stroke-width':.07, 'stroke-linecap':'round' }, g); ln.style.stroke = 'var(--accent)';
+  const n = [-v[1], v[0]], h = .22;
+  const hd = el('polygon', { points:[[b[0] + v[0] * h, b[1] + v[1] * h], [b[0] + n[0] * h * .6, b[1] + n[1] * h * .6], [b[0] - n[0] * h * .6, b[1] - n[1] * h * .6]].map(p => p.join(',')).join(' ') }, g); hd.style.fill = 'var(--accent)';
+  const t = el('text', { x:b[0] + v[0] * .62 * k, y:b[1] + v[1] * .62 * k, class:'plat-t', 'font-size':(.34 * k).toFixed(3) }, g); t.textContent = '平台朝這裡';
 }
 function drawFaces(){
   for (const r of ROLES){ const a = faceAng[r]; if (a == null || !fcG[r]) continue; fcG[r].style.transform = `rotate(${a.toFixed(1)}deg) scale(${k.toFixed(3)})`; }
@@ -1133,7 +1192,7 @@ function setMarks(m, P){
     showTag(r, text, below);
   };
   if (m.hidden) for (const r of m.hidden.slice().sort((a, b) => P && P[a] && P[b] ? P[a][1] - P[b][1] : 0)) put(r, '不接');
-  if (m.dig){ plG[m.dig].classList.add('is-dig'); put(m.dig, m.gap ? '衝！' : '接'); }
+  if (m.dig){ plG[m.dig].classList.add('is-dig'); put(m.dig, m.gap ? '衝！' : (DIG_KIND_TAG[m.digKind] || '接')); }
   if (m.serve) put(m.serve, '發球');
   if (m.set) put(m.set, '舉');
   if (m.hit) put(m.hit, '攻擊');
@@ -1239,6 +1298,18 @@ function stepDur(st){
   return 800;
 }
 const BLOCK_KEYS = ['read','dig','out','blocked','nobody'];
+// 看到球（對方擊球、隊友接到球、舉球出手）才起步；接球的人剛好在球到的時候到位，其他人照距離跑，近的先停
+const REACT = { dig:170, serve:200, pass:110, set:140, out:170, blocked:170, nobody:170 };
+function moveTiming(st, r, d, win){
+  const k2 = win / Math.max(1, stepDur(st));                 // 這一步實際的時間倍數（慢動作、3D）
+  const react = REACT[st.key];
+  if (react == null) return { delay:0, dur:win };            // 換位置、回防：照整段時間慢慢走
+  const delay = react * k2;
+  const room = Math.max(120, win - delay);
+  const m = st.marks || {};
+  if (r === m.dig || r === m.set && st.key === 'pass') return { delay, dur:room };
+  return { delay, dur:Math.min(room, (240 + d * 330) * k2) };
+}
 function applyStep(i, animate){
   const st = play.steps[i]; if (!st) return;
   play.i = i;
@@ -1249,7 +1320,7 @@ function applyStep(i, animate){
   setLibOff(!S.useLib || !!st.noLib);
   refreshPlayerLooks(st.lu ? { lu:st.lu } : comp);
   const off = st.off || (BLOCK_KEYS.includes(st.key) ? comp.blockers : []);
-  placePlayers(st.pos, off, st.faceMap || st.face || ballEnd(st.ball));
+  placePlayers(st.pos, off, st.faceMap || st.face || ballEnd(st.ball), mv ? (r, from, to, d) => moveTiming(st, r, d, mv) : null);
   setMarks(st.marks, st.pos);
   const blockShown = BLOCK_KEYS.includes(st.key);
   G.shadow.style.display = blockShown ? '' : 'none'; G.block.style.display = blockShown ? '' : 'none'; G.zones.style.display = blockShown ? '' : 'none';
@@ -1260,6 +1331,7 @@ function applyStep(i, animate){
   if (st.marks && st.marks.routes) drawMoveArrows(st.marks.routes, true);
   if (st.marks && st.marks.arrows) drawMoveArrows(st.marks.arrows, false);
   if (st.marks && st.marks.swap) drawSwap(st.marks.swap);
+  if (st.marks && st.marks.platform) drawPlatform(st.marks.platform[0], st.marks.platform[1]);
   if (play.landing && i >= 1 && ['dig','out','nobody','serve'].includes(st.key)){
     const lx = el('circle', { cx:play.landing[0], cy:play.landing[1], r:.16, fill:'none', 'stroke-width':.05 }, G.paths); lx.style.stroke = 'var(--opp)';
   }
@@ -1293,7 +1365,15 @@ function scheduleNext(){
   const wait = live ? Math.max(stepDur(st), ballTotal(st.ball)) * speedK() + 40 : stepDur(st) * speedK() + read;
   play.timer = setTimeout(() => { applyStep(play.i + 1, true); scheduleNext(); }, wait);
 }
+// 對方怎麼扣：轉身重扣（身體整個轉向球去的方向，最快最重）、轉手腕（身體沒轉，只轉手腕改方向，比較慢比較輕）
+let curHit = 'power', hitFlip = 0;
+function pickHit(){ curHit = S.hitStyle === 'mix' ? ((hitFlip++ % 2) ? 'wrist' : 'power') : S.hitStyle; return curHit; }
+const HIT_TEXT = {
+  power:'攻擊手整個身體轉過來、對著球去的方向重扣：球最快最重，只來得及跨一步。',
+  wrist:'攻擊手身體沒轉、只轉手腕改方向：球比較慢、比較輕，多一點時間移動；看她的身體會以為打直線，要看手臂和手腕。',
+};
 function startSim(L){
+  if (isDefStep() && S.attackType === 'spike') pickHit();
   if (S.step === 'rot') return;
   markHintSeen(); v3.cam = null;
   const comp = resetPlay(true);
@@ -1352,6 +1432,11 @@ function svgPt(e){
 }
 function onDown(e){
   if (e.button !== undefined && e.button !== 0) return;
+  if (quiz.on){
+    const pg = e.target.closest('.pl'); const r = pg && ROLES.find(x => plG[x] === pg);
+    if (r) answerQuiz(r); else if (!quiz.answered) toast('點球員（圓點）回答：這球誰接？');
+    return;
+  }
   const p = svgPt(e);
   const t = e.target.closest('[data-drag]');
   let kind = t ? t.dataset.drag : null;
@@ -1550,7 +1635,7 @@ function poseFor(r, st, p, speed, jz){
   const key = st ? st.key : 'idle', m = (st && st.marks) || {};
   if (jz > .02) return (st && st.hitter === r) ? 'spike' : 'block';
   const near = lim => ball3.show && Math.hypot(ball3.x - p[0], ball3.y - p[1]) < lim;
-  if (m.dig === r && near(1.4) && ball3.z < 2.1) return 'dig';
+  if (m.dig === r && near(m.digKind === 'dive' ? 1.9 : 1.5) && ball3.z < 2.1) return m.digKind === 'lunge' ? 'lunge' : (m.digKind === 'dive' ? 'dive' : 'dig');
   if ((m.set === r || (key === 'pass' && r === 'S')) && near(1.3) && ball3.z > 1.5) return 'set';
   if (play.comp.blockers.includes(r) && BLOCK_KEYS.includes(key)) return 'blockReady';
   if (speed > .35) return 'run';
@@ -1568,6 +1653,9 @@ function oppPeople(now, st){
   } else if (isDefStep()){
     const a = S.attacker, jz = jumpZ('att', now);
     add('att', a.x, a.y, jz > .02 ? 'spike' : 'ready', red, '攻', jz);
+    // 轉身重扣：身體轉向球去的方向；轉手腕：身體正對我們的場地
+    const Ld = play.landing;
+    if (Ld && S.attackType === 'spike' && curHit === 'power' && key !== 'idle') out[out.length - 1].yaw = Math.atan2(Ld[0] - a.x, -(Ld[1] - a.y));
     add('os', a.x > 4.5 ? 3.0 : 6.0, -.9, 'ready', red2);
     add('ob', a.x > 4.5 ? .9 : 8.1, -1.7, 'ready', red2);
     [[1.8,-6.2],[4.5,-7.0],[7.2,-6.2]].forEach((p, i) => add('od' + i, p[0], p[1], 'defense', red2));
@@ -1613,9 +1701,21 @@ function frame3(now){
     const p = posNow(r, now) || comp.pos[r], q = v3.prev[r] || p;
     const mv = Math.hypot(p[0] - q[0], p[1] - q[1]); v3.prev[r] = p.slice();
     v3.phase[r] = (v3.phase[r] || 0) + mv * 6;
-    const jz = jumpZ('us:' + r, now);
-    people.push({ id:'us:' + r, x:p[0], y:p[1], z:jz, h:1.7, yaw:(faceAng[r] || 0) * Math.PI / 180, pose:poseFor(r, st, p, mv / Math.max(dt, 1e-3), jz), phase:v3.phase[r],
-      color:v3.colors[groupOf(r, lu)], label: curTags[r] || ROLE_INFO[r].tok, labelDim: !curTags[r],
+    const jz = jumpZ('us:' + r, now), spd = mv / Math.max(dt, 1e-3);
+    let pose = poseFor(r, st, p, spd, jz), yaw = (faceAng[r] || 0) * Math.PI / 180;
+    // 步法：短距離側併步（臉一直看球）、中距離交叉步、遠的放開手直接跑（臉朝要去的方向）
+    const mvA = moveNow(r, now);
+    if (pose === 'run' && mvA){
+      const my = Math.atan2(mvA.to[0] - mvA.from[0], -(mvA.to[1] - mvA.from[1]));
+      if (mvA.style === 'shuffle') pose = 'shuffle';
+      else if (mvA.style === 'run') yaw = my;
+      else { let dd = my - yaw; while (dd > Math.PI) dd -= 2 * Math.PI; while (dd < -Math.PI) dd += 2 * Math.PI; yaw += dd * .5; }
+    }
+    // 外側腳在前：靠右邊線右腳在前、靠左邊線左腳在前；跨步、撲的時候靠球那一腳先出去
+    let foot = p[0] > 4.5 ? 1 : -1;
+    if ((pose === 'lunge' || pose === 'dive') && ball3.show){ const rx = Math.cos(yaw), ry = Math.sin(yaw); foot = ((ball3.x - p[0]) * rx + (ball3.y - p[1]) * ry) >= 0 ? 1 : -1; }
+    people.push({ id:'us:' + r, x:p[0], y:p[1], z:jz, h:1.7, yaw, pose, foot, runAmp:clamp(spd / (2.2 / speedK()), .45, 1), phase:v3.phase[r],
+      color:v3.colors[groupOf(r, lu)], label: curTags[r] || tokOf(r), labelDim: !curTags[r],
       tagBg: curTags[r] ? 'rgba(28,31,35,.92)' : 'rgba(28,31,35,.6)', arms: jz > .05, hidden: role === r });
   }
   for (const o of oppPeople(now, st)) people.push(o);
@@ -1693,8 +1793,10 @@ function rotate(dir){
   if (S.step === 'rot') markHintSeen();
   resetPlay(false, S.step === 'rot' || S.step === 'recv' ? 500 : 300);
   refreshStepUI(); refreshSitUI();
+  if (quiz.on){ quiz.n--; nextQuestion(); }    // 換一輪：同一題號重新出題
 }
 function setMode(m, silent){
+  if (m === 'free' && quiz.on){ quiz.on = false; document.body.classList.remove('quiz-on'); $('btnQuiz').setAttribute('aria-pressed', 'false'); $('quizBtns').hidden = true; clearQuizPick(); }
   S.mode = m;
   document.body.classList.toggle('mode-free', m === 'free' && isDefStep());
   if (m === 'free' && !custom){ custom = clonePos(compute(S.attacker).pos); saveCustom(); }
@@ -1719,6 +1821,8 @@ function refreshStepUI(){
   document.querySelectorAll('#stepper button').forEach((b, i) => { const on = b.dataset.step === S.step; b.setAttribute('aria-current', on ? 'step' : 'false'); b.querySelector('.sn').textContent = on ? '✓' : String(i + 1); });
   const def = isDefStep();
   $('btnFreeToggle').hidden = !def;
+  $('btnQuiz').hidden = !def || S.mode === 'free';
+  if (!def && quiz.on) setQuiz(false);
   $('btnFreeToggle').setAttribute('aria-pressed', String(def && S.mode === 'free'));
   $('btnResetFree').hidden = !(def && S.mode === 'free');
   $('stepbtns').hidden = false;
@@ -1761,13 +1865,14 @@ function refreshSitUI(){
   });
   $('sysDesc').textContent = VBRot.SYSTEMS[S.system].desc;
   $('recvDesc').textContent = VBRot.FORMS[S.recv].desc + (S.recv === 'team' && S.system !== '51' ? '（現在是雙輔舉／雙舉，先用五人 W。）' : '');
-  $('formDesc').textContent = FORM_DESC[S.formation] + (S.formation === 'ours' && !setterBack() ? '（這一輪舉球員在前排，本來就在網前，跟心後一樣。）' : '');
+  $('formDesc').textContent = FORM_DESC[S.formation] + (S.formation === 'ours' && !setterBack() ? '（這一輪舉球員在前排，本來就在網前，跟後中靠後一樣。）' : '');
   document.querySelectorAll('.chips-multi button').forEach(b => b.setAttribute('aria-pressed', String(!!S[b.dataset.k])));
   $('chipR').textContent = rName();
   $('blockDesc').textContent = blockDesc();
   $('blockResDesc').textContent = BLOCKRES_DESC[S.blockRes];
   document.querySelectorAll('#modeChips button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.v === 'team') === simple)));
   $('modeDesc').textContent = simple ? '隊員版：只有隊上的站法和自己擺，設定只留常用的幾項。' : '教練版：可以換進攻系統、接發球隊形、防守隊形、誰會攔網。傳給隊員時用下面的按鈕，她們打開就是隊員版。';
+  $('hitDesc').textContent = { mix:'每一球輪流：轉身重扣、轉手腕。立體畫面看攻擊手的身體和手。', power:HIT_TEXT.power, wrist:HIT_TEXT.wrist }[S.hitStyle];
   $('flowDesc').textContent = S.flow === 'step' ? '每一步停下來讓你看說明，再自動播下一步。' : '球在空中不停下來，像真的比賽；想看每一步的說明，按暫停或用 ‹ › 前後看。';
   document.querySelectorAll('.chips[data-key="mbLate"] button').forEach(b => { b.setAttribute('aria-pressed', String((S.mbLate ? '1' : '0') === b.dataset.v)); b.setAttribute('aria-disabled', String(!S.canMB)); });
 }
@@ -1797,6 +1902,104 @@ function shareTeamLink(){
   if (navigator.share){ navigator.share({ title:'排球站位教室（隊員版）', text:'隊上的站法：輪轉、接發球、防守，可以自己擺站位', url }).catch(() => {}); return; }
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => toast(url, null, null, 8000));
   else toast(url, null, null, 8000);
+}
+
+/* ---------- 隊員名字（戰術板） ---------- */
+const NAME_SLOTS = [['S','舉球'], ['OPP','舉對'], ['OH1','大砲 1'], ['OH2','大砲 2'], ['MB1','攔中 1'], ['MB2','攔中 2'], ['LIB','自由']];
+const names = (() => { const o = store.get(KEY.names, {}) || {}; const r = { show: o.show === true };
+  for (const [k] of NAME_SLOTS) r[k] = typeof o[k] === 'string' ? o[k].slice(0, 8) : ''; return r; })();
+function saveNames(){ store.set(KEY.names, names); }
+// 角色 → 隊員：照這一輪的輪轉順序找是誰（後排攔中有自由時換成自由）
+function nameOf(r){
+  const R = rotInfo();
+  if (r === 'L' && !libOff && S.useLib) return names.LIB;
+  const map51 = { S:'S', OPP:'OPP', OH1:'OH1', OH2:'OH2', MB1:'MB1', MB2:'MB2' };
+  const id = Object.keys(R.roleOf).find(i => R.roleOf[i] === r); if (!id) return '';
+  if (S.system !== '51' && (id === 'S1' || id === 'S2')) return id === 'S1' ? names.S : names.OPP;
+  return names[map51[id]] || '';
+}
+function tokOf(r){ const n = names.show ? nameOf(r).trim() : ''; return n ? n.slice(0, 3) : ROLE_INFO[r].tok; }
+function buildNameGrid(){
+  const g = $('nameGrid'); g.innerHTML = '';
+  for (const [k, lb] of NAME_SLOTS){
+    const l = document.createElement('label'); l.textContent = lb;
+    const i = document.createElement('input'); i.type = 'text'; i.maxLength = 8; i.value = names[k]; i.placeholder = '名字'; i.autocomplete = 'off';
+    i.addEventListener('input', () => { names[k] = i.value.slice(0, 8); saveNames(); if (names.show) refreshPlayerLooks(play.comp || currentComp()); });
+    l.appendChild(i); g.appendChild(l);
+  }
+  refreshNameShow();
+}
+function refreshNameShow(){ document.querySelectorAll('#nameShow button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.v === 'name') === names.show))); }
+function setNameShow(on){
+  names.show = on; saveNames(); refreshNameShow();
+  refreshPlayerLooks(play.comp || currentComp());
+  if (on && !NAME_SLOTS.some(([k]) => names[k].trim())) toast('先在下面填隊員名字');
+}
+
+/* ---------- 誰接？小遊戲 ---------- */
+const quiz = { on:false, n:0, ok:0, L:null, dec:null, comp:null, answered:false, pick:null };
+function setQuiz(on){
+  if (on && !isDefStep()) return;
+  quiz.on = on; quiz.n = 0; quiz.ok = 0;
+  document.body.classList.toggle('quiz-on', on);
+  $('btnQuiz').setAttribute('aria-pressed', String(on));
+  if (on){ if (S.mode !== 'learn') setMode('learn', true); if (v3.on) set3D(false); hideHint(); nextQuestion(); }
+  else { clearQuizPick(); $('quizBtns').hidden = true; resetPlay(false, 300); refreshStepUI(); }
+}
+function clearQuizPick(){ for (const r of ROLES) plG[r].classList.remove('quiz-pick'); }
+// 出題：隨機的攻擊手位置和落點，一定有人接得到的球（不出界、不是被攔死）
+function nextQuestion(){
+  clearQuizPick();
+  const xs = [1.0, 4.5, 8.0];
+  S.attacker = { x:xs[Math.floor(Math.random() * 3)], y:-1.3 };
+  const comp = resetPlay(true, 300);
+  let L = null, dec = null;
+  for (let k = 0; k < 200; k++){
+    const c = [.4 + Math.random() * 8.2, (S.attackType === 'tip' ? .5 : 1.2) + Math.random() * (S.attackType === 'tip' ? 4.2 : 7.4)];
+    const d = decide(c, S.attackType, comp, S.attacker);
+    // 球不要剛好落在某個人身上（太簡單），要想一下的題目
+    const nearest = Math.min(...ROLES.map(r => dist(comp.pos[r], c)));
+    if (d.kind === 'dig' && !d.soft && (nearest > .8 || k > 150)){ L = c; dec = d; break; }
+  }
+  if (!L) return;
+  quiz.n++; quiz.L = L; quiz.dec = dec; quiz.comp = comp; quiz.answered = false;
+  drawBall(L, 1, [L[0], L[1], .11]);
+  const lx = el('circle', { cx:L[0], cy:L[1], r:.32, fill:'none', 'stroke-width':.06, 'stroke-dasharray':'.1 .08' }, G.paths); lx.style.stroke = 'var(--opp)';
+  $('stepTitle').textContent = `誰接？第 ${quiz.n} 題` + (quiz.n > 1 ? `（答對 ${quiz.ok}／${quiz.n - 1}）` : '');
+  $('caption').textContent = `對方${S.attackType === 'tip' ? '吊球' : '扣球'}，球會落在黃球的地方。這球誰接？點那個人。`;
+  $('ruleLine').hidden = true;
+  $('btnDetail').hidden = true; $('btnHintOk').hidden = true; $('quizBtns').hidden = true;
+}
+function whyNot(r){
+  const comp = quiz.comp, dec = quiz.dec, L = quiz.L, P = comp.pos, R = S.radius, dg = dec.digger;
+  const nmS = x => ROLE_INFO[x].name, d = dist(P[r], L), dd = dist(P[dg], L);
+  if (comp.blockers.includes(r)) return `${nmS(r)}在攔網，手在網子上，來不及回頭接後面的球。`;
+  if (dec.rule === 'gap') return `沒有人的圈圈碰得到這一球（空檔），最近的${nmS(dg)}要直接衝過去。`;
+  if (dec.rule === 'tip') return `吊球在這一輪由${nmS(dg)}守。`;
+  if (dec.rule === 'sShort') return '2 號位前面的短球，隊上的做法是舉球員接。';
+  if (r === 'S' && d <= R) return '舉球員碰得到也要讓開，留著舉第二球；只有她碰得到時才接。';
+  if (d > R * 1.05) return `太遠了：她離球 ${d.toFixed(1)} 公尺，超出她的範圍（圈圈 ${R} 公尺），跑過去球早就落地了。`;
+  if (L[1] > P[r][1] + .4 && L[1] <= P[dg][1] + .4) return `她要往後退才接得到，往後退比往前難；${nmS(dg)}往前或往旁邊就接得到。`;
+  return `她也碰得到，但${nmS(dg)}比較近（${dd.toFixed(1)} 公尺，她 ${d.toFixed(1)} 公尺）：近的人接，她去補位。`;
+}
+function answerQuiz(r){
+  if (!quiz.on || quiz.answered) return;
+  quiz.answered = true;
+  const dec = quiz.dec, dg = dec.digger, ok = r === dg;
+  if (ok) quiz.ok++;
+  clearQuizPick();
+  if (!ok) plG[r].classList.add('quiz-pick');
+  setMarks({ dig:dg }, quiz.comp.pos);
+  $('stepTitle').textContent = (ok ? '答對了！' : '再想想') + `（答對 ${quiz.ok}／${quiz.n}）`;
+  $('caption').textContent = (ok ? '' : `不是${ROLE_INFO[r].name}。${whyNot(r)}`) + reasonText(dec, quiz.comp.lu);
+  $('quizBtns').hidden = false;
+}
+function quizAnim(){
+  if (!quiz.L) return;
+  const L = quiz.L, title = $('stepTitle').textContent;
+  quiz.answered = true;
+  startSim(L);
+  $('quizBtns').hidden = false; $('btnDetail').hidden = true;
 }
 
 /* ---------- 底部（或側邊）面板、說明 ---------- */
@@ -1923,13 +2126,16 @@ const HELP = [
     { img:'help/learn-2.webp', h:'拖紅色的「攻」', p:'紅色的「攻」是對方的攻擊手。拖到左邊、中間、右邊，我們的人會跟著換到防守位置，攔網也會跟過去。' },
     { img:'help/learn-3.webp', h:'拖球看誰接、為什麼', p:'把黃球拖到我們場上放開（也可以直接點）。接球的人標「接」，跟到她後面的人標「補位」。說明會寫出為什麼是她、怎麼接，還有依據。' },
     { img:'help/learn-4.webp', h:'一步一步看接起來之後', p:'自動播放：接球 → 送到舉球位置 → 舉球・保護 → 回防。球在空中時不會停下來；想看每一步的說明，按暫停或用 ‹ › 前後看（設定也可以改成每一步停下來）。「每個人在做什麼」列出這一步每個人的工作。' },
+    { img:'help/learn-3.webp', h:'考考你：這球誰接？', p:'按「誰接？」出題：黃球是落點，點妳覺得該接的人。答錯會說為什麼（太遠、在攔網、舉球員要讓、往後退比較難），按「看動畫」看正確的移動，按「下一題」繼續。短箭頭「平台朝這裡」是接球時手臂平台要轉的方向，球就往那裡飛。' },
   ]},
   { id:'view3d', title:'立體畫面', cards:[
     { img:'help/3d-1.webp', h:'切到「立體」', p:'球場右上角切到「立體」，可以看到攔網跳起來、球怎麼飛、大家往哪裡跑。點地板，球就會打到那裡。' },
     { img:'help/3d-2.webp', h:'用接球的人的眼睛看', p:'「視角」選「接球的人」，就是用接這一球的人的眼睛看出去：扣球會慢慢飛過來、越來越大，最後接進自己的雙手。立體畫面會自動放慢。也可以固定看某一個人，或選看台。' },
+    { img:'help/3d-2.webp', h:'看攻擊手怎麼扣', p:'設定「對方怎麼扣」：轉身重扣時，攻擊手整個身體轉向球去的方向，球最快最重；轉手腕時身體沒轉、只轉手腕，球比較慢比較輕。用接球的人的眼睛看攻擊手，練習判斷球會往哪裡去。' },
   ]},
   { id:'situation', title:'設定', cards:[
     { img:'help/sit-1.webp', h:'點「設定」打開', p:'手機直放時，設定從下面打開，上面的球場還看得到；手機橫放、平板橫放和電腦，設定從右邊打開。改了馬上看得到結果。' },
+    { img:'help/sit-1.webp', h:'寫上隊員名字', p:'設定裡填隊員名字，選「圓點寫名字」，球場上的圓點就變成名字（每一輪會自動對到正確的人）。再按「自己擺」，就可以當戰術板拖來拖去。' },
     { coach:true, img:'help/sit-2.webp', h:'誰會攔網、攔網碰到球', p:'「誰會攔網」可以複選；隊上舉球員、舉對不攔，所以只勾大砲和攔中。「攔網碰到球的時候」預設是碰手變小球，可以看攔網後面誰去接；也可以選攔死或沒攔到。' },
   ]},
   { id:'free', title:'自己擺站位', cards:[
@@ -2094,6 +2300,11 @@ function bind(){
   document.querySelectorAll('.chips[data-key]').forEach(c => c.querySelectorAll('button').forEach(b => b.addEventListener('click', () => onChip(c.dataset.key, b.dataset.v))));
   document.querySelectorAll('#modeChips button').forEach(b => b.addEventListener('click', () => setSimple(b.dataset.v === 'team')));
   $('btnShareTeam').addEventListener('click', shareTeamLink);
+  $('btnQuiz').addEventListener('click', () => setQuiz(!quiz.on));
+  $('btnQuizNext').addEventListener('click', () => { resetPlay(true, 300); nextQuestion(); });
+  $('btnQuizAnim').addEventListener('click', quizAnim);
+  document.querySelectorAll('#nameShow button').forEach(b => b.addEventListener('click', () => setNameShow(b.dataset.v === 'name')));
+  buildNameGrid();
   document.querySelectorAll('.chips-multi button').forEach(b => b.addEventListener('click', () => onChip(b.dataset.k)));
   $('btnSit').addEventListener('click', () => openSheet('sitSheet'));
   $('btnDetail').addEventListener('click', () => { renderDetail(); openSheet('detSheet'); });

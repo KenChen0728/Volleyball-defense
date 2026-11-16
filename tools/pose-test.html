@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><title>姿勢檢查</title>
+<style>body{margin:0;background:#ccc} canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="520" style="width:1200px;height:520px"></canvas><canvas id="o" width="1200" height="520" style="position:absolute;left:0;top:0;width:1200px;height:520px"></canvas>
+<script src="../js/gl3d.js"></script>
+<script>
+// 開發用：把每個姿勢排一排，從側面看，檢查手肘、膝蓋有沒有往奇怪的方向彎
+const poses = (new URLSearchParams(location.search).get('p') || 'ready,defense,dig,lunge,dive,shuffle,set,blockReady,block,spike').split(',');
+const yawDeg = +(new URLSearchParams(location.search).get('yaw') || 90);
+const r = VBGL.create(document.getElementById('c'), document.getElementById('o'));
+r.resize();
+const people = poses.map((p, i) => ({ id:'p' + i, x:i * 1.3, y:0, z:0, h:1.7, yaw:yawDeg * Math.PI / 180, pose:p, phase:1, color:'#2563eb', label:p, foot:1 }));
+const cx = (poses.length - 1) * 1.3 / 2;
+function frame(){ r.render({ camera:{ eye:[cx, 9, 1.2], target:[cx, 0, .9], fov:42 }, people, ball:null, dark:false, zones:null, target:null, hud:'', arms:null }); }
+let n = 0; (function loop(){ frame(); if (++n < 90) requestAnimationFrame(loop); else window.done = true; })();
+</script></body></html>

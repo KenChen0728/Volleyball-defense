@@ -113,9 +113,9 @@ const POSES = {
   ready:     { lean:26, hip:[40,40], knee:[64,64], sh:[36,36],   abd:[12,12],  el:[30,30],  wide:.36, stag:.12 },
   defense:   { lean:34, hip:[52,52], knee:[84,84], sh:[52,52],   abd:[26,26],  el:[34,34],  wide:.42, stag:.08 },
   dig:       { lean:30, hip:[50,50], knee:[80,80], sh:[64,64],   abd:[-19,-19], el:[0,0],   wide:.40, stag:.14 },
-  set:       { lean:4,  hip:[16,16], knee:[26,26], sh:[150,150], abd:[16,16],  el:[96,96],  wide:.28, stag:.12 },
+  set:       { lean:2,  hip:[14,14], knee:[24,24], sh:[150,150], abd:[30,30],  el:[30,30],  wide:.30, stag:.14, ik:'set' },
   block:     { lean:0,  hip:[10,10], knee:[22,22], sh:[172,172], abd:[6,6],    el:[4,4],    wide:.24, stag:0 },
-  blockReady:{ lean:4,  hip:[16,16], knee:[30,30], sh:[118,118], abd:[18,18],  el:[72,72],  wide:.30, stag:0 },
+  blockReady:{ lean:4,  hip:[16,16], knee:[30,30], sh:[110,110], abd:[22,22],  el:[30,30],  wide:.30, stag:0, ik:'blockReady' },
   spike:     { lean:-6, hip:[16,30], knee:[30,52], sh:[150,168], abd:[20,26],  el:[40,-105], wide:.22, stag:0 },
   serve:     { lean:6,  hip:[8,8],   knee:[14,14], sh:[160,120], abd:[16,30],  el:[10,-95], wide:.28, stag:-.22 },
   // 跨步壓低接球：右腳跨出去、膝蓋接近地板，雙手平台伸向球（左腳在前時整個左右對調）
@@ -126,6 +126,20 @@ const POSES = {
   shuffle:   { lean:28, hip:[46,46], knee:[74,74], sh:[42,42],   abd:[14,14],  el:[30,30],  wide:.52, stag:.06 },
 };
 // 跑步：放開手擺臂（不抱著手跑）；amp 是快慢，慢跑擺幅小
+// 兩段手臂（上臂 .29、前臂 .27）：肩膀到目標，手肘往外、往下彎
+function armIK(S0, T, sd){
+  const a = .29, c = .27;
+  let v = [T[0] - S0[0], T[1] - S0[1], T[2] - S0[2]];
+  let d = Math.hypot(v[0], v[1], v[2]) || 1e-3;
+  const u = [v[0] / d, v[1] / d, v[2] / d];
+  d = Math.min(a + c - .002, Math.max(Math.abs(a - c) + .02, d));
+  let p = [sd, 0, -.5]; const pr = p[0] * u[0] + p[1] * u[1] + p[2] * u[2];
+  p = [p[0] - u[0] * pr, p[1] - u[1] * pr, p[2] - u[2] * pr];
+  const pl = Math.hypot(p[0], p[1], p[2]) || 1; p = [p[0] / pl, p[1] / pl, p[2] / pl];
+  const ca = (a * a + d * d - c * c) / (2 * a * d), sa = Math.sqrt(Math.max(0, 1 - ca * ca));
+  const elb = [S0[0] + u[0] * a * ca + p[0] * a * sa, S0[1] + u[1] * a * ca + p[1] * a * sa, S0[2] + u[2] * a * ca + p[2] * a * sa];
+  return [elb, [S0[0] + u[0] * d, S0[1] + u[1] * d, S0[2] + u[2] * d]];
+}
 function runPose(ph, amp){
   const a = amp == null ? 1 : amp, s = Math.sin(ph) * a, c = Math.cos(ph);
   return { lean:10 + 10 * a, hip:[32 * s + 10, -32 * s + 10], knee:[30 + 40 * a * Math.max(0, -c), 30 + 40 * a * Math.max(0, c)],
@@ -259,6 +273,9 @@ function create(canvas, overlay){
     const fast = ['dig','lunge','dive','block','spike'].includes(p.pose) ? 12 : (p.pose === 'run' || p.pose === 'shuffle' ? 16 : 6);
     const a = 1 - Math.exp(-dt * fast);
     easePose(s.pose, tgt, a);
+    // 舉球、攔網準備：手直接放到額頭前上方／肩膀前上方（用兩段手臂去接，手肘自然往外），慢慢切換
+    if (tgt.ik) s.ikKind = tgt.ik;
+    s.ikW = (s.ikW || 0) + ((tgt.ik ? 1 : 0) - (s.ikW || 0)) * a;
     let dy = (p.yaw || 0) - s.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
     s.yaw += dy * (1 - Math.exp(-dt * 6));
     return s;
@@ -313,34 +330,54 @@ function create(canvas, overlay){
       const up = [sd * Math.sin(ab), Math.sin(th) * Math.cos(ab), -Math.cos(th) * Math.cos(ab)];
       let b = [0, 1, .6]; const pr = dot(b, up); b = norm(sub(b, mul(up, pr)));
       const fore = norm(add(mul(up, Math.cos(el)), mul(b, Math.sin(el))));
-      const elb = add(shl, mul(up, .29)), wr = add(elb, mul(fore, .27));
+      let elb = add(shl, mul(up, .29)), wr = add(elb, mul(fore, .27));
+      if (s.ikW > .01 && s.ikKind){
+        const head = add(add(add(pel, mul(spine, .58)), [0, .02, .1]), [0, 0, 0]);
+        const T = s.ikKind === 'set' ? add(head, [sd * .1, .2, .2]) : add(shl, [sd * .05, .16, .32]);
+        const ik = armIK(shl, T, sd);
+        elb = add(elb, mul(sub(ik[0], elb), s.ikW)); wr = add(wr, mul(sub(ik[1], wr), s.ikW));
+      }
       const S0 = pt(shl), E0 = pt(elb), W0 = pt(wr);
       sphere(S0, .062, col);
       limb(S0, add(S0, mul(sub(E0, S0), .45)), .058, col);
       limb(S0, E0, .042, SKIN);
       sphere(E0, .041, SKIN);
       limb(E0, W0, .036, SKIN);
-      sphere(add(W0, mul(fore, .04)), .044, SKIN);
+      sphere(add(W0, mul(norm(sub(W0, E0)), .04)), .044, SKIN);
     }
     return add(headC, [0, 0, .2]);
   }
   // 第一人稱：自己的兩隻手（雙手前臂合起來，球接進手裡）
+  // 第一人稱的手：只畫前臂和手（上臂、肩膀太靠近眼睛，畫出來會變成擋住畫面的大柱子）
   function drawArms(a){
-    const e = cam.eye, f = cam.f, r = cam.r, u = cam.u;
-    let hand = add(add(e, mul(f, .62)), mul(u, -.4));
-    if (a.at){
-      // 球快到的時候，雙手迎到球的下面
-      const d = sub(a.at, e), L = Math.hypot(d[0], d[1], d[2]) || 1, kk = Math.max(.45, Math.min(.85, L)) / L;
-      hand = add(add(e, mul(d, kk)), mul(u, -.1));
+    const e = cam.eye, r = cam.r, Zu = [0, 0, 1];
+    const fh = norm([cam.f[0], cam.f[1], 0]);              // 水平的前方
+    const fore = (elb, h) => { limb(elb, h, .032, SKIN); };
+    if (a.pose === 'set'){
+      // 舉球：雙手在額頭前上方張開成三角形，手肘往外、往下；球來了手迎到球下面
+      let c = add(add(e, mul(Zu, .3)), mul(fh, .26));
+      if (a.at){ const b = a.at; c = [b[0] - fh[0] * .04, b[1] - fh[1] * .04, b[2] - .12]; }
+      for (const sd of [-1, 1]){
+        const h = add(c, mul(r, sd * .085));
+        const elb = add(add(add(h, mul(Zu, -.26)), mul(r, sd * .17)), mul(fh, -.06));
+        fore(elb, h);
+        ellip(h, mul(r, .035), mul(fh, .03), mul(Zu, .055), SKIN);
+      }
+      return;
     }
+    let hand = add(add(e, mul(fh, .6)), mul(Zu, -.6));
+    if (a.at){
+      // 接球：雙手併攏成平台，迎到球的下面
+      const d = sub(a.at, e), L = Math.hypot(d[0], d[1], d[2]) || 1, kk = Math.max(.5, Math.min(.85, L)) / L;
+      hand = add(add(e, mul(d, kk)), mul(Zu, -.08));
+    }
+    // 前臂從手往身體方向（往後、往下、稍微往外）
+    const toBody = norm(sub(add(e, mul(Zu, -.45)), hand));
     for (const sd of [-1, 1]){
-      const sh0 = add(add(add(e, mul(r, sd * .3)), mul(u, -.72)), mul(f, .06));
-      const h = add(hand, mul(r, sd * .03));
-      const elb = add(add(add(sh0, mul(sub(h, sh0), .52)), mul(r, sd * .04)), mul(u, .02));
-      limb(sh0, add(sh0, mul(sub(elb, sh0), .55)), .052, hex(a.color || '#6d28d9'));
-      limb(sh0, elb, .036, SKIN);
-      limb(elb, h, .03, SKIN);
-      ellip(h, mul(r, .03), mul(f, .05), mul(u, .022), SKIN);
+      const h = add(hand, mul(r, sd * .035));
+      const elb = add(add(h, mul(toBody, .27)), mul(r, sd * .07));
+      fore(elb, h);
+      ellip(h, mul(r, .03), mul(fh, .05), mul(Zu, .022), SKIN);
     }
   }
   /* ---------- 畫一張 ---------- */

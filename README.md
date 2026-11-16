@@ -40,7 +40,7 @@
 
 ## 退回舊版
 
-每次改版前都會先把目前的 `main` 另存成備份分支（例如 `backup-v1.1.0`、`backup-v2.0.0`、`backup-v2.1.0`、`backup-v2.2.0`、`backup-v2.3.0`、`backup-v2.4.0`）。新版有問題時：
+每次改版前都會先把目前的 `main` 另存成備份分支（例如 `backup-v1.1.0`、`backup-v2.0.0`、`backup-v2.1.0`、`backup-v2.2.0`、`backup-v2.3.0`、`backup-v2.4.0`、`backup-v2.5.0`）。新版有問題時：
 
 1. 在 GitHub 打開備份分支，把檔案放回 `main`（或在電腦上 `git checkout backup-v1.1.0 -- .` 再推上去）。
 2. 把 `sw.js` 的 `VERSION` 改成一個新的號碼（例如 `1.1.1`），手機才會丟掉有問題的快取。
@@ -70,6 +70,7 @@
 - `tools/make-icons.py`：產生 App 圖示和分享預覽圖。
 - `tools/make-help-shots.py`：產生使用說明的截圖。
 - `tools/check-layout.py`：在手機、平板、筆電、桌電等尺寸量有沒有超出畫面、按鈕被蓋住、按鈕太小、字太小。
+- `tools/pose-test.html`：把立體畫面的每個姿勢排成一排（網址加 `?yaw=180` 看正面），檢查手肘、膝蓋有沒有往奇怪的方向彎。
 
 ## 根據與參考資料
 

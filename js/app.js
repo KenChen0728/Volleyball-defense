@@ -4,7 +4,7 @@
 (() => {
 'use strict';
 
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.5.1';
 const BUILD_DATE = '2026-11-16';
 const VERSION_TEXT = `v${APP_VERSION}（${BUILD_DATE}）`;
 const COPY = '© 2026 Ken Chen';
@@ -516,7 +516,7 @@ function buildSteps(L, type, comp, dec, att){
   if (kind === 'front') P1[d] = clampCourt([L[0] + away[0]*.45, L[1] + away[1]*.45]);   // 站在球的後面一點，球在身體前面接
   else {
     // 跨步或撲：人停在球旁邊，手伸過去接（不是整個人跑到球後面）
-    const v = unit([L[0] - P0[d][0], L[1] - P0[d][1]]), reach = kind === 'lunge' ? .75 : 1.15;
+    const v = unit([L[0] - P0[d][0], L[1] - P0[d][1]]), reach = kind === 'lunge' ? .6 : .9;
     const dd = dist(P0[d], L);
     P1[d] = dd > reach ? clampCourt([L[0] - v[0] * reach, L[1] - v[1] * reach]) : P0[d].slice();
   }
@@ -569,7 +569,7 @@ function buildSteps(L, type, comp, dec, att){
   else faceMap[d] = L;
   if (soft) rules1.push('攔網碰到的球：設定裡可以改成「攔死」或「沒攔到」。');
   steps.push({ key:'dig', title: soft ? '碰手・接小球' : (type === 'tip' ? '吊球・接球' : '攻擊・接球'), pos:P1, faceMap,
-    ball: soft ? { from:hand, to:soft.bp, dur:330, arc:.08, z:[2.75, 2.5, 0], then:{ to:L, dur:950, arc:.55, z:[2.5, .55, 3.0] } }
+    ball: soft ? { from:hand, to:soft.bp, dur:330, arc:.08, z:[2.75, 2.5, 0], then:{ to:L, dur:1000, arc:.6, z:[2.5, .55, 3.7] } }
       : type === 'tip' ? { from:hand, to:L, dur:900, arc:.7, z:[2.6, .55, 3.1] } : (curHit === 'wrist' ? { from:hand, to:L, dur:650, arc:.16, z:[2.75, .7, 0], slow:true } : { from:hand, to:L, dur:480, arc:.1, z:[2.75, .65, 0], slow:true }),
     cap:cap1, rule:rules1.filter(Boolean).join(' '), marks:{ dig:d, digKind:kind, platform:[L, TG], backup, fillers, gap: dec.rule === 'gap' },
     notes:allNotes(r => r === d ? `接球：${tech}` : r === backup ? '補位：跟到接球的人後面，球接飛了可以救'
@@ -596,7 +596,7 @@ function buildSteps(L, type, comp, dec, att){
   } else cap2 = `${short(d)}把球接高，往舉球員會跑到的地方送（網前、2 號位偏中間）。不管在哪個位置接，都往這裡接。舉球員跑到球下面準備舉。`;
   cap2 += '前排攻擊手退到起跑點' + (comp.blockers.length ? '，攔網的人落地轉身退開' : '') + '。';
   const passDur = clamp(900 + Math.max(0, dist(P1[setterRole], TG) - 3) * 140, 900, 1400);
-  steps.push({ key:'pass', title: d === 'S' ? '修正：送給輔舉' : '送到舉球位置', pos:P2, moveDur:passDur - 100, ball:{ from:L, to:TG, dur:passDur, arc:1.1, z:[.65, 2.4, 4.6] }, cap:cap2, face:TG,
+  steps.push({ key:'pass', title: d === 'S' ? '修正：送給輔舉' : '送到舉球位置', pos:P2, moveDur:passDur - 100, ball:{ from:L, to:TG, dur:passDur, arc:1.1, z:[.65, 2.15, 4.6] }, cap:cap2, face:TG,
     rule: d === 'S' ? '依據：隊上的做法，舉球員接第一球時由舉對（輔舉）舉第二球；修正球離網稍微開一點（教練）。' : '依據：隊上的做法，防起來的球一律往舉球員跑到的終點接（教練）。',
     marks:{ set:setterRole, target: d === 'S' ? 'fix' : 'rt' },
     notes:allNotes(r => r === setterRole ? (d === 'S' ? '跑上來修正，準備舉第二球' : '跑到網前的舉球位置，準備舉球') : attackers.includes(r) ? '退到起跑點，準備助跑' : r === d ? '接完球往中間靠，準備保護' : '回到後排，準備保護') });
@@ -612,7 +612,7 @@ function buildSteps(L, type, comp, dec, att){
   assignSpots(close, sp.close, P2, P3); assignSpots(deep, sp.deep, P2, P3);
   const over = [H[0] < 4.5 ? H[0] + 2.6 : H[0] - 2.6, -2.8];
   const toSide = hitter === 'OH1' ? '4 號位' : (hitter === 'OPP' ? '2 號位' : '中間');
-  steps.push({ key:'set', title:'舉球・保護', pos:P3, face:H, ball:{ from:TG, to:H, dur:900, arc:1.0, z:[2.4, 2.95, 4.8], then:{ to:over, dur:300, arc:.1, z:[2.95, .05, 0] } },
+  steps.push({ key:'set', title:'舉球・保護', pos:P3, face:H, ball:{ from:TG, to:H, dur:900, arc:1.0, z:[2.15, 2.95, 4.8], then:{ to:over, dur:300, arc:.1, z:[2.95, .05, 0] } },
     cap:`${short(setterRole)}站在球下面，把球舉高到${toSide}給${short(hitter)}攻擊，舉完就近保護。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，${deep.length ? `${deep.map(short).join('、')}站後面一點` : '其他人站後面一點'}：球被攔回來才接得到。`,
     rule:'依據：離攻擊手最近的人近距離保護，最遠的人守後面（教練慣例）。',
     marks:{ hit:hitter, set:setterRole, target: d === 'S' ? 'fix' : 'rt' }, hitter,
@@ -765,7 +765,7 @@ function buildRecvSteps(L, rc, dec){
   for (const r of attackers) P2[r] = APPROACH[spot[r]].slice();
   for (const r of ROLES) if (!lu[r].front && r !== 'S' && r !== d) P2[r] = (READY[lu[r].zone] || P2[r]).slice();
   if (!lu[d].front && d !== 'S') P2[d] = lerp(P1[d], READY[lu[d].zone] || P1[d], .5);
-  steps.push({ key:'pass', title:'傳到舉球員', pos:P2, ball:{ from:L, to:rt(), dur:950, arc:1.0, z:[.7, 2.4, 4.4] }, marks:{ set:'S', target:'rt' }, face:rt(), off:[],
+  steps.push({ key:'pass', title:'傳到舉球員', pos:P2, ball:{ from:L, to:rt(), dur:950, arc:1.0, z:[.7, 2.15, 4.4] }, marks:{ set:'S', target:'rt' }, face:rt(), off:[],
     cap:`${short(d)}用雙手前臂把球傳到網前、中間偏右的目標區（離網 1 公尺左右），舉球員在那裡舉。不用傳得很貼網：離網一點，比較不會直接過網。前排攻擊手接完球，馬上退到起跑點。`,
     rule:'依據：很多教練把傳球目標放在離網 1～1.5 公尺、中間偏右（Gold Medal Squared）。',
     notes:allNotes(r => r === 'S' ? '在目標區等球，準備舉' : attackers.includes(r) ? '退到起跑點，準備助跑' : r === d ? '接完球往前靠，準備保護' : '準備保護攻擊手') });
@@ -783,7 +783,7 @@ function buildRecvSteps(L, rc, dec){
   const over = [H[0] < 4.5 ? H[0] + 2.6 : H[0] - 2.6, -2.8];
   const toSide = spot[hitter] === 'OPP' ? '2 號位' : (spot[hitter] === 'MB' ? '中間' : '4 號位');
   steps.push({ key:'set', title:'舉球・保護', pos:P3, face:H, off:[], hitter,
-    ball:{ from:rt(), to:H, dur:950, arc:1.0, z:[2.4, 2.95, 4.8], then:{ to:over, dur:320, arc:.1, z:[2.95, .05, 0] } },
+    ball:{ from:rt(), to:H, dur:950, arc:1.0, z:[2.15, 2.95, 4.8], then:{ to:over, dur:320, arc:.1, z:[2.95, .05, 0] } },
     cap:`舉球員站在球下面，把球舉高到${toSide}給${short(hitter)}攻擊，舉完就近保護。離攻擊手最近的三個人（${close.map(short).join('、')}）蹲低靠近保護，其他人站後面一點。` +
       (rc.swap ? `第一波打完，${short(rc.swap[0])}和${short(rc.swap[1])}再交換位置。` : ''),
     rule:'依據：離攻擊手最近的人近距離保護，最遠的人守後面（教練慣例）。', marks:{ hit:hitter, set:'S', target:'rt' },
@@ -1614,18 +1614,21 @@ function camRoleNow(){
 function camera3(now, role, dt, st){
   if (!role){ v3.cam = null; return S.step === 'rot' ? { eye:[4.5, 17.2, 5.6], target:[4.5, 3.2, .3], fov:50 } : { eye:[4.5, 15.2, 4.4], target:[4.5, .6, .8], fov:52 }; }
   const p = posNow(role, now) || play.comp.pos[role];
-  const eye = [p[0], p[1], 1.3 + jumpZ('us:' + role, now)];   // 蹲低準備，眼睛大概 1.3 公尺高
-  const key = st ? st.key : 'idle';
+  const key = st ? st.key : 'idle', mk = (st && st.marks) || {};
+  const setting = (mk.set === role && (key === 'pass' || key === 'set'));
+  // 蹲低準備時眼睛大概 1.3 公尺高；舉球時站起來，眼睛 1.55 公尺
+  const eye = [p[0], p[1], (setting ? 1.55 : 1.3) + jumpZ('us:' + role, now)];
   let tg;
   if (!st || key === 'read' || key === 'stand') tg = S.step === 'recv' ? [S.serveX, SERVER_Y, 2.4] : [S.attacker.x, S.attacker.y, 2.6];
   else if (ball3.show) tg = [ball3.x, ball3.y, ball3.z];
   else tg = [4.5, -4, 1.4];
   const dx = tg[0] - eye[0], dy = tg[1] - eye[1], dz = tg[2] - eye[2], hd = Math.hypot(dx, dy);
-  let yaw = Math.atan2(dx, -dy), pitch = clamp(Math.atan2(dz, Math.max(hd, .4)), -.72, .7);
+  // 舉球時球會到頭上：可以抬頭看到快 75 度
+  let yaw = Math.atan2(dx, -dy), pitch = clamp(Math.atan2(dz, Math.max(hd, setting ? .25 : .4)), -.72, setting ? 1.3 : .7);
   if (hd < .7 && v3.cam) yaw = v3.cam.yaw;
   if (!v3.cam) v3.cam = { yaw, pitch };
   let d = yaw - v3.cam.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-  const kf = 1 - Math.exp(-dt * 3), mx = 1.4 * dt;
+  const kf = 1 - Math.exp(-dt * (setting ? 5 : 3)), mx = (setting ? 2.4 : 1.4) * dt;
   v3.cam.yaw += clamp(d * kf, -mx, mx);
   v3.cam.pitch += clamp((pitch - v3.cam.pitch) * kf, -mx, mx);
   const cy = v3.cam.yaw, cp = v3.cam.pitch;
@@ -1721,11 +1724,15 @@ function frame3(now){
   for (const o of oppPeople(now, st)) people.push(o);
   const mk = st && st.marks && st.marks.target;
   const ball = ball3.show ? { x:ball3.x, y:ball3.y, z:ball3.z, spin:now / 150 } : null;
-  const near = role && ball && Math.hypot(ball.x - (posNow(role, now) || comp.pos[role])[0], ball.y - (posNow(role, now) || comp.pos[role])[1]) < 1.6 && ball.z < 2;
+  const mk2 = (st && st.marks) || {}, rp = role ? (posNow(role, now) || comp.pos[role]) : null;
+  const bd = role && ball ? Math.hypot(ball.x - rp[0], ball.y - rp[1]) : 99;
+  // 只有這一球接球的人才伸手接；舉球的人在球快到時雙手舉到額頭
+  const setNow = role && ball && mk2.set === role && (st.key === 'pass' || (st.key === 'set' && now - play.t0 < 260 * speedK())) && bd < 2.2 && ball.z > 1.3;
+  const near = role && ball && mk2.dig === role && bd < 1.6 && ball.z < 2;
   const scene = { camera:camera3(now, role, dt, st), people: v3.gl ? people : people.filter(p => !p.hidden), ball,
     dark:darkMQ.matches, zones:zones3(), target: mk ? (mk === 'fix' ? FIX_T : rt()) : null,
     hud:(role ? `第一人稱：${ROLE_INFO[role].name}的眼睛` : '看台視角') + '・慢動作',
-    arms: role ? { on:true, pose: near ? 'platform' : 'ready', at: near ? [ball.x, ball.y, ball.z] : null, color:v3.colors[groupOf(role, lu)] } : null };
+    arms: role && (near || setNow) ? { on:true, pose: setNow ? 'set' : (near ? 'platform' : 'ready'), at: (near || (setNow && bd < 1.2)) ? [ball.x, ball.y, ball.z] : null, color:v3.colors[groupOf(role, lu)] } : null };
   v3.r.render(scene);
 }
 function makeRenderer(){

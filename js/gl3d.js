@@ -187,8 +187,10 @@ function create(canvas, overlay){
   }
   function setCamera(c){
     const f = norm(sub(c.target, c.eye));
-    let r = cross(f, [0, 0, 1]); if (Math.hypot(r[0], r[1], r[2]) < 1e-5) r = [1, 0, 0];
-    r = norm(r); const u = cross(r, f);
+    // 場地座標（x 往右、y 往我們底線、z 往上）是左手系：面向網子時右手邊是 +x，
+    // 所以右邊要用 z × f，不能用 f × z（那樣左右會顛倒，像照鏡子）
+    let r = cross([0, 0, 1], f); if (Math.hypot(r[0], r[1], r[2]) < 1e-5) r = [1, 0, 0];
+    r = norm(r); const u = cross(f, r);
     cam.eye = c.eye; cam.f = f; cam.r = r; cam.u = u; cam.fov = c.fov || 60;
     const e = c.eye;
     const view = new Float32Array([r[0], u[0], -f[0], 0, r[1], u[1], -f[1], 0, r[2], u[2], -f[2], 0, -dot(r, e), -dot(u, e), dot(f, e), 1]);

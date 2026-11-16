@@ -20,8 +20,9 @@ function create(canvas){
   }
   function setCamera(c){
     const f = norm(sub(c.target, c.eye));
-    let r = cross(f, [0, 0, 1]); if (Math.hypot(r[0], r[1], r[2]) < 1e-6) r = [1, 0, 0];
-    r = norm(r); const u = cross(r, f);
+    // 場地座標是左手系：右邊用 z × f，左右才不會顛倒
+    let r = cross([0, 0, 1], f); if (Math.hypot(r[0], r[1], r[2]) < 1e-6) r = [1, 0, 0];
+    r = norm(r); const u = cross(f, r);
     const fov = (c.fov || 62) * Math.PI / 180;
     const focal = (H / 2) / Math.tan(fov / 2);
     cam = { eye:c.eye, f, r, u, focal };

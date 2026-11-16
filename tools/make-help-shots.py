@@ -10,7 +10,7 @@ URL = os.environ.get('VB_URL', 'http://localhost:8765/index.html')
 CHROME = os.environ.get('CHROME', '/usr/bin/google-chrome')
 OUT = 'help'
 W, H, DPR = 390, 844, 2
-BASE = "{system:'51', rot:1, recv:'team', useLib:true, formation:'ours', canOH:true, canMB:true, canR:true, mbLate:false, libero:5, radius:2, attacker:{x:8.2,y:-1.3}, serveX:1.6, mode:'learn', view:'2d', cam:'dig'}"
+BASE = "{system:'51', rot:1, recv:'team', useLib:true, formation:'ours', canOH:true, canMB:true, canR:false, mbLate:false, blockRes:'soft', libero:5, radius:2, attacker:{x:8.2,y:-1.3}, serveX:1.6, mode:'learn', view:'2d', cam:'dig'}"
 
 
 def save(png_bytes, name, crop=None, max_w=760):

@@ -188,6 +188,8 @@
         <li><b>第一波攻擊</b>：先從站的那一邊攻擊，打完再換到固定位置（例如舉球員在 1 號位那一輪，前排的舉對和大砲第一波打完再交換）。</li>
         <li><b>我們發球</b>：發球前先站到方便換位的地方，發球一出手就換：舉球員到 2 號位、舉對到 1 號位、大砲到 4 號位、攔中到 3 號位，自由守 5 號位、後排大砲守 6 號位。</li>
         <li><b>後排攔中發球時</b>：自由還不能換上來，攔中發完球守 6 號位，後排大砲到 5 號位。</li>
+        <li><b>防守</b>：舉球員和舉對都不攔網，只有大砲和攔中攔。舉球員一律守 2 號位，接 2 號位前面的短球、吊球；比較長的球給後面 1 號位的舉對。有自由時大砲守 6 號位、自由守 5 號位的斜線；沒有自由時攔中守 6 號位、大砲守 5 號位。</li>
+        <li><b>攔網不一定攔得死</b>：球打到攔網的手常常變成慢慢掉下來的小球，後面的人要往前撲。App 的設定「攔網碰到球的時候」可以選碰手變小球、攔死、沒攔到。</li>
       </ul>
       <p class="note">App 的「1 輪轉」按播放，可以看我們發球時怎麼換位；「2 接發球」選「隊上的站法」，就是這裡的接發球。站位圖解也有六輪的圖。</p>
     </details>
@@ -376,6 +378,13 @@
           <button data-k="canOH">大砲</button><button data-k="canMB">攔中</button><button data-k="canR" id="chipR">舉對</button>
         </div>
         <p class="hint-line" id="blockDesc"></p>
+      </fieldset>
+      <fieldset>
+        <legend>攔網碰到球的時候</legend>
+        <div class="chips" data-key="blockRes">
+          <button data-v="soft">碰手變小球</button><button data-v="kill">攔死</button><button data-v="miss">沒攔到</button>
+        </div>
+        <p class="hint-line" id="blockResDesc"></p>
       </fieldset>
       <fieldset>
         <legend>攔中跟得上邊線嗎</legend>

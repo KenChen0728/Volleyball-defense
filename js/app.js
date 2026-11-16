@@ -4,7 +4,7 @@
 (() => {
 'use strict';
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const BUILD_DATE = '2026-11-16';
 const VERSION_TEXT = `v${APP_VERSION}（${BUILD_DATE}）`;
 const COPY = '© 2026 Ken Chen';
@@ -27,12 +27,17 @@ const ROLE_INFO = {
 let libOff = false;
 function setLibOff(off){ libOff = !!off; ROLE_INFO.L.tok = libOff ? '攔中' : '自由'; ROLE_INFO.L.name = libOff ? '後排攔中' : '自由'; }
 const GROUP_COLOR = { front:'var(--front)', back:'var(--back)', set:'var(--setter)', lib:'var(--lib)' };
+const BLOCKRES_DESC = {
+  soft:'球打進攔網的範圍時，碰到手變成慢慢掉下來的小球，看後面誰去接（新手的攔網通常攔不死）。',
+  kill:'球打進攔網的範圍就算攔死，直接擋回對方場地。',
+  miss:'攔網沒碰到球，球照原本的路線飛過來。',
+};
 const FORM_NAME = { up:'心跟進', rot:'邊跟進', per:'心後', ours:'舉球留網前' };
 const FORM_DESC = {
   up:'一個人站在攔網後面專守吊球，兩邊站深。對手吊球、推球多時適合。',
   rot:'攔網那一側的後排往前守吊球，6 號位轉去守直線深球。',
   per:'後排三個人靠邊線、底線站，重扣最好接；吊球靠 1 號位（或 5 號位）往前和退下來的前排。',
-  ours:'隊上的做法：舉球員一律守 2 號位（在後排時也留在右邊網前守短球、隨時舉球），舉對退到 1 號位防守。',
+  ours:'隊上的做法：舉球員和舉對都不攔網。舉球員一律守 2 號位，接 2 號位前面的短球（在後排時也留在右邊網前、隨時舉球）；比較長的球給後面 1 號位的舉對。',
 };
 const STEPS = ['rot','recv','spike','tip'];
 const STEP_NAME = { rot:'輪轉站位', recv:'接發球', spike:'防扣球', tip:'防吊球' };
@@ -72,7 +77,7 @@ const darkMQ = (() => { try{ return window.matchMedia('(prefers-color-scheme: da
 
 /* ---------- 狀態 ---------- */
 const DEFAULTS = { system:'51', rot:1, recv:'team', useLib:true, step:'rot', serveX:1.6, view:'2d', cam:'dig',
-  formation:'ours', canOH:true, canMB:true, canR:true, mbLate:false, libero:5, radius:2, speed:'normal', attackType:'spike', mode:'learn', attacker:{ x:8.2, y:-1.3 } };
+  formation:'ours', canOH:true, canMB:true, canR:false, mbLate:false, blockRes:'soft', libero:5, radius:2, speed:'normal', attackType:'spike', mode:'learn', attacker:{ x:8.2, y:-1.3 } };
 const CAMS = ['dig','stand','S','MB','OH1','OPP','OH2','L'];
 function sanitizeSettings(o){
   const r = {};
@@ -89,6 +94,7 @@ function sanitizeSettings(o){
   if ([1.2,1.6,2,2.4].includes(+o.radius)) r.radius = +o.radius;
   if (['normal','slow'].includes(o.speed)) r.speed = o.speed;
   if (['spike','tip'].includes(o.attackType)) r.attackType = o.attackType;
+  if (['soft','kill','miss'].includes(o.blockRes)) r.blockRes = o.blockRes;
   if (['learn','free'].includes(o.mode)) r.mode = o.mode;
   if (o.attacker && isFinite(o.attacker.x) && isFinite(o.attacker.y)) r.attacker = { x:clamp(+o.attacker.x, .3, 8.7), y:clamp(+o.attacker.y, -3.2, -.6) };
   if (['51','62','42'].includes(o.system)) r.system = o.system;
@@ -100,7 +106,10 @@ function sanitizeSettings(o){
   if (['2d','3d'].includes(o.view)) r.view = o.view;
   if (CAMS.includes(o.cam)) r.cam = o.cam;
   // v2.1 以前的預設（五人 W、心跟進）改成隊上的站法（教練畫的單舉、舉球員守 2 號位）
-  if (o.sv !== 3){ if (r.recv == null || r.recv === 'w5') r.recv = 'team'; if (r.formation == null || r.formation === 'up') r.formation = 'ours'; }
+  const sv = +o.sv || 0;
+  if (sv < 3){ if (r.recv == null || r.recv === 'w5') r.recv = 'team'; if (r.formation == null || r.formation === 'up') r.formation = 'ours'; }
+  // v2.2：隊上舉球員和舉對都不攔網（教練說的），舊的預設「會攔」改掉
+  if (sv < 4) r.canR = false;
   return r;
 }
 function sanitizeCustom(o){
@@ -117,7 +126,7 @@ const S = Object.assign({}, DEFAULTS, sanitizeSettings(store.get(KEY.settings, {
 S.attacker = Object.assign({}, S.attacker);
 let custom = sanitizeCustom(store.get(KEY.custom, null));
 function saveSettings(){
-  store.set(KEY.settings, { sv:3, system:S.system, rot:S.rot, recv:S.recv, useLib:S.useLib, step:S.step, serveX:+S.serveX.toFixed(2), view:S.view, cam:S.cam,
+  store.set(KEY.settings, { sv:4, blockRes:S.blockRes, system:S.system, rot:S.rot, recv:S.recv, useLib:S.useLib, step:S.step, serveX:+S.serveX.toFixed(2), view:S.view, cam:S.cam,
     formation:S.formation, canOH:S.canOH, canMB:S.canMB, canR:S.canR, mbLate:S.mbLate, libero:S.libero, radius:S.radius,
     speed:S.speed, attackType:S.attackType, mode:S.mode, attacker:{ x:+S.attacker.x.toFixed(2), y:+S.attacker.y.toFixed(2) } });
 }
@@ -326,15 +335,31 @@ function effort(P, L, A){
 function decide(L, type, comp, att){
   const R = S.radius, A = [att.x, att.y];
   if (L[0] < -0.02 || L[0] > 9.02 || L[1] > 9.02) return { kind:'out' };
-  if (type === 'spike' && comp.shadow && inPoly(L, comp.shadow)) return { kind:'blocked' };
+  if (type === 'spike' && comp.shadow && inPoly(L, comp.shadow)){
+    if (S.blockRes === 'kill') return { kind:'blocked' };
+    if (S.blockRes === 'soft'){
+      // 碰到攔網的手：球速變慢，掉在攔網後面一兩公尺，跟吊球一樣要往前撲
+      const bp = [clamp(L[0], comp.seg[0] + .1, comp.seg[1] - .1), .05];
+      const v = [L[0] - bp[0], L[1] - bp[1]], dl = Math.hypot(v[0], v[1]) || 1;
+      const len = clamp(dl * .55, 1.0, 2.2);
+      const Ls = clampCourt([bp[0] + v[0] / dl * len, Math.max(.6, bp[1] + v[1] / dl * len)]);
+      const d2 = decide(Ls, 'soft', comp, att);
+      return Object.assign(d2, { soft:{ bp, L:Ls } });
+    }
+  }
   const cands = ROLES.filter(r => !comp.blockers.includes(r)).map(r => ({ r, d:dist(comp.pos[r], L), e:effort(comp.pos[r], L, A) }));
   const mk = (digger, rule, backup, extra) => Object.assign({ kind:'dig', digger, rule, backup:backup || null }, extra || {});
   if (!cands.length) return { kind:'nobody' };
   // 吊球交給負責吊球的人；但如果有別人（不是舉球員）就站在球旁邊、明顯比較近，就給她
-  if (type === 'tip' && comp.tip && !comp.blockers.includes(comp.tip)){
+  if ((type === 'tip' || type === 'soft') && comp.tip && !comp.blockers.includes(comp.tip)){
     const t = cands.find(c => c.r === comp.tip);
     const closer = cands.some(c => c.r !== comp.tip && c.r !== 'S' && c.d <= R && c.d + 1.0 < (t ? t.d : Infinity));
     if (t && t.d <= R * 1.6 && L[1] <= 4.6 && !closer) return mk(t.r, 'tip');
+  }
+  // 隊上的守法：舉球員不攔網、守 2 號位，2 號位前面的短球由她接；長一點的才給後面的舉對
+  if (S.formation === 'ours' && comp.lu.S.zone === 2 && L[1] <= 3.0 && L[0] >= 5.0){
+    const s = cands.find(c => c.r === 'S');
+    if (s && s.d <= R) return mk('S', 'sShort');
   }
   const inR = cands.filter(c => c.d <= R);
   if (!inR.length){ const n = cands.slice().sort((p, q) => p.e - q.e)[0]; return mk(n.r, 'gap'); }
@@ -348,7 +373,8 @@ function decide(L, type, comp, att){
 function reasonText(dec, lu){
   const nm = r => roleName(r, lu);
   switch (dec.rule){
-    case 'tip': return `吊球：這個情境由${nm(dec.digger)}守吊球，她往前接。`;
+    case 'tip': return dec.soft ? `小球：這個情境由${nm(dec.digger)}守攔網後面的短球，她往前接。` : `吊球：這個情境由${nm(dec.digger)}守吊球，她往前接。`;
+    case 'sShort': return `短球落在 2 號位前面，由${nm('S')}接（隊上的守法）；比較長的球才給後面的舉對。`;
     case 'only': return `球落在${nm(dec.digger)}的範圍裡，由她接。`;
     case 'seam': return `兩個人都接得到：${nm(dec.digger)}離球比較近，而且是往前或往旁邊移動，由她接；${nm(dec.backup)}往她後面補位。` + (dec.yielded ? '舉球員也接得到，但讓給別人，她留著舉第二球。' : '');
     case 'yield': return `舉球員也接得到，但讓${nm(dec.digger)}接，舉球員留著舉第二球。`;
@@ -359,6 +385,7 @@ function reasonText(dec, lu){
 function ruleText(dec){
   switch (dec.rule){
     case 'tip': return '依據：每個隊形都要指定誰守吊球。';
+    case 'sShort': return '依據：隊上的守法，舉球員不攔網、守 2 號位的短球，長一點的給 1 號位的舉對（教練）。';
     case 'seam': return '依據：兩人之間，離球最近、往前比往後容易的人接，另一個人補位（教練慣例）。';
     case 'yield': return '依據：舉球員能不接第一球就不接（教練慣例）。';
     case 'gap': return '圈圈是每個人一兩步內接得到的範圍；圈外的球很難接。';
@@ -402,6 +429,8 @@ function slowK(b){ return v3.on && b && b.slow ? 1.6 : 1; }
 /* ---------- 接法（給說明用） ---------- */
 function digTech(type, P, L){
   const d = dist(P, L);
+  if (type === 'soft') return d < .6 ? '碰手的小球比較慢：往前踩一步、壓低身體，用雙手前臂把球托高。'
+    : '碰手的小球比較慢：看到球碰到攔網的手就往前衝，壓低身體，用雙手前臂把球托高；來不及就單手撈起來。';
   if (type === 'tip'){
     if (d < .6) return '吊球比較慢：往前踩一步、壓低身體，用雙手前臂把球托高。';
     return '吊球比較慢：看到對方手放軟就往前衝，壓低身體，用雙手前臂把球托高；來不及就單手撈起來。';
@@ -440,7 +469,7 @@ function buildSteps(L, type, comp, dec, att){
     steps.push({ key:'blocked', title:'被攔網擋住', pos:P0, marks:{}, face:bp,
       ball:{ from:hand, to:bp, dur:330, arc:.08, z:[2.75, 2.45, 0], then:{ to:[bp[0], -2.7], dur:480, arc:.45, z:[2.45, .05, 3.2] } },
       cap:'這球打進攔網陰影（橘色斜線），被攔網擋回去。陰影裡只會有吊球，後排要站在陰影兩邊。',
-      rule:'攔網陰影只畫到離網 4 公尺：比較深的球會從攔網上面飛過去。',
+      rule:'攔網陰影只畫到離網 4 公尺：比較深的球會從攔網上面飛過去。設定裡「攔網碰到球」選了「攔死」；改成「碰手變小球」可以練接攔網後的小球。',
       notes:allNotes(r => comp.blockers.includes(r) ? '攔網：把球擋回去' : '看球，準備接彈回來的球') });
     return steps;
   }
@@ -448,6 +477,9 @@ function buildSteps(L, type, comp, dec, att){
     steps.push({ key:'nobody', title:'沒有人可以接', pos:P0, marks:{}, face:L, ball:Object.assign({}, atk, { to:L, dur:520, arc:.15 }), cap:'場上的人都去攔網了，沒有人能接這一球。', notes:comp.notes });
     return steps;
   }
+  // 碰手變小球：球改從攔網的手掉下來，落點換成小球的落點
+  const soft = dec.soft;
+  if (soft){ L = soft.L; type = 'tip'; }
   // 1. 攻擊・接球：最近的人上前接，另一個人跟到她後面保護，旁邊的人往她空出來的地方移
   const d = dec.digger;
   const away = unit([L[0] - A[0], L[1] - A[1]]);
@@ -481,8 +513,8 @@ function buildSteps(L, type, comp, dec, att){
   }
   const setterRole = d === 'S' ? backupSetter(dec, comp, P1) : 'S';
   if (setterGoes) P1.S = lerp(P0.S, TARGET, .35);
-  const tech = digTech(type, P0[d], L);
-  let cap1 = reasonText(dec, lu) + tech;
+  const tech = digTech(soft ? 'soft' : type, P0[d], L);
+  let cap1 = (soft ? '這球打到攔網的手，速度變慢，掉在攔網後面變成小球。' : '') + reasonText(dec, lu) + tech;
   if (backup && backup !== dec.backup) cap1 += `${short(backup)}跟過去站在她後面，球接飛了可以救。`;
   if (fillers.length) cap1 += `${fillers.map(short).join('、')}往她空出來的地方移一點。`;
   if (leaners.length) cap1 += '其他人往球的方向靠一步，眼睛跟著球。';
@@ -490,8 +522,10 @@ function buildSteps(L, type, comp, dec, att){
   const rules1 = [ruleText(dec)];
   if (backup || fillers.length) rules1.push('補位：最近的隊友跟到接球的人後面保護，旁邊的人往空出來的地方移（教練慣例）。');
   const faceMap = {}; for (const r of ROLES) faceMap[r] = L; faceMap[d] = A;
-  steps.push({ key:'dig', title: type === 'tip' ? '吊球・接球' : '攻擊・接球', pos:P1, faceMap,
-    ball: type === 'tip' ? { from:hand, to:L, dur:900, arc:.7, z:[2.6, .55, 3.1] } : { from:hand, to:L, dur:480, arc:.1, z:[2.75, .65, 0], slow:true },
+  if (soft) rules1.push('攔網碰到的球：設定裡可以改成「攔死」或「沒攔到」。');
+  steps.push({ key:'dig', title: soft ? '碰手・接小球' : (type === 'tip' ? '吊球・接球' : '攻擊・接球'), pos:P1, faceMap,
+    ball: soft ? { from:hand, to:soft.bp, dur:330, arc:.08, z:[2.75, 2.5, 0], then:{ to:L, dur:950, arc:.55, z:[2.5, .55, 3.0] } }
+      : type === 'tip' ? { from:hand, to:L, dur:900, arc:.7, z:[2.6, .55, 3.1] } : { from:hand, to:L, dur:480, arc:.1, z:[2.75, .65, 0], slow:true },
     cap:cap1, rule:rules1.filter(Boolean).join(' '), marks:{ dig:d, backup, fillers, gap: dec.rule === 'gap' },
     notes:allNotes(r => r === d ? `接球：${tech}` : r === backup ? '補位：跟到接球的人後面，球接飛了可以救'
       : fillers.includes(r) ? '補空位：往接球的人空出來的地方移一點'
@@ -1053,26 +1087,26 @@ function setMarks(m, P){
     tag.setAttribute('visibility', 'visible');
   };
   if (!m) return;
-  if (m.hidden){
-    for (const r of m.hidden.slice().sort((a, b) => P && P[a] && P[b] ? P[a][1] - P[b][1] : 0)){
-      let below = false;
-      if (P && P[r]){
-        const free = y => !placed.some(q => Math.abs(q[0] - P[r][0]) < 1.25 * k && Math.abs(q[1] - y) < .55 * k)
-          && !Object.keys(P).some(o => o !== r && Math.abs(P[o][0] - P[r][0]) < .9 * k && Math.abs(P[o][1] - y) < .6 * k);
-        const up = P[r][1] - .95 * k, dn = P[r][1] + .95 * k;
-        below = !free(up) && free(dn);
-        placed.push([P[r][0], below ? dn : up]);
-      }
-      showTag(r, '不接', below);
+  // 名牌放在人的上面或下面：先放想放的那一邊，那裡有別人或別的名牌擋著就換另一邊（不要蓋住別人的名字）
+  const put = (r, text, preferBelow) => {
+    let below = !!preferBelow;
+    if (P && P[r]){
+      const free = y => !placed.some(q => Math.abs(q[0] - P[r][0]) < 1.25 * k && Math.abs(q[1] - y) < .55 * k)
+        && !Object.keys(P).some(o => o !== r && Math.abs(P[o][0] - P[r][0]) < .9 * k && Math.abs(P[o][1] - y) < .6 * k);
+      const up = P[r][1] - .95 * k, dn = P[r][1] + .95 * k;
+      if (below ? (!free(dn) && free(up)) : (!free(up) && free(dn))) below = !below;
+      placed.push([P[r][0], below ? dn : up]);
     }
-  }
-  if (m.serve) showTag(m.serve, '發球');
-  if (m.dig){ plG[m.dig].classList.add('is-dig'); showTag(m.dig, m.gap ? '衝！' : '接'); }
-  if (m.backup){ plG[m.backup].classList.add('is-backup'); showTag(m.backup, '補位', true); }
-  if (m.partner){ showTag(m.partner, '讓開', true); }
-  if (m.fillers) for (const r of m.fillers){ plG[r].classList.add('is-backup'); showTag(r, '補空位'); }
-  if (m.set){ showTag(m.set, '舉'); }
-  if (m.hit){ showTag(m.hit, '攻擊'); }
+    showTag(r, text, below);
+  };
+  if (m.hidden) for (const r of m.hidden.slice().sort((a, b) => P && P[a] && P[b] ? P[a][1] - P[b][1] : 0)) put(r, '不接');
+  if (m.dig){ plG[m.dig].classList.add('is-dig'); put(m.dig, m.gap ? '衝！' : '接'); }
+  if (m.serve) put(m.serve, '發球');
+  if (m.set) put(m.set, '舉');
+  if (m.hit) put(m.hit, '攻擊');
+  if (m.backup){ plG[m.backup].classList.add('is-backup'); put(m.backup, '補位', true); }
+  if (m.partner) put(m.partner, '讓開', true);
+  if (m.fillers) for (const r of m.fillers){ plG[r].classList.add('is-backup'); put(r, '補空位'); }
 }
 function applyK(){
   const r = svg.getBoundingClientRect();
@@ -1227,7 +1261,7 @@ function startSim(L){
   const comp = resetPlay(true);
   if (S.step === 'recv'){ const dec = decideRecv(L, comp); play.dec = dec; play.steps = buildRecvSteps(L, comp, dec); }
   else { const dec = decide(L, S.attackType, comp, S.attacker); play.dec = dec; play.steps = buildSteps(L, S.attackType, comp, dec, S.attacker); }
-  play.landing = L.slice();
+  play.landing = (play.dec && play.dec.soft) ? play.dec.soft.L.slice() : L.slice();
   applyStep(0, false);
   play.auto = true;
   applyStep(1, true);
@@ -1349,7 +1383,7 @@ function previewBall(q){
   let text = '';
   if (dec.kind === 'out') text = '出界';
   else if (dec.kind === 'blocked') text = '會被攔網擋住';
-  else if (dec.kind === 'dig'){ rgG[dec.digger].classList.add('hot'); text = `${ROLE_INFO[dec.digger].tok}接` + (dec.rule === 'gap' ? '（空檔）' : ''); }
+  else if (dec.kind === 'dig'){ rgG[dec.digger].classList.add('hot'); text = (dec.soft ? '碰手・' : '') + `${ROLE_INFO[dec.digger].tok}接` + (dec.rule === 'gap' ? '（空檔）' : ''); }
   if (text){
     const g = el('g', { class:'tag-svg', transform:`translate(${q[0].toFixed(2)} ${(q[1] - .75).toFixed(2)}) scale(${k.toFixed(2)})` }, G.tags);
     const w = .24 * text.length + .3;
@@ -1435,7 +1469,7 @@ function set3DJumps(st, animate, now){
     v3.jump.att = { t0:now - 340 * kk, dur:720 * kk, h:.55 };
     const L = play.landing || [4.5, 4];
     const toNet = Math.abs(S.attacker.y) / (Math.abs(S.attacker.y) + Math.max(.5, L[1]));
-    const tNet = (st.ball ? st.ball.dur * slowK(st.ball) : 480) * kk * toNet;
+    const tNet = (st.ball ? st.ball.dur * slowK(st.ball) : 480) * kk * (st.ball && st.ball.then && st.key === 'dig' ? 1 : toNet);
     for (const r of play.comp.blockers) v3.jump['us:' + r] = { t0:now + tNet - 330 * kk, dur:660 * kk, h:.48 };
   }
   if (st.key === 'set' && st.hitter){
@@ -1678,7 +1712,7 @@ function blockDesc(){
   if (!S.canOH) parts.push('大砲不攔：對方從左邊打時退下來守吊球');
   if (!S.canMB) parts.push('攔中不攔：退到三米線附近守中間的吊球');
   else if (S.mbLate) parts.push('攔中來不及：對方打邊線時只有邊上的人攔，攔中不要硬跳，退下來守吊球');
-  if (!S.canR) parts.push(`${rName()}不攔：對方從右邊打時退下來守吊球`);
+  if (!S.canR) parts.push(S.formation === 'ours' ? '舉球員、舉對不攔：舉球員守 2 號位的短球，長一點的給後面的舉對' : `${rName()}不攔：對方從右邊打時退下來守吊球`);
   return parts.length ? parts.join('；') + '。' : '能攔的人都攔，邊線兩人攔、中間攔中加旁邊的人。';
 }
 function refreshSitUI(){
@@ -1693,6 +1727,7 @@ function refreshSitUI(){
   document.querySelectorAll('.chips-multi button').forEach(b => b.setAttribute('aria-pressed', String(!!S[b.dataset.k])));
   $('chipR').textContent = rName();
   $('blockDesc').textContent = blockDesc();
+  $('blockResDesc').textContent = BLOCKRES_DESC[S.blockRes];
   document.querySelectorAll('.chips[data-key="mbLate"] button').forEach(b => { b.setAttribute('aria-pressed', String((S.mbLate ? '1' : '0') === b.dataset.v)); b.setAttribute('aria-disabled', String(!S.canMB)); });
 }
 function onChip(key, v){
@@ -1840,7 +1875,7 @@ const HELP = [
   ]},
   { id:'situation', title:'設定', cards:[
     { img:'help/sit-1.webp', h:'點「設定」打開', p:'手機直放時，設定從下面打開，上面的球場還看得到；手機橫放、平板橫放和電腦，設定從右邊打開。改了馬上看得到結果。' },
-    { img:'help/sit-2.webp', h:'誰會攔網、防守隊形', p:'「誰會攔網」可以複選大砲、攔中、舉對；不夠高的人取消勾選，就會看到她退下來守哪裡。攔中跟不上邊線時選「來不及」。' },
+    { img:'help/sit-2.webp', h:'誰會攔網、攔網碰到球', p:'「誰會攔網」可以複選；隊上舉球員、舉對不攔，所以只勾大砲和攔中。「攔網碰到球的時候」預設是碰手變小球，可以看攔網後面誰去接；也可以選攔死或沒攔到。' },
   ]},
   { id:'free', title:'自己擺站位', cards:[
     { img:'help/free-1.webp', h:'按「自己擺」', p:'在「3 防扣球」或「4 防吊球」按「自己擺」，6 個人都可以拖。前排拉到網前就算攔網，後排拉到網前也不能攔。' },
@@ -2076,7 +2111,7 @@ window.VB = {
   openHelp, openCards, openHelpTopic, helpGo, setMode, setStep, rotate, set3D, attackZones, posNow, ball3,
   get play(){ return play; }, get custom(){ return custom; }, set custom(v){ custom = v; }, get v3(){ return v3; },
   setSettings(o){
-    const m = sanitizeSettings(Object.assign({ sv:3 }, o)); if (o.mode) m.mode = o.mode; if (o.step) m.step = o.step;
+    const m = sanitizeSettings(Object.assign({ sv:4 }, o)); if (o.mode) m.mode = o.mode; if (o.step) m.step = o.step;
     Object.assign(S, m); if (m.attacker) S.attacker = Object.assign({}, m.attacker);
     if (isDefStep()) S.attackType = S.step;
     document.body.classList.toggle('mode-free', S.mode === 'free' && isDefStep());

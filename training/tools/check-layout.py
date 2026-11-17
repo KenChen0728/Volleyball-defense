@@ -8,7 +8,7 @@ JS = r"""() => {
  if(document.documentElement.scrollWidth>vw+1) out.push('頁面可以左右捲 '+document.documentElement.scrollWidth);
  const root = document.querySelector('#layer .sheet') || document;
  root.querySelectorAll('button,input,textarea').forEach(b=>{
-   const r=b.getBoundingClientRect(); if(!r.width||!r.height) return;
+   if(b.closest('details:not([open])')) return; const r=b.getBoundingClientRect(); if(!r.width||!r.height) return;
    if(r.right>vw+1||r.left<-1) out.push('超出左右：'+b.textContent.trim().slice(0,16));
    if((r.height<44||r.width<44) && !b.closest('.foot')) out.push(`太小 ${Math.round(r.width)}x${Math.round(r.height)}：`+(b.textContent.trim().slice(0,16)||b.getAttribute('aria-label')));
    const cx=r.left+r.width/2, cy=r.top+r.height/2;
@@ -33,12 +33,13 @@ with sync_playwright() as p:
                 for x in r: print(f"{w}x{h}{' 深' if dark else ''}｜{name}｜{x}"); problems += 1
             for name,hsh in STATES:
                 pg.evaluate(f"location.hash='{hsh}'"); pg.wait_for_timeout(150); check(name)
-            pg.evaluate("location.hash='map-atk'"); pg.wait_for_timeout(150)
-            pg.click("[data-lv='atk:0']"); pg.wait_for_timeout(350); check("關卡視窗")
-            pg.click("[data-a=sheetclose]"); pg.wait_for_timeout(350)
-            pg.click("[data-lv='atk:3']"); pg.wait_for_timeout(350); check("上鎖關卡視窗")
-            pg.click("[data-a^=skipto]"); pg.wait_for_timeout(350); check("確認視窗")
-            pg.keyboard.press("Escape"); pg.wait_for_timeout(350); pg.keyboard.press("Escape"); pg.wait_for_timeout(350)
+            pg.evaluate("location.hash='ref-team1'"); pg.wait_for_timeout(150)
+            pg.click("[data-a='tstep:1']", force=True); pg.wait_for_timeout(200); check("團隊流程圖")
+            for j in (4, 7, 11):
+                pg.evaluate("location.hash='today'"); pg.wait_for_timeout(150)
+                pg.click("summary"); pg.wait_for_timeout(100); pg.click(f"[data-a='tjump:{j}']"); pg.wait_for_timeout(200); check(f"練球模式第{j+1}項")
+                pg.click("[data-a^=how]"); pg.wait_for_timeout(350); check(f"第{j+1}項要領視窗")
+                pg.keyboard.press("Escape"); pg.wait_for_timeout(350)
             pg.evaluate("location.hash='today'"); pg.wait_for_timeout(150)
             pg.click("[data-a^=how]"); pg.wait_for_timeout(350); check("今天怎麼練視窗")
             for e in errs: print(f"{w}x{h}｜錯誤｜{e}"); problems += 1

@@ -138,6 +138,46 @@ textarea,input[type=text]{width:100%;font:inherit;font-size:16px;padding:10px 12
 .toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .toc button{min-height:44px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);padding:0 14px;font-size:14px;font-weight:700}
 .toc button.sel{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+
+/* 練球模式 v2 */
+.nowrow{display:flex;align-items:center;gap:10px;margin:2px 0 6px}
+.nowrow .nm{flex:1;min-width:0;font-size:24px;line-height:1.25}
+.nowrow .clock{font-size:48px;margin:0;letter-spacing:1px}
+.todo{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.todo-h{font-weight:900;font-size:16px;margin-bottom:4px}
+.todo-h span{font-weight:700;font-size:14px;color:var(--ink2);margin-left:8px}
+.ls{list-style:none;counter-reset:ls;margin:4px 0}
+.ls li{counter-increment:ls;display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:17px}
+.ls li:last-child{border-bottom:none}
+.ls li:before{content:counter(ls);flex:none;width:24px;height:24px;border-radius:50%;background:var(--c,var(--acc));color:#fff;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;align-self:center}
+.ls .ln{flex:1;font-weight:700}
+.ls .lc{font-size:15px;color:color-mix(in srgb,var(--c,var(--acc)) 70%,var(--ink));font-weight:800;text-align:right}
+.ls-h{font-weight:900;margin-top:8px;color:color-mix(in srgb,var(--c) 70%,var(--ink))}
+.ls-goal{font-size:14px;color:var(--ink2);margin-top:4px}
+.nextup{margin-top:10px;padding:10px 12px;background:var(--soft);border-radius:12px;font-size:15px}
+details.plan{margin-top:12px;padding:0 12px}
+details.plan summary{min-height:48px;display:flex;align-items:center;font-weight:800;cursor:pointer}
+details.plan .steps{margin:4px 0 12px}
+details.plan .timeset{margin-top:0}
+.item.lv{display:flex;gap:10px}
+.lvn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.dia{display:flex;align-items:center;gap:12px;margin-top:10px;background:var(--soft);border-radius:12px;padding:10px;flex-wrap:wrap;justify-content:center}
+.dia svg.ladder{width:150px;height:auto;color:var(--ink2)}
+.dia .fp{transition:opacity .2s}
+.dia-cap{font-size:14px;color:var(--ink2);flex:1;min-width:150px}
+.dia-cap b{color:var(--ink)}
+.lg{display:inline-flex;align-items:center;gap:4px;margin-right:10px}
+.lg i{width:12px;height:16px;border-radius:50%;display:inline-block}
+.poses{align-items:flex-start;gap:6px}
+.pose{flex:1 1 90px;max-width:130px;text-align:center}
+.pose svg{width:100%;height:auto}
+.pose figcaption{font-size:13px;line-height:1.35;color:var(--ink)}
+.pose figcaption b{display:inline-flex;width:20px;height:20px;border-radius:50%;background:#15803d;color:#fff;font-size:12px;align-items:center;justify-content:center;margin-right:2px}
+.dia.team{flex-direction:column;align-items:stretch}
+.team-svg{display:flex;justify-content:center;color:var(--ink)}
+.team-svg svg{width:100%;max-width:260px;height:auto}
+.team-cap{font-size:15px;min-height:4.8em}
+.dia .row{width:100%}
 @media (hover:hover){.tile:hover,.step:hover,.btn:hover{border-color:var(--ink2)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -313,29 +353,30 @@ const REFS = {
   ["交叉步（Carioca）","來回 *1",["側身移動，後腳輪流從前面、後面交叉","肩膀保持不動、朝同一個方向，只有臀部跟著腳轉","先慢慢做對，再加快，腳步要輕"]],
   ["倒退跑","*1",["身體稍微前傾，重心在前腳掌，不要後仰","小步、快頻率，手臂自然擺動","偶爾回頭看路線，避免撞到人"]]]},
  warm2:{name:"繩梯敏捷", group:"熱身", color:"#1f7a8c", sub:"約 5 分鐘｜固定兩項＋輪換一項", items:[
-  ["抬腿跑（每天）","*2",["每格踩一腳，膝蓋抬到腰的高度","用前腳掌落地，腳步輕、頻率快","手臂跟著擺，身體挺直不後仰"]],
-  ["交替腳橫移（每天）","左右各 *1",["側身站在繩梯旁，每格兩腳都踩進去再往旁邊移","保持微蹲、重心低，像接球的預備姿勢","眼睛看前方，不要一直低頭看腳"]],
-  ["輪換：滑雪步","*2",["雙腳併攏，左右跳進格子內外往前推進","膝蓋微彎，上半身保持朝前","落地輕，腳尖先著地"]],
-  ["輪換：開合單腳跳","*2",["格內單腳落地，下一格格外雙腳張開，交替往前","單腳落地要站穩，膝蓋不要往內夾","先求穩再求快"]],
-  ["輪換：雙腳 Z 型跑","*2",["雙腳斜斜跳進格子、再斜斜跳出到另一側，像寫 Z 字往前","最後一格用單腳跳出","腳步小而快，重心保持在中間"]]]},
+  ["抬腿跑（每天）","*2",["每格踩一腳，膝蓋抬到腰的高度","用前腳掌落地，腳步輕、頻率快","手臂跟著擺，身體挺直不後仰"],"ladder:knee"],
+  ["交替腳橫移（每天）","左右各 *1",["側身站在繩梯旁，每格兩腳都踩進去再往旁邊移","保持微蹲、重心低，像接球的預備姿勢","眼睛看前方，不要一直低頭看腳"],"ladder:side"],
+  ["輪換：滑雪步","*2",["雙腳併攏，左右跳進格子內外往前推進","膝蓋微彎，上半身保持朝前","落地輕，腳尖先著地"],"ladder:ski"],
+  ["輪換：開合單腳跳","*2",["格內單腳落地，下一格格外雙腳張開，交替往前","單腳落地要站穩，膝蓋不要往內夾","先求穩再求快"],"ladder:hop"],
+  ["輪換：雙腳 Z 型跑","*2",["雙腳斜斜跳進格子、再斜斜跳出到另一側，像寫 Z 字往前","最後一格用單腳跳出","腳步小而快，重心保持在中間"],"ladder:zig"]]},
  warm3:{name:"專項起跳", group:"熱身", color:"#2f8a4a", sub:"約 5 分鐘｜還不用拿球", items:[
-  ["快速下蹲定住","*5",["踮腳尖、雙手往上伸直，把身體拉到最高","瞬間雙手往後甩、蹲成半蹲停住 2 秒","膝蓋對準腳尖不內夾，屁股往後坐、胸口往前"]],
-  ["下蹲跳下蹲","*3",["蹲下馬上往上跳，不要停","落地再蹲住定 2 秒","落地會晃、膝蓋內夾的人，先只做上一項"]],
-  ["攻擊步分解：最後兩步","*5",["站著不動，喊「一、二三」","「二三」要像「噠噠」，快到幾乎同時踩地，踩完雙腳往上跳"]],
-  ["攻擊步分解：擺手","*5",["搭檔站在後面，雙手攤開在屁股高度","跨第二步時，手要往後甩到碰到搭檔的手，碰不到就重來"]],
-  ["完整攻擊步","*3",["三米線後三、四公尺出發，「左、右、左」，第一步慢，最後兩步最快","倒數第二步跨大、腳跟先著地，雙手往後甩到底；另一腳馬上併上，雙手往上甩起跳","在三米線起跳，空中拉弓揮臂","落地雙腳、膝蓋微彎，從邊線慢跑回底線","左撇子步伐相反「右、左、右」","落地點要在三米線附近，落太前面代表沒煞住"]]]},
+  ["快速下蹲定住","*5",["踮腳尖、雙手往上伸直，把身體拉到最高","瞬間雙手往後甩、蹲成半蹲停住 2 秒","膝蓋對準腳尖不內夾，屁股往後坐、胸口往前"],"pose:hold"],
+  ["下蹲跳下蹲","*3",["蹲下馬上往上跳，不要停","落地再蹲住定 2 秒","落地會晃、膝蓋內夾的人，先只做上一項"],"pose:jump"],
+  ["找自己的步距（第一次做）","",["正常走一步，看一步有多長","第一步：小步，正常走就好","第二步（倒數第二步）：要跨到<b>一步半</b>的距離，在那裡放木板或標誌盤當記號","跨到記號後能煞住、往上跳就對了；整個人往前衝就是太遠，記號往回放一點","找到後每次都從同一條線出發"],"steps"],
+  ["攻擊步分解：最後兩步","*5",["站著不動，喊「一、二三」","「二」跨大步、腳跟先著地，屁股往下坐，身體才會沉下去，不會站直直的","「二三」要像「噠噠」，快到幾乎同時踩地，踩完雙腳往上跳"],"pose:last2"],
+  ["攻擊步分解：擺手（拿標誌盤）","*5",["兩手拿一個標誌盤，手往前伸","跨「二」那一步時，兩手用力往後甩，在最後面放手把盤子丟出去","盤子掉在身後越遠，代表手甩得越後面","後面不能有人，一個一個做"],"pose:disc"],
+  ["完整攻擊步","*3",["三米線後三、四公尺出發，「左、右、左」，第一步小、最後兩步最快","「二」跨到自己的記號、雙手往後甩到底；另一腳馬上併上，雙手往上甩起跳","在三米線起跳，空中拉弓揮臂","落地雙腳、膝蓋微彎，從邊線慢跑回底線","左撇子步伐相反「右、左、右」"],"pose:full"]]},
  warm4:{name:"用球熱身", group:"熱身", color:"#3b5bb5", sub:"約 5 分鐘｜兩人一組｜做完直接接基本功", items:[
   ["原地砸地板","*10",["不用拋，過肩把球往地上砸","前幾下五成力，慢慢加到全力，把肩膀熱開"]],
-  ["自拋往地板扣","近 *5　遠 *5",["地上貼記號：近的約 3 公尺、遠的約 5 公尺","近的練手腕往下壓，遠的練往前打","先不管準不準：要有「啪」一聲、球往前轉"]],
-  ["兩人互扣互接","各 *10",["兩人站近一點，五成力扣向對方的腰，對方低手接回","打不準就改成往兩人中間的地板扣，彈過去給對方接","扣完 10 顆就換人，不管好壞"]]],
-  extra:[["揮臂要領",["<b>拉弓</b>：右手肘拉到比肩高、手在耳邊，左手指球，身體往右轉","<b>出力</b>：左手往下拉、收到胸前，身體轉回來，右手肘帶手往前上揮","<b>擊球</b>：手掌包住球的後上方，手腕往下壓，打完手掌朝地板","口訣：<b>左手拉下、身體轉回、手肘帶手</b>"]],
+  ["自拋往地板扣，對面接","一直做到換項",["兩人面對面，一個人自己拋、往<b>兩人中間的地板</b>扣，球彈一次飛到對面，對面用低手或高手擋起來","扣的人只要做到三件事：<b>手舉高拍到球、手掌張開包住球、有「啪」一聲</b>；先不管遠近","手往前推，決定球飛多遠；手腕往下壓，球才會往前轉、往下掉","扣 5 顆換人"]],
+  ["兩人互扣互接（最終目標）","上一項穩了才做",["直接扣向對方的腰，五成力，對方低手接回","大家現在大多先練上一項"]]],
+  extra:[["揮臂要領",["<b>拉弓</b>：右手肘拉到比肩高、手在耳邊，左手指球，身體往右轉","<b>出力</b>：左手往下拉、收到胸前，身體轉回來，右手肘帶手往前上揮","<b>擊球</b>：手掌張開包住球，有「啪」一聲；手腕往下壓，打完手掌朝地板"]],
    ["晚到的人（約 5 分鐘）",["WGS 左右各 3 下 → 交叉步 *1 → 倒退跑 *1 → 快速下蹲定住 *5 → 攻擊步 *3 → 砸地板 *5，做完直接歸隊"]]]},
  combo:{name:"舉攻合練", group:"合練", color:"#7a4fb5", sub:"約 15 分鐘", items:[
   ["學姊（場上）","",["教練送球 → 一傳到目標區 → 到位舉中間半高球給攔中、不到位舉 4 號位高球 → 攻擊打過網","喊聲：接第一球喊「我的」，舉不到喊「修正」，攻擊手喊「這邊」"]],
   ["學妹（場邊三人一組）","",["A 拋高球 → B 舉 4 號位高球 → C 跑攻擊步跳起來抓球，每 5 球換位置"]]]},
  team1:{name:"接發球＋修正", group:"團隊", color:"#b45309", sub:"約 40 分鐘｜人少也能練", items:[
   ["A 送球過網","約 10 分鐘",["拋球的人站對面網前，把球拋到這邊網子附近，練處理近網的球","<b>大砲從 4 號位</b>：送直線、小斜線、大斜線","<b>中間的人</b>：送中間、左邊、右邊","對面放角錐或呼拉圈當目標區，要送準、送遠","方法由簡單到難：站著低手送 → 站著高手推 → 跳起來高手推；10 顆進目標區 6 顆，就換下一種方法"]],
-  ["B 兩邊接發球＋修正","約 30 分鐘",["<b>站法</b>：兩邊都是後排三個人接（1、6、5 號位）＋舉球員；有大砲就加一個在 4 號位打","<b>發球</b>：兩邊底線後面排隊，一人發一球，兩邊輪流。站到自己發得過的位置，下手、高手都可以","<b>發不過</b>：不算一球、場上不轉，下一個人馬上發，發不過的人排到最後面","<b>轉位</b>：每一球打完後排轉一格：1 → 6 → 5 → 下場排隊發球；發完球的人從 1 號位進場","<b>修正</b>：舉球員接不到時，最近、又不是接第一球的人喊「修正」去處理。前期先送過網；熟了再舉高給能打的人"]]],
+  ["B 兩邊接發球＋修正","約 30 分鐘",["<b>站法</b>：兩邊都是後排三個人接（1、6、5 號位）＋舉球員；有大砲就加一個在 4 號位打","<b>發球</b>：兩邊底線後面排隊，一人發一球，兩邊輪流。站到自己發得過的位置，下手、高手都可以","<b>發不過</b>：不算一球、場上不轉，下一個人馬上發，發不過的人排到最後面","<b>轉位</b>：每一球打完後排轉一格：1 → 6 → 5 → 下場排隊發球；發完球的人從 1 號位進場","<b>修正</b>：舉球員接不到時，最近、又不是接第一球的人喊「修正」去處理。前期先送過網；熟了再舉高給能打的人"],"team:serve"]],
   extra:[["要領",["近網的球：身體側一點，不要正面往網子衝，不能碰網","能高手就高手；來不及才用低手，往上送高一點再過網","接發球往舉球員會跑到的地方送"]],["喊聲規則（不喊就卡住）",["接第一球的人碰球前要喊「我的」。沒喊，這一球不算、場上不轉，同一個發球的人再發一次給她接","「修正」、「我來」、「這邊」先口頭提醒，習慣了再加成規定"]]]},
  team2:{name:"防守＋轉攻", group:"團隊", color:"#be123c", sub:"約 40 分鐘｜人少也能練", items:[
   ["站法和換人","",["站法：後排三個人＋舉球員（舉球員守 2 號位）。有攔中就加攔網","後排位置：1 號位舉對；有自由時大砲守 6、自由守 5；沒有自由時攔中守 6、大砲守 5","<b>人夠</b>：同位置換同位置；自由下場換另一個自由，沒有自由就換攔中上來","<b>人不夠</b>：照 1 → 6 → 5 → 下場輪著轉，缺哪裡補哪裡"]],
@@ -383,20 +424,141 @@ const PLAN = [
  {seg:"收操", n:"收操", m:5, ref:"cool"},
 ];
 
-const VERSION = "v1.2（2026-11-17）";
+/* ---------- 示意圖：繩梯腳印、分解動作、團隊流程 ---------- */
+const FOOT_L = "#2563eb", FOOT_R = "#ea580c";
+const reduceMotion = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
+
+/* 繩梯：由下往上走。格子 0 在最下面。x：左外 26、格內左 70、格內中 80、格內右 90、右外 134 */
+const LADDER = {
+  knee: {t:"每格踩一腳，左右交替", s:[[["L",72,0]],[["R",88,1]],[["L",72,2]],[["R",88,3]],[["L",72,4]]]},
+  side: {t:"身體側著往前移，每格兩腳都踩進去", s:[[["L",72,0,-7]],[["R",88,0,7]],[["L",72,1,-7]],[["R",88,1,7]],[["L",72,2,-7]],[["R",88,2,7]],[["L",72,3,-7]],[["R",88,3,7]]]},
+  ski: {t:"雙腳一起跳：格內 → 右邊格外 → 格內 → 左邊格外", s:[[["L",72,0],["R",88,0]],[["L",122,1],["R",138,1]],[["L",72,2],["R",88,2]],[["L",22,3],["R",38,3]],[["L",72,4],["R",88,4]]]},
+  hop: {t:"格內單腳 → 下一格兩腳張開在格外 → 換另一腳", s:[[["L",80,0]],[["L",34,1],["R",126,1]],[["R",80,2]],[["L",34,3],["R",126,3]],[["L",80,4]]]},
+  zig: {t:"雙腳一起，斜斜跳進格子、再斜斜跳到另一邊格外", s:[[["L",22,0],["R",38,0]],[["L",72,1],["R",88,1]],[["L",122,2],["R",138,2]],[["L",72,3],["R",88,3]],[["L",22,4],["R",38,4]]]},
+};
+function ladderSVG(key){
+  const m = LADDER[key]; if(!m) return "";
+  const cy = c => 196 - c*40;
+  let g = `<rect x="56" y="16" width="48" height="200" fill="none" stroke="#9ca3af" stroke-width="3" rx="2"/>`;
+  for(let i=1;i<5;i++) g += `<line x1="56" y1="${16+i*40}" x2="104" y2="${16+i*40}" stroke="#9ca3af" stroke-width="3"/>`;
+  g += `<path d="M150 200 V40" stroke="#9ca3af" stroke-width="2.5" marker-end="url(#lad-ar)"/><text x="152" y="30" font-size="11" fill="currentColor" text-anchor="middle">往前</text>`;
+  m.s.forEach((step,k)=>{ step.forEach(([f,x,c,dy=0])=>{ const y = cy(c)+dy, col = f==="L"?FOOT_L:FOOT_R;
+    g += `<g class="fp" data-k="${k}"><ellipse cx="${x}" cy="${y}" rx="7.5" ry="11" fill="${col}"/><text x="${x}" y="${y+4}" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">${k+1}</text></g>`; }); });
+  const pair = m.s.some(s=>s.length>1);
+  return `<div class="dia"><svg class="ladder" data-n="${m.s.length}" viewBox="0 0 170 226" role="img" aria-label="繩梯腳印圖：${m.t}"><defs><marker id="lad-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9ca3af"/></marker></defs>${g}</svg>
+  <div class="dia-cap"><b>${m.t}</b><br><span class="lg"><i style="background:${FOOT_L}"></i>左腳</span><span class="lg"><i style="background:${FOOT_R}"></i>右腳</span>${pair?"<br>同一個數字＝兩腳一起":""}<br>數字是踩的順序</div></div>`;
+}
+let ladStep = 0;
+setInterval(()=>{ const ls = document.querySelectorAll("svg.ladder"); if(!ls.length) return; ladStep++;
+  ls.forEach(svg=>{ const n = +svg.dataset.n, cur = reduceMotion() ? n : ladStep % (n+2);
+    svg.querySelectorAll(".fp").forEach(e=>{ const k = +e.dataset.k; e.style.opacity = k < cur ? 1 : .15; e.style.transform = ""; }); }); }, 650);
+
+/* 分解動作：側面火柴人，面向右 */
+const POSE = {
+  up:    {h:[50,22], n:[50,33], p:[50,70], k1:[52,96], f1:[55,119], k2:[48,96], f2:[45,119], e1:[53,17], a1:[56,2], e2:[47,17], a2:[44,2], toe:true},
+  squatB:{h:[62,46], n:[56,56], p:[38,86], k1:[64,96], f1:[60,122], k2:[60,98], f2:[54,122], e1:[42,66], a1:[26,74], e2:[44,66], a2:[30,78]},
+  squatF:{h:[62,46], n:[56,56], p:[38,86], k1:[64,96], f1:[60,122], k2:[60,98], f2:[54,122], e1:[68,64], a1:[80,70], e2:[66,66], a2:[78,74]},
+  air:   {h:[50,10], n:[50,21], p:[50,56], k1:[54,80], f1:[56,102], k2:[47,80], f2:[44,102], e1:[53,5], a1:[56,-8], e2:[47,5], a2:[44,-8], lift:true},
+  walk:  {h:[50,22], n:[50,33], p:[50,70], k1:[60,94], f1:[68,120], k2:[44,96], f2:[36,120], e1:[44,50], a1:[42,66], e2:[56,50], a2:[60,64]},
+  big:   {h:[62,42], n:[56,52], p:[44,82], k1:[68,98], f1:[86,120], k2:[34,104], f2:[20,118], e1:[40,58], a1:[22,52], e2:[42,60], a2:[24,56], heel:true},
+  close: {h:[64,44], n:[58,54], p:[46,86], k1:[68,98], f1:[64,122], k2:[64,100], f2:[58,122], e1:[56,74], a1:[62,90], e2:[54,76], a2:[60,92]},
+  swing: {h:[50,10], n:[50,21], p:[50,56], k1:[56,80], f1:[52,102], k2:[46,80], f2:[42,104], e1:[62,8], a1:[66,-6], e2:[34,10], a2:[30,-4], lift:true},
+  discF: {h:[50,22], n:[50,33], p:[50,70], k1:[52,96], f1:[55,119], k2:[48,96], f2:[45,119], e1:[64,40], a1:[80,42], e2:[62,42], a2:[78,44], disc:[84,43]},
+  discB: {h:[62,42], n:[56,52], p:[44,82], k1:[68,98], f1:[86,120], k2:[34,104], f2:[20,118], e1:[40,58], a1:[22,52], e2:[42,60], a2:[24,56], disc:[4,40], fly:true},
+};
+function poseSVG(key, cap, n){
+  const p = POSE[key], C = "#15803d", C2 = "#86c79d";
+  const L = (...pts) => `<polyline points="${pts.map(q=>q.join(",")).join(" ")}"/>`;
+  let back = L(p.p,p.k2,p.f2) + L(p.n,p.e2,p.a2);
+  let front = L(p.n,p.p) + L(p.p,p.k1,p.f1) + L(p.n,p.e1,p.a1);
+  let ex = "";
+  if(p.lift) ex += `<path d="M30 122 h40" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4"/><path d="M50 118 v-10" stroke="#ea580c" stroke-width="2.5" marker-end="url(#pa-${key})"/>`;
+  if(p.disc) ex += `<ellipse cx="${p.disc[0]}" cy="${p.disc[1]}" rx="9" ry="4" fill="#ea580c"/>`;
+  if(p.fly) ex += `<path d="M20 50 Q12 44 10 42" stroke="#ea580c" stroke-width="2" stroke-dasharray="3 3" fill="none"/>`;
+  return `<figure class="pose"><svg viewBox="-10 -14 110 140" role="img" aria-label="${cap}"><defs><marker id="pa-${key}" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#ea580c"/></marker></defs>
+  <line x1="-6" y1="123" x2="98" y2="123" stroke="#9ca3af" stroke-width="2"/>${ex}
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"><g stroke="${C2}">${back}</g><g stroke="${C}">${front}</g></g>
+  <circle cx="${p.h[0]}" cy="${p.h[1]}" r="8" fill="${C}"/></svg><figcaption><b>${n}</b> ${cap}</figcaption></figure>`;
+}
+const SEQ = {
+  hold: [["up","踮腳尖、雙手舉高"],["squatB","手往後甩、瞬間蹲住，停 2 秒"]],
+  jump: [["squatB","蹲"],["air","馬上往上跳"],["squatF","落地蹲住，停 2 秒"]],
+  last2:[["big","「二」跨大步、腳跟先著地，屁股往下坐"],["close","「三」另一腳馬上併上"],["air","雙腳往上跳"]],
+  disc: [["discF","兩手拿盤子往前伸"],["discB","跨「二」時往後甩，在最後面放手"]],
+  full: [["walk","「一」小步"],["big","「二」大步、手往後甩到底"],["close","「三」併上、手往前上甩"],["swing","起跳、空中拉弓"]],
+};
+function poseSeq(key){ const s = SEQ[key]; if(!s) return ""; return `<div class="dia poses">${s.map(([k,c],i)=>poseSVG(k,c,i+1)).join("")}</div><div class="dia-cap" style="text-align:center">深綠色是靠近你的手腳，淺綠色是另一邊</div>`; }
+
+/* 步距：上面看下去的腳印 */
+function stepsSVG(){
+  return `<div class="dia"><svg viewBox="0 0 300 96" role="img" aria-label="步距示意：第一步小步，第二步跨一步半">
+  <g font-size="12" fill="currentColor" text-anchor="middle">
+   <ellipse cx="30" cy="52" rx="13" ry="7.5" fill="${FOOT_L}"/><text x="30" y="80">出發</text>
+   <ellipse cx="94" cy="40" rx="13" ry="7.5" fill="${FOOT_R}"/><text x="94" y="24">一：小步</text>
+   <ellipse cx="218" cy="52" rx="13" ry="7.5" fill="${FOOT_L}"/><text x="218" y="80">二：跨到記號</text>
+   <ellipse cx="248" cy="40" rx="13" ry="7.5" fill="${FOOT_R}"/><text x="262" y="24">三：併上</text>
+   <rect x="204" y="62" width="28" height="5" fill="#9ca3af"/>
+   <path d="M94 92 H218" stroke="#ea580c" stroke-width="2"/><path d="M94 88 v8 M218 88 v8" stroke="#ea580c" stroke-width="2"/>
+   <text x="156" y="88" fill="#ea580c" font-weight="700">一步半</text></g></svg></div>`;
+}
+
+/* 團隊：兩邊接發球＋修正，一步一步播 */
+const TEAM_STEPS = [
+ {c:"<b>1. 下面這隊（A）發球。</b>A 隊排第一個的人發，球發到對面。", hi:"serveA"},
+ {c:"<b>2. 對面（B）接起來 → 舉球 → 攻擊打過來。</b>舉不到時，最近、又不是接第一球的人喊「修正」，把球送過網。", hi:"rally"},
+ {c:"<b>3. A 發過了，球死了：A 隊後排轉一格。</b>5 號位的人下場，排到發球隊伍最後；6 → 5、1 → 6；剛發完的人進 1 號位。", hi:"rotA"},
+ {c:"<b>4. A 發不過網：不轉。</b>發球的人直接排到隊伍最後，下一個人馬上重發。", hi:"missA"},
+ {c:"<b>5. 下一球換 B 發。</b>規則一樣：B 發過了，就換 B 隊後排轉一格。兩邊輪流發。", hi:"serveB"},
+];
+function teamSVG(step){
+  const W=220, H=330, net=H/2, hi = TEAM_STEPS[step].hi;
+  const A="#2563eb", B="#7c3aed";
+  const tok = (x,y,t,col,dim) => `<g opacity="${dim?.35:1}"><circle cx="${x}" cy="${y}" r="13" fill="${col}"/><text x="${x}" y="${y+4.5}" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">${t}</text></g>`;
+  const arr = (d,col="#ea580c",dash) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="3" ${dash?'stroke-dasharray="6 5"':""} marker-end="url(#tm-ar)"/>`;
+  let g = `<rect x="20" y="20" width="180" height="${H-40}" fill="none" stroke="#9ca3af" stroke-width="2.5"/><line x1="12" y1="${net}" x2="208" y2="${net}" stroke="currentColor" stroke-width="4"/><text x="214" y="${net+4}" font-size="10" fill="currentColor">網</text>
+   <line x1="20" y1="${net-50}" x2="200" y2="${net-50}" stroke="#9ca3af" stroke-dasharray="4 4"/><line x1="20" y1="${net+50}" x2="200" y2="${net+50}" stroke="#9ca3af" stroke-dasharray="4 4"/>`;
+  // A 隊（下）：面向上，右邊是 1 號位
+  const Ap = {s:[150,185], p5:[55,265], p6:[110,272], p1:[165,265]};
+  const Bp = {s:[70,145], p5:[165,65], p6:[110,58], p1:[55,65]};
+  const qA = [[150,316],[176,316],[202,316]], qB = [[70,14],[44,14],[18,14]];
+  // 發球隊伍
+  qA.forEach(([x,y],i)=>{ g += tok(x,y,i===0?"發":"A",A, hi==="serveB"||hi==="rally" ? false : false); });
+  qB.forEach(([x,y],i)=>{ g += tok(x,y,i===0?"發":"B",B); });
+  g += tok(...Ap.s,"舉",A) + tok(...Ap.p5,"5",A) + tok(...Ap.p6,"6",A) + tok(...Ap.p1,"1",A);
+  g += tok(...Bp.s,"舉",B) + tok(...Bp.p5,"5",B) + tok(...Bp.p6,"6",B) + tok(...Bp.p1,"1",B);
+  if(hi==="serveA") g += arr("M150 302 Q120 160 110 80");
+  if(hi==="rally") g += arr("M110 72 Q100 110 76 138") + arr("M70 132 Q110 120 150 152","#ea580c",true);
+  if(hi==="rotA") g += arr("M50 278 Q70 312 192 318","#2563eb") + arr("M98 272 H70","#2563eb") + arr("M152 268 H124","#2563eb") + arr("M150 302 L162 280","#2563eb");
+  if(hi==="missA") g += arr("M150 302 Q130 250 118 ${net+8}".replace("${net+8}",net+8)) + `<text x="122" y="${net+28}" font-size="18" fill="#dc2626" font-weight="900">✕</text>` + arr("M150 330 Q180 336 214 322","#2563eb",true);
+  if(hi==="serveB") g += arr("M70 28 Q100 170 110 252");
+  return `<svg viewBox="0 0 ${W+16} ${H+8}" role="img" aria-label="兩邊接發球流程第 ${step+1} 步"><defs><marker id="tm-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ea580c"/></marker></defs>${g}
+   <text x="4" y="${net-8}" font-size="11" fill="${B}" font-weight="800">B 隊</text><text x="4" y="${net+18}" font-size="11" fill="${A}" font-weight="800">A 隊</text></svg>`;
+}
+let teamStep = 0;
+function teamPlayer(){
+  return `<div class="dia team" id="teamdia"><div class="team-svg">${teamSVG(teamStep)}</div><div class="team-cap">${TEAM_STEPS[teamStep].c}</div>
+  <div class="row" style="margin-top:8px"><button class="btn sm" data-a="tstep:${teamStep-1}" ${teamStep===0?'aria-disabled="true"':""}>‹ 上一步</button><div class="pg" style="flex:0 0 56px;text-align:center;align-self:center;color:var(--ink2);font-size:14px">${teamStep+1}／${TEAM_STEPS.length}</div><button class="btn sm" data-a="tstep:${teamStep+1}" ${teamStep===TEAM_STEPS.length-1?'aria-disabled="true"':""}>下一步 ›</button></div></div>`;
+}
+function diagram(key){
+  if(!key) return "";
+  const [t,k] = key.split(":");
+  if(t==="ladder") return ladderSVG(k);
+  if(t==="pose") return poseSeq(k);
+  if(t==="steps") return stepsSVG();
+  if(t==="team") return teamPlayer();
+  return "";
+}
+
+const VERSION = "v2.0（2026-11-18）";
 const PFX = "vbtrain.";
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(PFX+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem(PFX+k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
-let progress = LS.get("progress", {});   // {skillId: 已過關數}
-let fails = LS.get("fails", {});
 let storageOK = LS.set("probe", 1);
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const skillById = id => SKILLS.find(s => s.id === id);
-const passed = id => Math.min(progress[id] || 0, skillById(id).levels.length);
-function saveProg(){ LS.set("progress", progress); LS.set("fails", fails); }
 const fmt = s => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0"); };
 
 /* ---------- 圖示 ---------- */
@@ -534,82 +696,82 @@ function miniBar(){ if(!(T.running || (T.idx>0 && T.idx<PLAN.length)) || locatio
 function viewHome(){
   const groups = ["基本功","專項","發球"];
   const inApp = /Line\/|FBAN|FBAV|Instagram/i.test(navigator.userAgent);
-  let h = `<div class="hero" style="display:flex;align-items:flex-start;gap:8px"><div style="flex:1"><div class="t">練球闖關</div><div class="s">社工女排｜照關卡練，一關一關過</div></div><button class="btn sm" data-a="help:0" style="margin-top:6px">使用說明</button></div>
-  ${inApp?`<div class="banner"><b>現在是在 LINE 裡面打開</b>：進度可能存不久，也不能加到主畫面。請按右上角選單，選「用預設瀏覽器開啟」。</div>`:""}
-  <button class="btn pri" data-go="today">${ICON.play} 開始今天的練球</button>`;
-  groups.forEach(g=>{ h += `<h2>${g}</h2>`;
-    SKILLS.filter(s=>s.group===g).forEach(s=>{ const p = passed(s.id), n = s.levels.length;
-      const st = p>=n ? `全破．${s.badge}` : `第 ${p+1} 關：${s.levels[p].n}`;
-      h += `<button class="tile" data-go="map-${s.id}" style="--c:${s.color}"><span class="bar" style="background:${s.color}"></span><span class="m"><span class="n">${s.name}</span><div class="d">${st}</div><div class="dots">${s.levels.map((_,i)=>`<i class="${i<p?"on":""}"></i>`).join("")}</div></span><span class="go">${p}/${n} ›</span></button>`; }); });
-  h += `<h2>參考卡</h2>`;
-  [["warm1","warm2","warm3","warm4"],["combo"],["team1","team2","team3"]].flat().forEach(id=>{ const r = REFS[id];
-    h += `<button class="tile" data-go="ref-${id}"><span class="bar" style="background:${r.color}"></span><span class="m"><span class="n">${r.group}：${r.name}</span><div class="d">${r.sub}</div></span><span class="go">打開 ›</span></button>`; });
+  let h = `<div class="hero" style="display:flex;align-items:flex-start;gap:8px"><div style="flex:1"><div class="t">練球闖關</div><div class="s">社工女排｜帶隊計時、關卡和要領</div></div><button class="btn sm" data-a="help:0" style="margin-top:6px">使用說明</button></div>
+  ${inApp?`<div class="banner"><b>現在是在 LINE 裡面打開</b>：不能加到主畫面。請按右上角選單，選「用預設瀏覽器開啟」。</div>`:""}
+  <button class="btn pri" data-go="today">${ICON.play} 練球模式（帶隊計時）</button>`;
+  h += `<h2>熱身</h2>`;
+  ["warm1","warm2","warm3","warm4"].forEach(id=>{ h += refTile(id); });
+  groups.forEach(g=>{ h += `<h2>${g}的關卡</h2>`;
+    SKILLS.filter(s=>s.group===g).forEach(s=>{
+      h += `<button class="tile" data-go="map-${s.id}" style="--c:${s.color}"><span class="bar" style="background:${s.color}"></span><span class="m"><span class="n">${s.name}</span><div class="d">${s.levels.length} 關：${s.levels.map(l=>l.n).join(" → ")}</div></span><span class="go">打開 ›</span></button>`; }); });
+  h += `<h2>合練、團隊、體能</h2>`;
+  ["combo","team1","team2","team3"].forEach(id=>{ h += refTile(id); });
   h += `<button class="tile" data-go="fitness"><span class="bar" style="background:#15803d"></span><span class="m"><span class="n">體能：肌力循環（計時器）</span><div class="d">七個動作，自動計時、換動作會響</div></span><span class="go">打開 ›</span></button>`;
-  h += `<div class="foot">${storageOK?"":"<b>這個瀏覽器存不了進度，重新整理後會不見。請改用 Safari 或 Chrome 打開。</b><br>"}
-   <button data-a="help">使用說明</button><button data-a="backup">備份／還原進度</button><button data-a="mute">${LS.get("mute",false)?"聲音：關":"聲音：開"}</button><br>
+  h += `<div class="foot"><button data-a="help:0">使用說明</button><button data-a="mute">${LS.get("mute",false)?"聲音：關":"聲音：開"}</button><br>
    練球闖關 ${VERSION}．有問題請跟教練說<br>© 2026 Ken Chen．只給社工女排練球使用</div>`;
   return `<div class="wrap">${h}</div>`;
 }
+function refTile(id){ const r = REFS[id];
+  return `<button class="tile" data-go="ref-${id}"><span class="bar" style="background:${r.color}"></span><span class="m"><span class="n">${r.group}：${r.name}</span><div class="d">${r.sub}</div></span><span class="go">打開 ›</span></button>`; }
 
+/* 一項的完整關卡和要領（關卡頁、練球模式的「看要領」共用） */
+function skillBody(id, withTitle){
+  const s = skillById(id);
+  let h = `<div style="--c:${s.color}">${withTitle?`<h2 style="margin-top:12px">${s.name}</h2>`:""}`;
+  if(s.intro) h += `<div class="card sect"><h3>怎麼分組</h3><ul>${s.intro.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+  h += `<div class="card" style="margin-top:10px">` + s.levels.map((l,i)=>`<div class="item lv"><div class="lvn">${i+1}</div><div style="flex:1;min-width:0"><div class="nn">${l.n}<span class="tag">${l.r}</span></div><div>${l.d}</div>${l.x?`<div class="sect" style="padding:4px 0 0"><ul>${l.x.map(y=>`<li>${y}</li>`).join("")}</ul></div>`:""}</div></div>`).join("") + `</div>`;
+  s.sections.forEach(x=>{ h += `<div class="card sect"><h3>${x.t}</h3>${x.li?`<ul>${x.li.map(y=>`<li>${y}</li>`).join("")}</ul>`:`<p>${x.p}</p>`}</div>`; });
+  h += `<div class="card sect"><h3>過關規則</h3><p>${COMMON_RULE}</p></div>`;
+  return h + `</div>`;
+}
 function viewMap(id){
   const s = skillById(id); if(!s) return viewHome();
-  const p = passed(id), n = s.levels.length;
-  let h = topbar(`${s.group}：${s.name}`, "首頁", 2);
-  h += `<div class="mapsub">${s.sub}</div>`;
-  if(p>=n) h += `<div class="card badgebox">${ICON.medal(s.color)}<div><div class="bt">全破！拿到徽章「${s.badge}」</div><div class="d" style="color:var(--ink2);font-size:14px">可以拉遠繼續練，或去幫學妹餵球、看動作</div></div></div>`;
-  h += `<div class="path">` + s.levels.map((l,i)=>{ const cls = i<p?"done":(i===p?"cur":"lock");
-    const inner = i<p ? ICON.star : (i===p ? (i+1) : ICON.lock);
-    const st = i<p ? "已過關" : (i===p ? "挑戰中" : "");
-    return `<button class="node ${cls}" data-lv="${id}:${i}" style="--c:${s.color}"><span class="ring">${inner}</span><span class="tx"><div class="nn">${i+1}．${l.n}</div><div class="rr">${l.r}</div></span><span class="st">${st} ›</span></button>`; }).join("") + `</div>`;
-  if(s.intro) h += `<div class="card sect" style="--c:${s.color}"><h3>怎麼分組</h3><ul>${s.intro.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
-  s.sections.forEach(x=>{ h += `<div class="card sect" style="--c:${s.color}"><h3>${x.t}</h3>${x.li?`<ul>${x.li.map(y=>`<li>${y}</li>`).join("")}</ul>`:`<p>${x.p}</p>`}</div>`; });
-  h += `<div class="card sect" style="--c:${s.color}"><h3>過關規則</h3><p>${COMMON_RULE}</p></div>`;
-  if(p>0) h += `<div style="margin-top:16px"><button class="btn sm" data-a="reset:${id}" style="width:100%">重新從第 1 關開始</button></div>`;
-  return `<div class="wrap">${h}</div>`;
-}
-
-function levelSheet(id, i){
-  const s = skillById(id), l = s.levels[i], p = passed(id);
-  let b = `<div style="--c:${s.color}"><span class="tag">${l.r}</span><p style="margin-top:8px">${l.d}</p>${l.x?`<div class="sect" style="padding:4px 0 0"><ul>${l.x.map(y=>`<li>${y}</li>`).join("")}</ul></div>`:""}`;
-  const f = fails[id]||0;
-  if(i===p && f===1) b += `<div class="note-box">上一輪沒過。這一輪再沒過，就先回前一關做一輪。</div>`;
-  b += `<div class="note-box">${COMMON_RULE}</div></div>`;
-  let a = "";
-  if(i<p) a = `<div class="note-box" style="margin:0;text-align:center"><b>已過關</b>．可以繼續練，或去幫學妹</div>`;
-  else if(i===p) a = `<button class="btn pri" data-a="pass:${id}:${i}">${ICON.star} 這關過了</button><button class="btn" data-a="fail:${id}:${i}">這輪沒過</button>`;
-  else a = `<div class="note-box" style="margin:0">前面的關卡還沒過，這關先上鎖。已經會了的人（例如學姊），可以直接從這關開始。</div><button class="btn" data-a="skipto:${id}:${i}">我已經會前面的，從這關開始</button>`;
-  openSheet(`第 ${i+1} 關．${l.n}`, b, a);
+  return `<div class="wrap">${topbar(`${s.group}：${s.name}`, "首頁", 2)}<div class="mapsub">${s.sub}</div>${skillBody(id)}</div>`;
 }
 
 function refBody(r){
   let h = `<div style="--c:${r.color}">`;
-  h += `<div class="card">` + r.items.map(([n,c,li])=>`<div class="item"><div class="nn">${n}${c?`<span class="tag">${c}</span>`:""}</div>${li.length?`<div class="sect" style="padding:4px 0 0"><ul>${li.map(y=>`<li>${y}</li>`).join("")}</ul></div>`:""}</div>`).join("") + `</div>`;
+  h += `<div class="card">` + r.items.map(([n,c,li,dia])=>`<div class="item"><div class="nn">${n}${c?`<span class="tag">${c}</span>`:""}</div>${li.length?`<div class="sect" style="padding:4px 0 0"><ul>${li.map(y=>`<li>${y}</li>`).join("")}</ul></div>`:""}${diagram(dia)}</div>`).join("") + `</div>`;
   (r.extra||[]).forEach(([t,li])=>{ h += `<div class="card sect"><h3>${t}</h3><ul>${li.map(y=>`<li>${y}</li>`).join("")}</ul></div>`; });
   return h + `</div>`;
 }
 function viewRef(id){ const r = REFS[id]; if(!r) return viewHome();
   return `<div class="wrap">${topbar(`${r.group}：${r.name}`, "首頁", 0)}<div class="mapsub">${r.sub}</div>${refBody(r)}</div>`; }
 
+/* 練球模式：這一段要做什麼（只列名稱和次數） */
+function segList(s){
+  if(s.skill || s.skills){ const ids = s.skills || [s.skill];
+    return ids.map(id=>{ const k = skillById(id);
+      return `${ids.length>1?`<div class="ls-h" style="--c:${k.color}">${k.name}</div>`:""}<ol class="ls" style="--c:${k.color}">${k.levels.map(l=>`<li><span class="ln">${l.n}</span><span class="lc">${l.r}</span></li>`).join("")}</ol>`; }).join("")
+      + `<div class="ls-goal">一關過了就往下一關；到最後一關就一直練到鈴響（可以拉遠距離，或去幫學妹）</div>`; }
+  if(s.refs) return `<ol class="ls"><li><span class="ln">先發到齊</span><span class="lc">輪轉＋比賽</span></li><li><span class="ln">沒到齊</span><span class="lc">接發球＋修正 或 防守＋轉攻</span></li></ol>`;
+  if(s.fitness) return `<ol class="ls" style="--c:#15803d">${FITNESS.map(m=>`<li><span class="ln">${m.n}</span><span class="lc">${m.c}</span></li>`).join("")}</ol><button class="btn" data-go="fitness" style="margin-top:8px">打開體能計時器 ›</button>`;
+  const r = REFS[s.ref];
+  return `<ol class="ls" style="--c:${r.color}">${r.items.map(([n,c])=>`<li><span class="ln">${n}</span><span class="lc">${c}</span></li>`).join("")}</ol>`;
+}
 function viewToday(){
-  let h = topbar("今天的練球", "首頁", 1);
+  let h = topbar("練球模式", "首頁", 1);
   if(T.idx>=PLAN.length){ h += `<div class="card now" style="text-align:center"><div class="nm">今天練完了</div><p style="color:var(--ink2);margin:6px 0 12px">辛苦了，記得收操、喝水。</p><button class="btn" data-a="trestart">從頭再來一次</button></div>`; }
-  else { const s = PLAN[T.idx], r = tRemain();
-    h += `<div class="card now"><div class="seg">${s.seg}．${clockAt(T.idx)} 開始．${s.m} 分鐘</div><div class="nm">${s.n}</div>${s.note?`<div class="note">${s.note}</div>`:""}
-    <div class="clock" id="clock" aria-live="off">${fmt(r)}</div><div class="prog"><i id="progi" style="width:${100 - r/(s.m*60)*100}%"></i></div>
+  else { const s = PLAN[T.idx], r = tRemain(), nx = PLAN[T.idx+1];
+    h += `<div class="card now"><div class="seg">${s.seg}．${clockAt(T.idx)} 開始．${s.m} 分鐘</div>
+    <div class="nowrow"><div class="nm">${s.n}</div><div class="clock" id="clock" aria-live="off">${fmt(r)}</div></div>
+    <div class="prog"><i id="progi" style="width:${100 - r/(s.m*60)*100}%"></i></div>
     <div class="row"><button class="btn" data-a="tprev" aria-label="上一項" ${T.idx===0?'aria-disabled="true"':""}>${ICON.prev} 上一項</button>
     <button class="btn pri" data-a="ttoggle" style="flex:1.4">${T.running?ICON.pause+" 暫停":ICON.play+(T.remain<s.m*60?" 繼續":" 開始")}</button>
     <button class="btn" data-a="tnext" aria-label="下一項">下一項 ${ICON.next}</button></div>
-    <div style="margin-top:8px"><button class="btn" data-a="how:${T.idx}">看這一項怎麼練 ›</button></div></div>`; }
-  h += `<div class="timeset">開始時間 <input type="time" id="startT" value="${LS.get("start","18:00")}"> <span>（只改下面清單的時間）</span></div>`;
-  h += `<div class="steps">` + PLAN.map((s,i)=>`<button class="step ${i<T.idx?"done":""} ${i===T.idx?"on":""}" data-a="tjump:${i}"><span class="tm">${clockAt(i)}</span><span class="mm"><div class="sg">${s.seg}</div><div>${i<T.idx?"✓ ":""}${s.n}</div></span><span class="dur">${s.m} 分</span></button>`).join("") + `</div>`;
-  h += `<div class="note-box">時間到會響三聲、自動換下一項（iPhone 要關掉靜音才聽得到）。計時的時候螢幕會盡量保持亮著；如果還是會暗，請到手機設定把自動鎖定時間調長。</div>`;
+    <div class="todo"><div class="todo-h">這一段做什麼${s.note&&!s.refs?`<span>${s.note}</span>`:""}</div>${segList(s)}</div>
+    <button class="btn" data-a="how:${T.idx}" style="margin-top:10px">看要領和示意圖 ›</button>
+    <div class="nextup">${nx?`下一項：<b>${nx.n}</b>．${nx.m} 分鐘`:"這是最後一項"}</div></div>`; }
+  h += `<details class="card plan"${T.idx>=PLAN.length?" open":""}><summary>今天的流程（點了可以跳到那一項）</summary>
+   <div class="timeset">開始時間 <input type="time" id="startT" value="${LS.get("start","18:00")}"></div>
+   <div class="steps">` + PLAN.map((s,i)=>`<button class="step ${i<T.idx?"done":""} ${i===T.idx?"on":""}" data-a="tjump:${i}"><span class="tm">${clockAt(i)}</span><span class="mm"><div class="sg">${s.seg}</div><div>${i<T.idx?"✓ ":""}${s.n}</div></span><span class="dur">${s.m} 分</span></button>`).join("") + `</div></details>`;
+  h += `<div class="note-box">時間到會響三聲、自動換下一項，時間一直跑，看要領時也不會停（iPhone 要關掉靜音才聽得到）。螢幕如果會暗，請到手機設定把自動鎖定調長。</div>`;
   return `<div class="wrap">${h}</div>`;
 }
 function howSheet(i){ const s = PLAN[i];
   if(s.skill || s.skills){ const ids = s.skills || [s.skill];
-    openSheet(s.n, `<p style="color:var(--ink2);margin-bottom:8px">${s.note||"照自己的關卡練"}</p>` + ids.map(id=>{ const k = skillById(id), p = passed(id);
-      return `<button class="tile" data-go="map-${id}"><span class="bar" style="background:${k.color}"></span><span class="m"><span class="n">${k.name}</span><div class="d">${p>=k.levels.length?"全破":"我在第 "+(p+1)+" 關："+k.levels[p].n}</div></span><span class="go">打開 ›</span></button>`; }).join(""), ""); return; }
-  if(s.refs){ openSheet(s.n, `<p style="color:var(--ink2);margin-bottom:8px">${s.note}，沒到齊練另外兩張</p>` + s.refs.map(id=>`<button class="tile" data-a="refsheet:${id}"><span class="bar" style="background:${REFS[id].color}"></span><span class="m"><span class="n">${REFS[id].name}</span><div class="d">${REFS[id].sub}</div></span><span class="go">打開 ›</span></button>`).join(""), ""); return; }
+    openSheet(s.n, ids.map(id=>skillBody(id, ids.length>1)).join(""), ""); return; }
+  if(s.refs){ openSheet(s.n, `<p style="color:var(--ink2);margin-bottom:8px">先發到齊練「輪轉＋比賽」，沒到齊練另外兩張</p>` + s.refs.map(id=>`<button class="tile" data-a="refsheet:${id}"><span class="bar" style="background:${REFS[id].color}"></span><span class="m"><span class="n">${REFS[id].name}</span><div class="d">${REFS[id].sub}</div></span><span class="go">打開 ›</span></button>`).join(""), ""); return; }
   if(s.fitness){ openSheet(s.n, `<p>用體能計時器，自動做、休息、換動作。</p>`, `<button class="btn pri" data-go="fitness">打開體能計時器</button>`); return; }
   const r = REFS[s.ref]; openSheet(`${r.group}：${r.name}`, `<div class="mapsub">${r.sub}</div>` + refBody(r), "");
 }
@@ -633,27 +795,16 @@ function viewFitness(){
 }
 
 const HELP = [
- ["這是什麼", `<p>把練球的<b>要領卡</b>做成闖關：每個人照自己的進度，一關一關過。</p><ul><li>首頁最上面：<b>開始今天的練球</b>，照表定時間計時</li><li>中間：基本功、專項、發球的<b>關卡地圖</b></li><li>下面：熱身、團隊這些<b>參考卡</b>和體能計時器</li></ul>`, "home"],
- ["今天的練球", `<ul><li>按<b>開始</b>，大數字倒數這一項剩下的時間</li><li>時間到會響三聲，自動換下一項</li><li>按<b>看這一項怎麼練</b>，直接打開要領或關卡</li><li>點下面清單的任何一項，可以直接跳過去</li><li>iPhone 要關掉靜音開關才聽得到聲音</li><li>體能計時器一樣：按開始，做、休息、換動作都會響</li></ul>`, "today"],
- ["闖關怎麼用", `<ul><li>點一個項目，看到關卡地圖：<b>星星</b>是過了、<b>有數字的</b>是現在這關、<b>鎖</b>是還沒到</li><li>點現在這關看做法；過了按<b>這關過了</b>，下一關就打開</li><li>沒過按<b>這輪沒過</b>；連續兩輪沒過，會提醒先回前一關做一輪</li><li>學姊已經會的，可以點後面的關卡，選<b>從這關開始</b></li><li>全部過關拿到徽章</li></ul>`, "map"],
+ ["這是什麼", `<p>練球用的小幫手，主要給<b>帶隊的人</b>拿著看。</p><ul><li>首頁最上面：<b>練球模式</b>，照表定時間計時</li><li>下面：熱身、基本功、專項、發球的<b>關卡和要領</b>，團隊和體能也在這裡</li><li>隊員也可以自己打開來看怎麼做</li></ul>`, "home"],
+ ["練球模式", `<ul><li>按<b>開始</b>，右上的大數字倒數這一段剩下的時間</li><li>下面「這一段做什麼」列出每一關和次數：開始前看著念一次，就讓大家自己往下練</li><li>時間到會響三聲，自動換下一項；最下面寫著下一項是什麼</li><li>忘記怎麼做就按<b>看要領和示意圖</b>，時間不會停</li><li>點「今天的流程」可以跳到任何一項；iPhone 要關掉靜音才聽得到聲音</li></ul>`, "today"],
+ ["關卡和示意圖", `<ul><li>每一項都有幾關，由簡單到難，過了就往下一關</li><li>到最後一關就一直練到鈴響，可以拉遠距離</li><li>繩梯有<b>腳印動畫</b>，數字是踩的順序；專項起跳有<b>分解動作圖</b></li><li>團隊「接發球＋修正」有<b>一步一步的流程圖</b>，按下一步看誰發球、誰轉位置</li></ul>`, "map"],
  ["加到主畫面", `<p>加到主畫面後，就像 App 一樣點圖示打開，沒有網路也能用。</p><ul><li><b>iPhone、iPad</b>：用 Safari 打開 → 下面的分享鈕 → 「加入主畫面」</li><li><b>Android</b>：用 Chrome 打開 → 右上角 ⋮ → 「加到主畫面」或「安裝應用程式」</li><li><b>電腦、Chromebook</b>：用 Chrome 或 Edge 打開 → 網址列右邊的安裝圖示</li><li>從 LINE 點連結會用 LINE 裡面的瀏覽器打開，不能加到主畫面：請按右上角改用 Safari 或 Chrome 打開</li></ul>`],
- ["進度存在哪裡", `<ul><li>進度只存在<b>自己的手機</b>，別人看不到</li><li>換手機、清除瀏覽器資料，進度會不見：先到首頁最下面的<b>備份／還原進度</b>，把備份碼用 LINE 傳給自己</li><li>從 LINE 打開時，建議改用 Safari 或 Chrome 開，進度比較不會不見</li></ul>`, "backup"],
 ];
 let helpI = 0, helpFrom = "";
 function viewHelp(){
   return `<div class="wrap">${topbar("使用說明", helpFrom ? "返回" : "首頁")}<div class="toc">${HELP.map((x,i)=>`<button class="${i===helpI?"sel":""}" data-a="help:${i}">${x[0]}</button>`).join("")}</div>
   <div class="card slide" id="slide"><h3>${HELP[helpI][0]}</h3>${HELP[helpI][1]}${HELP[helpI][2]?`<img src="help/${HELP[helpI][2]}.webp" alt="${HELP[helpI][0]}的畫面" loading="lazy" onerror="this.remove()">`:""}</div>
   <div class="pager"><button class="btn sm" data-a="help:${helpI-1}" ${helpI===0?'aria-disabled="true"':""}>‹ 上一張</button><div class="pg">${helpI+1}／${HELP.length}</div><button class="btn sm" data-a="help:${helpI+1}" ${helpI===HELP.length-1?'aria-disabled="true"':""}>下一張 ›</button></div></div>`;
-}
-
-function backupSheet(){
-  const code = "VB1:" + SKILLS.map(s=>passed(s.id)).join(",");
-  openSheet("備份／還原進度", `<p>把這串備份碼複製起來，用 LINE 傳給自己。換手機時貼回來就能還原。</p>
-   <textarea id="bk" rows="2" readonly style="margin-top:8px;font-family:ui-monospace,monospace">${code}</textarea>
-   <button class="btn" data-a="copy" style="margin-top:8px">複製備份碼</button>
-   <h2>還原</h2><input type="text" id="rs" placeholder="貼上 VB1: 開頭的備份碼" autocomplete="off">
-   <div id="rsmsg" style="font-size:14px;margin-top:6px;color:var(--ink2)">還原會換掉現在的進度。</div>`,
-   `<button class="btn" data-a="restore">還原進度</button>`);
 }
 
 function render(){
@@ -671,45 +822,27 @@ function render(){
 }
 let lastHash = location.hash;
 window.addEventListener("popstate", ()=>{ if(sheetStack.length || $("#layer .sheet")){ if(sheetStack.length>1){ sheetStack.pop(); paintSheet(); try{ history.pushState({sheet:1},""); }catch(e){} } else closeSheet(true); } });
-window.addEventListener("storage", e=>{ if(e.key===PFX+"progress"){ progress = LS.get("progress", {}); render(); } });
 window.addEventListener("hashchange", ()=>{ closeSheet(true); if(location.hash!==lastHash){ lastHash = location.hash; render(); scrollTo(0,0); } });
 function go(h){ unlockAudio(); if(sheetStack.length){ try{ if(history.state && history.state.sheet) history.replaceState(null,""); }catch(e){} closeSheet(true); } if(("#"+h)===location.hash || (h===""&&location.hash==="")){ render(); return; } location.hash = h; if(h===""){ history.replaceState(null,"",location.pathname+location.search); lastHash=""; render(); scrollTo(0,0);} }
 
 let lock = 0;
 document.addEventListener("click", e=>{
   const g = e.target.closest("[data-go]"); if(g){ go(g.dataset.go); return; }
-  const lv = e.target.closest("[data-lv]"); if(lv){ const [id,i] = lv.dataset.lv.split(":"); levelSheet(id, +i); return; }
   const el = e.target.closest("[data-a]"); if(!el) return;
   if(el.getAttribute("aria-disabled")==="true") return;
   const [a, x, y] = el.dataset.a.split(":"); unlockAudio();
-  const now = Date.now(); if(now - lock < 350 && ["pass","fail","tnext","tprev","fskip"].includes(a)) return; lock = now;
+  const now = Date.now(); if(now - lock < 350 && ["tnext","tprev","fskip","tstep"].includes(a)) return; lock = now;
   switch(a){
    case "sheetclose": closeSheet(); break;
    case "sheetback": sheetBack(); break;
    case "help": helpI = Math.max(0,Math.min(HELP.length-1,+(x||0))); if(location.hash!=="#help"){ helpFrom = location.hash.slice(1); go("help"); } else render(); break;
    case "hback": { const f = helpFrom; helpFrom = ""; go(f); break; }
-   case "backup": backupSheet(); break;
    case "mute": LS.set("mute", !LS.get("mute",false)); render(); break;
-   case "copy": { const t = $("#bk"); t.select(); try{ navigator.clipboard.writeText(t.value).then(()=>toast("已複製"),()=>toast("請長按上面的字自己複製")); }catch(err){ toast("請長按上面的字自己複製"); } break; }
-   case "restore": { const v = ($("#rs").value||"").trim(), m = v.match(/^VB1:([\d,]+)$/), msg = $("#rsmsg");
-     if(!m){ msg.textContent = "看不懂這串備份碼，請確認有完整複製（VB1: 開頭）。現在的進度沒有改。"; msg.style.color = "var(--acc)"; break; }
-     const arr = m[1].split(",").map(Number); if(arr.length!==SKILLS.length){ msg.textContent = "備份碼的項目數量不對，現在的進度沒有改。"; msg.style.color="var(--acc)"; break; }
-     const old = Object.assign({}, progress); SKILLS.forEach((s,i)=>progress[s.id] = Math.min(arr[i], s.levels.length)); fails = {}; saveProg(); closeSheet(); render();
-     toast("進度已還原", "復原", ()=>{ progress = old; saveProg(); render(); }); break; }
-   case "pass": { const old = progress[x]||0; progress[x] = +y+1; fails[x]=0; saveProg(); render(); const s = skillById(x);
-     if(progress[x]>=s.levels.length) openSheet("全破！", `<div style="text-align:center">${ICON.medal(s.color)}<p style="font-size:20px;font-weight:900;margin-top:6px">${s.name}：${s.badge}</p><p style="color:var(--ink2)">可以拉遠繼續練，或去幫學妹餵球、看動作。</p></div>`, `<button class="btn" data-a="sheetclose">好</button>`);
-     else { closeSheet(); toast(`過關！下一關：${s.levels[progress[x]].n}`, "復原", ()=>{ progress[x]=old; saveProg(); render(); }); } break; }
-   case "fail": { fails[x] = (fails[x]||0)+1; const i = +y, s = skillById(x);
-     if(fails[x]>=2){ fails[x]=0; saveProg(); openSheet("連續兩輪沒過", i>0 ? `<p>先回 <b>第 ${i} 關．${s.levels[i-1].n}</b> 做一輪，找回感覺再回來挑戰第 ${i+1} 關。</p><p style="color:var(--ink2);margin-top:6px">進度不會被扣掉，做完一輪直接回來就好。</p>` : `<p>沒關係，這是第一關。放慢一點、看要領，下一輪再挑戰。</p>`, `<button class="btn" data-a="sheetclose">知道了</button>`); }
-     else { saveProg(); closeSheet(); toast("沒關係，下一輪再挑戰"); } render(); break; }
-   case "skipto": openSheet("從這關開始？", `<p>第 1～${+y} 關會標成已過關，從第 ${+y+1} 關開始挑戰。</p>`, `<button class="btn pri" data-a="skipok:${x}:${y}">確定，從這關開始</button><button class="btn" data-a="sheetback">取消</button>`, {push:true}); break;
-   case "skipok": { const old = progress[x]||0; progress[x] = +y; saveProg(); closeSheet(); render(); toast(`從第 ${+y+1} 關開始`, "復原", ()=>{ progress[x]=old; saveProg(); render(); }); break; }
-   case "reset": openSheet("重新從第 1 關開始？", `<p>這一項的星星會全部清掉，從第 1 關重新開始。</p>`, `<button class="btn" data-a="resetok:${x}">確定重新開始</button><button class="btn" data-a="sheetclose">取消</button>`); break;
-   case "resetok": { const old = progress[x]||0; progress[x]=0; fails[x]=0; saveProg(); closeSheet(); render(); toast("已重新開始", "復原", ()=>{ progress[x]=old; saveProg(); render(); }); break; }
+   case "tstep": { teamStep = Math.max(0, Math.min(TEAM_STEPS.length-1, +x)); document.querySelectorAll("#teamdia").forEach(e=>e.outerHTML = teamPlayer()); break; }
    case "ttoggle": T.running ? tPause() : tStart(); render(); break;
    case "tnext": tGo(T.idx+1, T.running); render(); break;
    case "tprev": tGo(T.idx-1, T.running); render(); break;
-   case "tjump": tGo(+x, false); render(); break;
+   case "tjump": tGo(+x, false); render(); scrollTo(0,0); break;
    case "trestart": tGo(0,false); render(); break;
    case "how": howSheet(+x); break;
    case "refsheet": { const r = REFS[x]; openSheet(r.name, `<div class="mapsub">${r.sub}</div>` + refBody(r), "", {push:true}); break; }

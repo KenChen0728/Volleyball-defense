@@ -22,6 +22,19 @@
 
 純網頁，不用安裝任何套件，也沒有帳號和線上資料庫。
 
+## 練球闖關（training/）
+
+社工女排練球用的另一個小 App，放在 `training/` 資料夾，跟站位教室共用同一個 GitHub Pages。
+
+網址：<https://kenchen0728.github.io/Volleyball-defense/training/>（從 LINE 分享時可加 `?openExternalBrowser=1`）
+
+- **今天的練球**：照 150 分鐘流程倒數，時間到響三聲、自動換下一項，可以直接打開那一項的要領或關卡。
+- **關卡地圖**：基本功、專項、發球共 8 項，過關給星星、下一關解鎖、全破拿徽章；連續兩輪沒過提醒退一關。
+- **參考卡**：熱身、舉攻合練、團隊；**體能計時器**：三個加量階段，換動作會響。
+- 內容和 LINE 相簿裡的要領卡同一份，改卡片時要一起改 `training/index.html` 裡的資料（`SKILLS`、`REFS`、`FITNESS`、`PLAN`）。
+- 進度只存在自己的瀏覽器：`vbtrain.progress`（每項過了幾關）、`vbtrain.fails`、`vbtrain.timer`、`vbtrain.start`、`vbtrain.fitstage`、`vbtrain.mute`。首頁下方有備份碼（`VB1:` 開頭，8 個數字照 `SKILLS` 的順序）。
+- 離線快取在 `training/sw.js`，快取名稱 `vbtrain-` 開頭，不會動到站位教室的 `vbdef-` 快取。更新時改 `index.html` 的 `VERSION` 和 `sw.js` 的 `VERSION`。
+
 ## 放到 GitHub Pages
 
 1. repository 的 **Settings → Pages**，Source 選 **Deploy from a branch**，Branch 選 `main`、資料夾選 `/ (root)`，按 Save。

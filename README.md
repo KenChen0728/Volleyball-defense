@@ -34,6 +34,8 @@
 - 內容和 LINE 相簿裡的要領卡同一份，改卡片時要一起改 `training/index.html` 裡的資料（`SKILLS`、`REFS`、`FITNESS`、`PLAN`）。
 - 進度只存在自己的瀏覽器：`vbtrain.progress`（每項過了幾關）、`vbtrain.fails`、`vbtrain.timer`、`vbtrain.start`、`vbtrain.fitstage`、`vbtrain.mute`。首頁下方有備份碼（`VB1:` 開頭，8 個數字照 `SKILLS` 的順序）。
 - 離線快取在 `training/sw.js`，快取名稱 `vbtrain-` 開頭，不會動到站位教室的 `vbdef-` 快取。更新時改 `index.html` 的 `VERSION` 和 `sw.js` 的 `VERSION`。
+- 使用說明截圖：`training/help/*.webp`，畫面改了就重跑 `python3 training/tools/make-help-shots.py`；版面檢查 `python3 training/tools/check-layout.py`（都要先在 repo 根目錄開 `python3 -m http.server 8790`）。
+- 退回舊版：備份分支 `backup-training-v1.1`（練球闖關 v1.1）；退回後把 `training/sw.js` 的 `VERSION` 改成新號碼。
 
 ## 放到 GitHub Pages
 

@@ -1,9 +1,9 @@
 /* 練球闖關：離線快取。先問網站有沒有新版（最多等 3 秒），連不上或回錯誤就用存好的版本。
    快取名稱用 vbtrain- 開頭，不會動到排球站位教室（vbdef-）的快取。 */
 const PREFIX = 'vbtrain-';
-const VERSION = '1.1';
+const VERSION = '1.2';
 const CACHE = PREFIX + VERSION;
-const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
+const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'help/home.webp', 'help/today.webp', 'help/map.webp', 'help/backup.webp'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => Promise.all(ASSETS.map(a => c.add(a).catch(() => null)))).then(() => self.skipWaiting()));

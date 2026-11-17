@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="練球闖關">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta property="og:title" content="練球闖關">
 <meta property="og:description" content="社工女排練球用：今天練球計時、關卡地圖、要領卡、體能計時器。">
 <meta property="og:image" content="https://kenchen0728.github.io/Volleyball-defense/training/icons/og-image.png">
@@ -54,11 +55,11 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:24
 .node{display:flex;align-items:center;gap:14px;width:100%;background:none;border:none;text-align:left;padding:10px 0;position:relative;min-height:76px}
 .node .ring{flex:none;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;border:3px solid var(--line);background:var(--card);color:var(--lock);position:relative;z-index:1}
 .node.done .ring{background:var(--c);border-color:var(--c);color:#fff}
-.node.cur .ring{border-color:var(--c);color:var(--c);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent)}
+.node.cur .ring{border-color:var(--c);color:color-mix(in srgb,var(--c) 70%,var(--ink));box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 22%,transparent)}
 .node .tx{flex:1;min-width:0}
 .node .nn{font-weight:800;font-size:17px}
 .node.lock .nn{color:var(--ink2)}
-.node .rr{font-size:13px;font-weight:700;color:var(--c);margin-top:2px}
+.node .rr{font-size:13px;font-weight:700;color:color-mix(in srgb,var(--c) 70%,var(--ink));margin-top:2px}
 .node.lock .rr{color:var(--lock)}
 .node .st{font-size:13px;color:var(--ink2);white-space:nowrap}
 .path:before{content:"";position:absolute;left:29px;top:40px;bottom:40px;width:4px;background:var(--line);border-radius:2px}
@@ -66,12 +67,12 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:24
 .badgebox{display:flex;align-items:center;gap:12px;padding:14px;margin-top:8px}
 .badgebox .bt{font-weight:800}
 .sect{padding:14px 16px;margin-top:10px}
-.sect h3{font-size:16px;color:var(--c,var(--acc));margin-bottom:6px}
+.sect h3{font-size:16px;color:color-mix(in srgb,var(--c,var(--acc)) 70%,var(--ink));margin-bottom:6px}
 .sect ul{list-style:none}
 .sect li{position:relative;padding-left:14px;margin:4px 0;color:var(--ink)}
 .sect li:before{content:"";position:absolute;left:2px;top:10px;width:5px;height:5px;border-radius:50%;background:var(--c,var(--acc))}
 .sect p{color:var(--ink)}
-.tag{display:inline-block;font-size:13px;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border-radius:999px;padding:1px 10px;margin-left:6px;vertical-align:2px}
+.tag{display:inline-block;font-size:13px;font-weight:800;color:color-mix(in srgb,var(--c) 70%,var(--ink));background:color-mix(in srgb,var(--c) 14%,transparent);border-radius:999px;padding:1px 10px;margin-left:6px;vertical-align:2px}
 /* 參考卡 */
 .item{padding:12px 16px;border-bottom:1px solid var(--line)}
 .item:last-child{border-bottom:none}
@@ -99,6 +100,7 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:24
 /* 體能 */
 .seg3{display:flex;gap:6px;margin:4px 0 10px}
 .seg3 button{flex:1;min-height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:14px;font-weight:700;line-height:1.25;padding:4px}
+.seg3 small{font-size:12px}
 .seg3 button.sel{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
 .fig{display:flex;justify-content:center;background:var(--soft);border-radius:14px;padding:6px}
 .fig svg{width:100%;max-width:300px;height:auto}
@@ -121,10 +123,13 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:24
 .note-box{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:15px;margin-top:10px}
 .toast{width:max-content;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));z-index:50;background:var(--sel);color:var(--sel-ink);border-radius:14px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:8px;font-weight:700;max-width:calc(100% - 24px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
 .toast span{flex:1}
-.toast button{white-space:nowrap;background:none;border:1.5px solid currentColor;border-radius:10px;min-height:40px;padding:0 12px;color:inherit;font-weight:800}
+.toast button{white-space:nowrap;background:none;border:1.5px solid currentColor;border-radius:10px;min-height:44px;padding:0 12px;color:inherit;font-weight:800}
 textarea,input[type=text]{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 /* 說明 */
-.slide{padding:20px 18px;min-height:280px}
+.slide{padding:20px 18px;min-height:280px;touch-action:pan-y}
+.slide img{display:block;width:100%;max-width:340px;margin:12px auto 0;border-radius:12px;border:1px solid var(--line)}
+.banner{background:#fff4d6;color:#5b3a00;border-radius:12px;padding:10px 12px;font-size:15px;margin-top:12px}
+@media (prefers-color-scheme:dark){.banner{background:#3a2c0a;color:#ffe6a6}}
 .slide h3{font-size:20px;margin-bottom:8px}
 .slide p,.slide li{font-size:16px;margin:6px 0}
 .slide ul{padding-left:18px}
@@ -378,7 +383,7 @@ const PLAN = [
  {seg:"收操", n:"收操", m:5, ref:"cool"},
 ];
 
-const VERSION = "v1.1（2026-11-17）";
+const VERSION = "v1.2（2026-11-17）";
 const PFX = "vbtrain.";
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(PFX+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
@@ -469,11 +474,18 @@ function ftSkip(){ FT.i++; if(FT.i<FT.seq.length){ FT.remain = FT.seq[FT.i].d; i
 
 let lastTick = {t:-1, f:-1};
 setInterval(()=>{
-  if(T.running){ const r = tRemain();
-    if(r<=0){ alarmEnd(); const nx = T.idx+1; tGo(nx, nx<PLAN.length); toast(nx<PLAN.length ? "換下一項：" + PLAN[nx].n : "今天的練球結束了"); if(!T.running && !FT.running) wakeOff(); render(); return; } }
+  if(T.running && tRemain()<=0){
+    // 螢幕關掉或切到別的 App 回來時，可能已經過了好幾項：照實際經過的時間一路算到現在這一項
+    let end = T.endAt;
+    while(T.idx < PLAN.length && end <= Date.now()){ T.idx++; if(T.idx < PLAN.length) end += PLAN[T.idx].m*60*1000; }
+    if(T.idx >= PLAN.length){ T.running = false; T.remain = 0; } else { T.endAt = end; T.remain = (end-Date.now())/1000; }
+    tSave(); alarmEnd(); toast(T.idx<PLAN.length ? "換下一項：" + PLAN[T.idx].n : "今天的練球結束了");
+    if(!T.running && !FT.running) wakeOff(); render(); return; }
   if(FT.running){ const r = ftRemain(), sec = Math.ceil(r);
     if(sec<=3 && sec>0 && lastTick.f!==sec+FT.i*1000){ lastTick.f = sec+FT.i*1000; beep(660,.08); }
-    if(r<=0){ ftSkip(); if(FT.i<FT.seq.length){ const s = FT.seq[FT.i]; s.rest ? (beep(523,.3),buzz(300)) : (beep(1047,.35),buzz([150,80,150])); } else { alarmEnd(); toast("體能完成，去收操"); if(!T.running) wakeOff(); } render(); return; } }
+    if(r<=0){ let end = FT.endAt; ftSkip(); while(FT.i<FT.seq.length && end + FT.seq[FT.i].d*1000 <= Date.now()){ end += FT.seq[FT.i].d*1000; FT.i++; }
+      if(FT.i<FT.seq.length){ FT.endAt = end + FT.seq[FT.i].d*1000; FT.remain = (FT.endAt-Date.now())/1000; }
+      if(FT.i<FT.seq.length){ const s = FT.seq[FT.i]; s.rest ? (beep(523,.3),buzz(300)) : (beep(1047,.35),buzz([150,80,150])); } else { alarmEnd(); toast("體能完成，去收操"); if(!T.running) wakeOff(); } render(); return; } }
   updateLive();
 }, 250);
 
@@ -489,6 +501,7 @@ function openSheet(title, body, actions, opts={}){
   const layer = $("#layer");
   if(!sheetStack.length){ layer.innerHTML = `<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div class="sh-top"></div><div class="sh-body"></div><div class="sh-act"></div></div>`;
     layer.querySelector(".scrim").onclick = closeSheet; dragClose(layer.querySelector(".sheet"));
+    try{ history.pushState({sheet:1}, ""); }catch(e){}
     requestAnimationFrame(()=>{ layer.querySelector(".scrim").classList.add("show"); layer.querySelector(".sheet").classList.add("show"); }); }
   if(opts.push) sheetStack.push({title, body, actions}); else sheetStack = [{title, body, actions}];
   paintSheet();
@@ -497,9 +510,11 @@ function paintSheet(){ const s = sheetStack[sheetStack.length-1], el = $("#layer
   const back = sheetStack.length>1 ? `<button class="back" data-a="sheetback">‹ 返回</button>` : "";
   el.querySelector(".sh-top").innerHTML = `${back}<h3>${s.title}</h3><button class="iconbtn" data-a="sheetclose" aria-label="關閉">✕</button>`;
   el.querySelector(".sh-body").innerHTML = s.body; el.querySelector(".sh-body").scrollTop = 0;
-  const act = el.querySelector(".sh-act"); act.innerHTML = s.actions || ""; act.style.display = s.actions ? "" : "none"; }
+  const act = el.querySelector(".sh-act"); act.innerHTML = s.actions || ""; act.style.display = s.actions ? "" : "none";
+  const cb = el.querySelector("[data-a=sheetclose]"); if(cb) try{ cb.focus({preventScroll:true}); }catch(e){} }
 function sheetBack(){ if(sheetStack.length>1){ sheetStack.pop(); paintSheet(); } else closeSheet(); }
-function closeSheet(){ const l = $("#layer"); const sc = l.querySelector(".scrim"), sh = l.querySelector(".sheet");
+function closeSheet(fromPop){ if(fromPop!==true && sheetStack.length && history.state && history.state.sheet){ sheetStack = []; history.back(); return; }
+  const l = $("#layer"); const sc = l.querySelector(".scrim"), sh = l.querySelector(".sheet");
   sheetStack = []; if(!sh){ l.innerHTML=""; return; } sc.classList.remove("show"); sh.classList.remove("show"); setTimeout(()=>{ if(!sheetStack.length) l.innerHTML=""; }, 260); }
 function dragClose(sh){ let y0=null, dy=0, ok=false;
   sh.addEventListener("touchstart",e=>{ const body = sh.querySelector(".sh-body"); ok = !body.contains(e.target) || body.scrollTop<=0; y0 = e.touches[0].clientY; dy=0; },{passive:true});
@@ -512,13 +527,15 @@ function toast(msg, label, fn){ let t = $("#toast"); if(!t){ t = document.create
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && sheetStack.length){ sheetBack(); } });
 
 /* ---------- 畫面 ---------- */
-function topbar(title, back="首頁"){ return `<div class="top">${back?`<button class="back" data-go="">‹ ${back}</button>`:""}<h1>${title}</h1></div>`; }
+function topbar(title, back="首頁", help){ return `<div class="top">${back?`<button class="back" ${back==="返回"?'data-a="hback"':'data-go=""'}>‹ ${back}</button>`:""}<h1>${title}</h1>${help!==undefined?`<button class="iconbtn" data-a="help:${help}" aria-label="這一頁怎麼用">?</button>`:""}</div>`; }
 function miniBar(){ if(!(T.running || (T.idx>0 && T.idx<PLAN.length)) || location.hash==="#today") return "";
   return `<button class="mini" data-go="today">${T.running?ICON.play:ICON.pause}<span>${T.idx<PLAN.length?esc(PLAN[T.idx].n):""}</span><span id="minit">${fmt(tRemain())}</span> ›</button>`; }
 
 function viewHome(){
   const groups = ["基本功","專項","發球"];
-  let h = `<div class="hero"><div class="t">練球闖關</div><div class="s">社工女排｜照關卡練，一關一關過</div></div>
+  const inApp = /Line\/|FBAN|FBAV|Instagram/i.test(navigator.userAgent);
+  let h = `<div class="hero" style="display:flex;align-items:flex-start;gap:8px"><div style="flex:1"><div class="t">練球闖關</div><div class="s">社工女排｜照關卡練，一關一關過</div></div><button class="btn sm" data-a="help:0" style="margin-top:6px">使用說明</button></div>
+  ${inApp?`<div class="banner"><b>現在是在 LINE 裡面打開</b>：進度可能存不久，也不能加到主畫面。請按右上角選單，選「用預設瀏覽器開啟」。</div>`:""}
   <button class="btn pri" data-go="today">${ICON.play} 開始今天的練球</button>`;
   groups.forEach(g=>{ h += `<h2>${g}</h2>`;
     SKILLS.filter(s=>s.group===g).forEach(s=>{ const p = passed(s.id), n = s.levels.length;
@@ -537,7 +554,7 @@ function viewHome(){
 function viewMap(id){
   const s = skillById(id); if(!s) return viewHome();
   const p = passed(id), n = s.levels.length;
-  let h = topbar(`${s.group}：${s.name}`);
+  let h = topbar(`${s.group}：${s.name}`, "首頁", 2);
   h += `<div class="mapsub">${s.sub}</div>`;
   if(p>=n) h += `<div class="card badgebox">${ICON.medal(s.color)}<div><div class="bt">全破！拿到徽章「${s.badge}」</div><div class="d" style="color:var(--ink2);font-size:14px">可以拉遠繼續練，或去幫學妹餵球、看動作</div></div></div>`;
   h += `<div class="path">` + s.levels.map((l,i)=>{ const cls = i<p?"done":(i===p?"cur":"lock");
@@ -571,10 +588,10 @@ function refBody(r){
   return h + `</div>`;
 }
 function viewRef(id){ const r = REFS[id]; if(!r) return viewHome();
-  return `<div class="wrap">${topbar(`${r.group}：${r.name}`)}<div class="mapsub">${r.sub}</div>${refBody(r)}</div>`; }
+  return `<div class="wrap">${topbar(`${r.group}：${r.name}`, "首頁", 0)}<div class="mapsub">${r.sub}</div>${refBody(r)}</div>`; }
 
 function viewToday(){
-  let h = topbar("今天的練球");
+  let h = topbar("今天的練球", "首頁", 1);
   if(T.idx>=PLAN.length){ h += `<div class="card now" style="text-align:center"><div class="nm">今天練完了</div><p style="color:var(--ink2);margin:6px 0 12px">辛苦了，記得收操、喝水。</p><button class="btn" data-a="trestart">從頭再來一次</button></div>`; }
   else { const s = PLAN[T.idx], r = tRemain();
     h += `<div class="card now"><div class="seg">${s.seg}．${clockAt(T.idx)} 開始．${s.m} 分鐘</div><div class="nm">${s.n}</div>${s.note?`<div class="note">${s.note}</div>`:""}
@@ -599,7 +616,7 @@ function howSheet(i){ const s = PLAN[i];
 
 function viewFitness(){
   const st = FIT_STAGES[FT.stage], cur = FT.seq[Math.min(FT.i, FT.seq.length-1)], m = FITNESS[cur.move], done = FT.i>=FT.seq.length;
-  let h = topbar("體能．肌力循環");
+  let h = topbar("體能．肌力循環", "首頁", 1);
   h += `<div class="seg3" role="radiogroup" aria-label="加量階段">${FIT_STAGES.map((x,i)=>`<button role="radio" aria-checked="${i===FT.stage}" class="${i===FT.stage?"sel":""}" data-a="fstage:${i}">${i===FT.stage?"✓ ":""}${x.s}<br><small>${x.on}／${x.off} 秒．${x.rounds} 輪</small></button>`).join("")}</div>`;
   if(done){ h += `<div class="card now" style="text-align:center"><div class="nm">做完了</div><p style="color:var(--ink2);margin:6px 0 12px">去收操吧（照隊上原本那一套）。</p><button class="btn" data-a="freset">再做一次</button></div>`; }
   else { const nth = FITNESS.indexOf(m)+1;
@@ -616,16 +633,16 @@ function viewFitness(){
 }
 
 const HELP = [
- ["這是什麼", `<p>把練球的<b>要領卡</b>做成闖關：每個人照自己的進度，一關一關過。</p><ul><li>首頁最上面：<b>開始今天的練球</b>，照表定時間計時</li><li>中間：基本功、專項、發球的<b>關卡地圖</b></li><li>下面：熱身、團隊這些<b>參考卡</b>和體能計時器</li></ul>`],
- ["今天的練球", `<ul><li>按<b>開始</b>，大數字倒數這一項剩下的時間</li><li>時間到會響三聲，自動換下一項</li><li>按<b>看這一項怎麼練</b>，直接打開要領或關卡</li><li>點下面清單的任何一項，可以直接跳過去</li><li>iPhone 要關掉靜音開關才聽得到聲音</li></ul>`],
- ["闖關怎麼用", `<ul><li>點一個項目，看到關卡地圖：<b>星星</b>是過了、<b>有數字的</b>是現在這關、<b>鎖</b>是還沒到</li><li>點現在這關看做法；過了按<b>這關過了</b>，下一關就打開</li><li>沒過按<b>這輪沒過</b>；連續兩輪沒過，會提醒先回前一關做一輪</li><li>學姊已經會的，可以點後面的關卡，選<b>從這關開始</b></li><li>全部過關拿到徽章</li></ul>`],
+ ["這是什麼", `<p>把練球的<b>要領卡</b>做成闖關：每個人照自己的進度，一關一關過。</p><ul><li>首頁最上面：<b>開始今天的練球</b>，照表定時間計時</li><li>中間：基本功、專項、發球的<b>關卡地圖</b></li><li>下面：熱身、團隊這些<b>參考卡</b>和體能計時器</li></ul>`, "home"],
+ ["今天的練球", `<ul><li>按<b>開始</b>，大數字倒數這一項剩下的時間</li><li>時間到會響三聲，自動換下一項</li><li>按<b>看這一項怎麼練</b>，直接打開要領或關卡</li><li>點下面清單的任何一項，可以直接跳過去</li><li>iPhone 要關掉靜音開關才聽得到聲音</li><li>體能計時器一樣：按開始，做、休息、換動作都會響</li></ul>`, "today"],
+ ["闖關怎麼用", `<ul><li>點一個項目，看到關卡地圖：<b>星星</b>是過了、<b>有數字的</b>是現在這關、<b>鎖</b>是還沒到</li><li>點現在這關看做法；過了按<b>這關過了</b>，下一關就打開</li><li>沒過按<b>這輪沒過</b>；連續兩輪沒過，會提醒先回前一關做一輪</li><li>學姊已經會的，可以點後面的關卡，選<b>從這關開始</b></li><li>全部過關拿到徽章</li></ul>`, "map"],
  ["加到主畫面", `<p>加到主畫面後，就像 App 一樣點圖示打開，沒有網路也能用。</p><ul><li><b>iPhone、iPad</b>：用 Safari 打開 → 下面的分享鈕 → 「加入主畫面」</li><li><b>Android</b>：用 Chrome 打開 → 右上角 ⋮ → 「加到主畫面」或「安裝應用程式」</li><li><b>電腦、Chromebook</b>：用 Chrome 或 Edge 打開 → 網址列右邊的安裝圖示</li><li>從 LINE 點連結會用 LINE 裡面的瀏覽器打開，不能加到主畫面：請按右上角改用 Safari 或 Chrome 打開</li></ul>`],
- ["進度存在哪裡", `<ul><li>進度只存在<b>自己的手機</b>，別人看不到</li><li>換手機、清除瀏覽器資料，進度會不見：先到首頁最下面的<b>備份／還原進度</b>，把備份碼用 LINE 傳給自己</li><li>從 LINE 打開時，建議改用 Safari 或 Chrome 開，進度比較不會不見</li></ul>`],
+ ["進度存在哪裡", `<ul><li>進度只存在<b>自己的手機</b>，別人看不到</li><li>換手機、清除瀏覽器資料，進度會不見：先到首頁最下面的<b>備份／還原進度</b>，把備份碼用 LINE 傳給自己</li><li>從 LINE 打開時，建議改用 Safari 或 Chrome 開，進度比較不會不見</li></ul>`, "backup"],
 ];
-let helpI = 0;
+let helpI = 0, helpFrom = "";
 function viewHelp(){
-  return `<div class="wrap">${topbar("使用說明")}<div class="toc">${HELP.map((x,i)=>`<button class="${i===helpI?"sel":""}" data-a="help:${i}">${x[0]}</button>`).join("")}</div>
-  <div class="card slide" id="slide"><h3>${HELP[helpI][0]}</h3>${HELP[helpI][1]}</div>
+  return `<div class="wrap">${topbar("使用說明", helpFrom ? "返回" : "首頁")}<div class="toc">${HELP.map((x,i)=>`<button class="${i===helpI?"sel":""}" data-a="help:${i}">${x[0]}</button>`).join("")}</div>
+  <div class="card slide" id="slide"><h3>${HELP[helpI][0]}</h3>${HELP[helpI][1]}${HELP[helpI][2]?`<img src="help/${HELP[helpI][2]}.webp" alt="${HELP[helpI][0]}的畫面" loading="lazy" onerror="this.remove()">`:""}</div>
   <div class="pager"><button class="btn sm" data-a="help:${helpI-1}" ${helpI===0?'aria-disabled="true"':""}>‹ 上一張</button><div class="pg">${helpI+1}／${HELP.length}</div><button class="btn sm" data-a="help:${helpI+1}" ${helpI===HELP.length-1?'aria-disabled="true"':""}>下一張 ›</button></div></div>`;
 }
 
@@ -649,11 +666,14 @@ function render(){
   else if(hsh.startsWith("ref-")) html = viewRef(hsh.slice(4));
   else html = viewHome();
   $("#app").innerHTML = html + miniBar();
+  const sl = $("#slide"); if(sl){ let x0=null; sl.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;},{passive:true}); sl.addEventListener("touchend",e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>50){ const n = helpI + (dx<0?1:-1); if(n>=0 && n<HELP.length){ helpI=n; render(); } } }); }
   const st = $("#startT"); if(st) st.onchange = ()=>{ if(/^\d\d:\d\d$/.test(st.value)){ LS.set("start", st.value); render(); } };
 }
 let lastHash = location.hash;
-window.addEventListener("hashchange", ()=>{ closeSheet(); if(location.hash!==lastHash){ lastHash = location.hash; render(); scrollTo(0,0); } });
-function go(h){ unlockAudio(); closeSheet(); if(("#"+h)===location.hash || (h===""&&location.hash==="")){ render(); return; } location.hash = h; if(h===""){ history.replaceState(null,"",location.pathname+location.search); lastHash=""; render(); scrollTo(0,0);} }
+window.addEventListener("popstate", ()=>{ if(sheetStack.length || $("#layer .sheet")){ if(sheetStack.length>1){ sheetStack.pop(); paintSheet(); try{ history.pushState({sheet:1},""); }catch(e){} } else closeSheet(true); } });
+window.addEventListener("storage", e=>{ if(e.key===PFX+"progress"){ progress = LS.get("progress", {}); render(); } });
+window.addEventListener("hashchange", ()=>{ closeSheet(true); if(location.hash!==lastHash){ lastHash = location.hash; render(); scrollTo(0,0); } });
+function go(h){ unlockAudio(); if(sheetStack.length){ try{ if(history.state && history.state.sheet) history.replaceState(null,""); }catch(e){} closeSheet(true); } if(("#"+h)===location.hash || (h===""&&location.hash==="")){ render(); return; } location.hash = h; if(h===""){ history.replaceState(null,"",location.pathname+location.search); lastHash=""; render(); scrollTo(0,0);} }
 
 let lock = 0;
 document.addEventListener("click", e=>{
@@ -666,7 +686,8 @@ document.addEventListener("click", e=>{
   switch(a){
    case "sheetclose": closeSheet(); break;
    case "sheetback": sheetBack(); break;
-   case "help": if(x===undefined){ helpI=0; go("help"); } else { helpI = Math.max(0,Math.min(HELP.length-1,+x)); render(); } break;
+   case "help": helpI = Math.max(0,Math.min(HELP.length-1,+(x||0))); if(location.hash!=="#help"){ helpFrom = location.hash.slice(1); go("help"); } else render(); break;
+   case "hback": { const f = helpFrom; helpFrom = ""; go(f); break; }
    case "backup": backupSheet(); break;
    case "mute": LS.set("mute", !LS.get("mute",false)); render(); break;
    case "copy": { const t = $("#bk"); t.select(); try{ navigator.clipboard.writeText(t.value).then(()=>toast("已複製"),()=>toast("請長按上面的字自己複製")); }catch(err){ toast("請長按上面的字自己複製"); } break; }
@@ -675,9 +696,9 @@ document.addEventListener("click", e=>{
      const arr = m[1].split(",").map(Number); if(arr.length!==SKILLS.length){ msg.textContent = "備份碼的項目數量不對，現在的進度沒有改。"; msg.style.color="var(--acc)"; break; }
      const old = Object.assign({}, progress); SKILLS.forEach((s,i)=>progress[s.id] = Math.min(arr[i], s.levels.length)); fails = {}; saveProg(); closeSheet(); render();
      toast("進度已還原", "復原", ()=>{ progress = old; saveProg(); render(); }); break; }
-   case "pass": { const old = progress[x]||0; progress[x] = +y+1; fails[x]=0; saveProg(); closeSheet(); render(); const s = skillById(x);
+   case "pass": { const old = progress[x]||0; progress[x] = +y+1; fails[x]=0; saveProg(); render(); const s = skillById(x);
      if(progress[x]>=s.levels.length) openSheet("全破！", `<div style="text-align:center">${ICON.medal(s.color)}<p style="font-size:20px;font-weight:900;margin-top:6px">${s.name}：${s.badge}</p><p style="color:var(--ink2)">可以拉遠繼續練，或去幫學妹餵球、看動作。</p></div>`, `<button class="btn" data-a="sheetclose">好</button>`);
-     else toast(`過關！下一關：${s.levels[progress[x]].n}`, "復原", ()=>{ progress[x]=old; saveProg(); render(); }); break; }
+     else { closeSheet(); toast(`過關！下一關：${s.levels[progress[x]].n}`, "復原", ()=>{ progress[x]=old; saveProg(); render(); }); } break; }
    case "fail": { fails[x] = (fails[x]||0)+1; const i = +y, s = skillById(x);
      if(fails[x]>=2){ fails[x]=0; saveProg(); openSheet("連續兩輪沒過", i>0 ? `<p>先回 <b>第 ${i} 關．${s.levels[i-1].n}</b> 做一輪，找回感覺再回來挑戰第 ${i+1} 關。</p><p style="color:var(--ink2);margin-top:6px">進度不會被扣掉，做完一輪直接回來就好。</p>` : `<p>沒關係，這是第一關。放慢一點、看要領，下一輪再挑戰。</p>`, `<button class="btn" data-a="sheetclose">知道了</button>`); }
      else { saveProg(); closeSheet(); toast("沒關係，下一輪再挑戰"); } render(); break; }

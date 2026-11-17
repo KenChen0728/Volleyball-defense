@@ -24,18 +24,18 @@
 
 ## 練球闖關（training/）
 
-社工女排練球用的另一個小 App，放在 `training/` 資料夾，跟站位教室共用同一個 GitHub Pages。
+社工女排練球用的另一個小 App，放在 `training/` 資料夾，跟站位教室共用同一個 GitHub Pages。主要給帶隊的人拿著看，隊員也可以自己打開。
 
 網址：<https://kenchen0728.github.io/Volleyball-defense/training/>（從 LINE 分享時可加 `?openExternalBrowser=1`）
 
-- **今天的練球**：照 150 分鐘流程倒數，時間到響三聲、自動換下一項，可以直接打開那一項的要領或關卡。
-- **關卡地圖**：基本功、專項、發球共 8 項，過關給星星、下一關解鎖、全破拿徽章；連續兩輪沒過提醒退一關。
-- **參考卡**：熱身、舉攻合練、團隊；**體能計時器**：三個加量階段，換動作會響。
-- 內容和 LINE 相簿裡的要領卡同一份，改卡片時要一起改 `training/index.html` 裡的資料（`SKILLS`、`REFS`、`FITNESS`、`PLAN`）。
-- 進度只存在自己的瀏覽器：`vbtrain.progress`（每項過了幾關）、`vbtrain.fails`、`vbtrain.timer`、`vbtrain.start`、`vbtrain.fitstage`、`vbtrain.mute`。首頁下方有備份碼（`VB1:` 開頭，8 個數字照 `SKILLS` 的順序）。
+- **練球模式**：照 150 分鐘流程倒數，時間到響三聲、自動換下一項；畫面直接列出這一段每一關和次數、下一項是什麼，要領和示意圖收在按鈕裡（時間不會停）。
+- **關卡和要領**：熱身、基本功、專項、發球、團隊；繩梯有腳印動畫，專項起跳有分解動作圖，團隊「接發球＋修正」有一步一步的流程圖。
+- **體能計時器**：三個加量階段，換動作會響。
+- 內容和 LINE 相簿裡的要領卡同一份，改卡片時要一起改 `training/index.html` 裡的資料（`SKILLS`、`REFS`、`FITNESS`、`PLAN`）和示意圖（`LADDER`、`POSE`、`SEQ`、`TEAM_STEPS`）。
+- 存在瀏覽器的只有：`vbtrain.timer`（今天計時到哪）、`vbtrain.start`（開始時間）、`vbtrain.fitstage`、`vbtrain.mute`。v1 的 `vbtrain.progress`、`vbtrain.fails` 從 v2.0 起不再使用。
 - 離線快取在 `training/sw.js`，快取名稱 `vbtrain-` 開頭，不會動到站位教室的 `vbdef-` 快取。更新時改 `index.html` 的 `VERSION` 和 `sw.js` 的 `VERSION`。
 - 使用說明截圖：`training/help/*.webp`，畫面改了就重跑 `python3 training/tools/make-help-shots.py`；版面檢查 `python3 training/tools/check-layout.py`（都要先在 repo 根目錄開 `python3 -m http.server 8790`）。
-- 退回舊版：備份分支 `backup-training-v1.1`（練球闖關 v1.1）；退回後把 `training/sw.js` 的 `VERSION` 改成新號碼。
+- 退回舊版：備份分支 `backup-training-v1.1`、`backup-training-v1.2`（v1.2 是每個人點過關的版本）；退回後把 `training/sw.js` 的 `VERSION` 改成新號碼。
 
 ## 放到 GitHub Pages
 

@@ -107,7 +107,7 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:22
 <div class="wrap" id="app"></div>
 <script>
 "use strict";
-const VERSION = "2026.11.24.6";
+const VERSION = "2026.11.24.7";
 
 /* ===================== 內容 ===================== */
 // 今天的流程（每次練球前請 Claude 改這一段）
@@ -138,16 +138,16 @@ const SECTIONS = [
    {n:"交叉步", c:"來回 *1", p:["側身移動，後腳輪流從前面、後面交叉","肩膀保持朝同一個方向，只有臀部跟著腳轉","走到中線再走回來，不用摸線"]}
   ]},
  {id:"ladder", name:"繩梯", cnt:"約 5 分鐘", brief:"抬腿跑、交替腳橫移，再加輪換一項",
-  flow:["會跳的人：沿著場上的線跑，用標誌盤標起點和終點，不用排隊","還不熟的人：用繩梯，比較看得清楚腳要踩哪裡","第一趟求對，第二趟求快；踩錯沒關係，繼續往前","沿著線跑沒有格子：步子小、踩得快，比跑得遠重要"],
+  flow:["每個動作跑 2 趟：跑過去算一趟，回程慢慢走回來休息","室外水泥地：全程用前腳掌輕盈著地，不要發出重踩的聲音，保護膝蓋","會跳的人：沿著場上的線跑，用標誌盤標起點和終點，不用排隊；還不熟的人用繩梯","第一趟求對，第二趟求快；踩錯沒關係，繼續往前"],
   moves:[
-   {n:"抬腿跑", tag:"每天", c:"*2", p:["每格踩一腳，左右交替","膝蓋抬到腰的高度，身體挺直不後仰","用前腳掌落地，腳步輕、頻率快，手臂跟著擺"], dia:"ladder:knee", dia2:"pose:knee", vid:["lad1"]},
-   {n:"交替腳橫移", tag:"每天", c:"左右各 *1", p:["站在繩梯旁邊、面向繩梯，身體跟繩梯成 90 度（腳尖朝繩梯）","橫著往旁邊移：一腳進、另一腳進，一腳出、另一腳出，每次往旁邊移一格","保持微蹲、重心低，眼睛看前方；回程換另一邊的腳先走"], dia:"ladder:side", vid:["lad1"]},
-   {n:"滑雪步", tag:"輪換", c:"*2", p:["雙腳併攏一起跳，膝蓋微彎，上半身保持朝前","落地輕，用前腳掌著地"], todo:"腳印示意圖待補：先看教練示範"},
-   {n:"開合單腳跳", tag:"輪換", c:"*2", p:["格內單腳落地 → 下一格兩腳張開踩在格外 → 再下一格換另一腳單腳","單腳落地要站穩，膝蓋不要往內夾","先求穩再求快"], dia:"ladder:hop"},
-   {n:"雙腳 Z 型跑", tag:"輪換", c:"*2", p:["腳步小而快，重心保持在中間","詳細踩法看教練示範"], todo:"腳印示意圖待補：隊上的做法要對照 GYMEFIT 繩梯影片第 9 個動作，先看教練示範"}
+   {n:"抬腿跑", tag:"每天", c:"*2", p:["一格踩一腳，左右交替","重點是膝蓋抬到腰部的位置","身體挺直不後仰，手臂跟著擺"], dia:"ladder:knee", dia2:"pose:knee"},
+   {n:"交替腳橫移", tag:"每天", c:"左右各 *1", p:["側向移動：左腳進、右腳跟上","回程換另一邊的腳先走"]},
+   {n:"滑雪步", tag:"輪換", c:"*2", p:["重心放低，左右腳大跨步轉換重心","一腳踩進格內支撐，另一腳伸到繩梯外面，往前小跳換腳"], dia:"ladder:ski"},
+   {n:"開合單腳跳", tag:"輪換", c:"*2", p:["雙腳進、單腳出，加後勾"]},
+   {n:"雙腳 Z 型跑（雙腳跳出）", tag:"輪換", c:"*2", p:["Z 字軌跡，雙腳踩出格子","進格：一腳先、另一腳跟上；出格：雙腳都要跳到同一邊外面","從左邊或右邊起跑都可以"], dia:"ladder:zig"}
   ],
-  vid:["lad2"],
-  warn:"腳印是照隊上舊卡片的文字畫的，還沒跟大家實際的跳法對過；跟教練教的不一樣時，以教練為準。"},
+  vid:["gym","lad1"],
+  warn:"抬腿跑、滑雪步、Z 型跑的腳印照隊上參考影片（GYMEFIT）整理；交替腳橫移、開合單腳跳還在確認，先看影片和教練示範。"},
  {id:"jump", name:"起跳", cnt:"約 3 分鐘", brief:"由輕到重：下蹲定住、小腿跳、屈膝跳、下蹲跳",
   flow:["順序由輕到重：先學煞住，再學彈起來，最後才跳高"],
   moves:[
@@ -273,7 +273,7 @@ const SECTIONS = [
  notes:["照隊上原本那一套做。"], items:[]}
 ];
 
-const VIDS = {wgs:["全世界最好的伸展 World's Greatest Stretch","https://www.youtube.com/watch?v=c1znbKp3HPA"],dynw:["10 個動態暖身（含站姿抱膝、直腿行軍走）","https://www.youtube.com/watch?v=Zf_qjFgUg90"],lad1:["羽球敏捷梯訓練示範（抬腿前進、側向進出…）","https://www.youtube.com/watch?v=6AHY2UObZkY"],lad2:["繩梯訓練 24 種示範（由簡入繁）","https://www.youtube.com/watch?v=P3e9feXmKl4"],ladz:["繩梯進階：Z 字型前進","https://www.youtube.com/watch?v=_511FReDgQU"],blk1:["Ming's 排球小教室：原地跳攔網","https://www.youtube.com/watch?v=JK3CnJ-7yLg"],blk2:["排憂解難 EP.9：側併步、助跑式移動攔網","https://www.youtube.com/watch?v=AHjkaBkRBxA"],atk1:["排憂解難 EP.1：三步助跑、擺臂","https://www.youtube.com/watch?v=Fg1dmg5SBHs"],atk2:["排憂解難 EP.6：跳躍扣球","https://www.youtube.com/watch?v=oXohsB1Gn2E"],set1:["排憂解難 EP.2：上手托球四個關鍵","https://www.youtube.com/watch?v=SrsPlzyHZdM"],pas1:["排憂解難 EP.4：低手接球四種常見錯誤","https://www.youtube.com/watch?v=-X4ExXi2Mq0"],pas2:["牛排 EP.1：排球低手擊球教學","https://www.youtube.com/watch?v=zXkCycV2G7A"],srv1:["排球低手發球＆上手發球教學","https://www.youtube.com/watch?v=XxW5OawFsUk"],sup1:["超人式教學","https://www.youtube.com/watch?v=RtOsyvRhPPo"]};
+const VIDS = {gym:["GYMEFIT 繩梯訓練（隊上參考影片）","https://www.youtube.com/watch?v=spR_JowzUTs"],wgs:["全世界最好的伸展 World's Greatest Stretch","https://www.youtube.com/watch?v=c1znbKp3HPA"],dynw:["10 個動態暖身（含站姿抱膝、直腿行軍走）","https://www.youtube.com/watch?v=Zf_qjFgUg90"],lad1:["羽球敏捷梯訓練示範（抬腿前進、側向進出…）","https://www.youtube.com/watch?v=6AHY2UObZkY"],lad2:["繩梯訓練 24 種示範（由簡入繁）","https://www.youtube.com/watch?v=P3e9feXmKl4"],ladz:["繩梯進階：Z 字型前進","https://www.youtube.com/watch?v=_511FReDgQU"],blk1:["Ming's 排球小教室：原地跳攔網","https://www.youtube.com/watch?v=JK3CnJ-7yLg"],blk2:["排憂解難 EP.9：側併步、助跑式移動攔網","https://www.youtube.com/watch?v=AHjkaBkRBxA"],atk1:["排憂解難 EP.1：三步助跑、擺臂","https://www.youtube.com/watch?v=Fg1dmg5SBHs"],atk2:["排憂解難 EP.6：跳躍扣球","https://www.youtube.com/watch?v=oXohsB1Gn2E"],set1:["排憂解難 EP.2：上手托球四個關鍵","https://www.youtube.com/watch?v=SrsPlzyHZdM"],pas1:["排憂解難 EP.4：低手接球四種常見錯誤","https://www.youtube.com/watch?v=-X4ExXi2Mq0"],pas2:["牛排 EP.1：排球低手擊球教學","https://www.youtube.com/watch?v=zXkCycV2G7A"],srv1:["排球低手發球＆上手發球教學","https://www.youtube.com/watch?v=XxW5OawFsUk"],sup1:["超人式教學","https://www.youtube.com/watch?v=RtOsyvRhPPo"]};
 /* ===================== 示意圖 ===================== */
 const FOOT_L = "#2563eb", FOOT_R = "#ea580c";
 const reduceMotion = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
@@ -302,22 +302,32 @@ function zigSteps(){
   return st;
 }
 const LADDER = {
- knee:{t:"每格踩一腳，左右交替往前", steps:[
-  {c:"左腳踩第 1 格", f:[["L",IN_L,LY(0),0]]},{c:"右腳踩第 2 格", f:[["R",IN_R,LY(1),0]]},{c:"左腳踩第 3 格", f:[["L",IN_L,LY(2),0]]},{c:"右腳踩第 4 格", f:[["R",IN_R,LY(3),0]]},{c:"左腳踩第 5 格", f:[["L",IN_L,LY(4),0]]}]},
+ knee:{t:"一格踩一腳，左右交替往前（哪隻腳先都可以）", steps:[
+  {c:"右腳踩第 1 格", f:[["R",IN_C+4,LY(0),0]]},{c:"左腳踩第 2 格", f:[["L",IN_C-4,LY(1),0]]},{c:"右腳踩第 3 格", f:[["R",IN_C+4,LY(2),0]]},{c:"左腳踩第 4 格", f:[["L",IN_C-4,LY(3),0]]},{c:"右腳踩第 5 格", f:[["R",IN_C+4,LY(4),0]]}]},
  side:{t:"站在繩梯左邊、面向繩梯，往自己的左邊橫著移", side:true, steps:[
   {c:"左腳進第 1 格", f:[["L",IN_C,LY(0)-11,90]]},{c:"右腳進第 1 格", f:[["R",IN_C,LY(0)+11,90]]},
   {c:"左腳往後退出，移到第 2 格旁邊", f:[["L",OUT_L,LY(1)-11,90]]},{c:"右腳退出，跟上", f:[["R",OUT_L,LY(1)+11,90]]},
   {c:"左腳進第 3 格", f:[["L",IN_C,LY(2)-11,90]]},{c:"右腳進第 3 格", f:[["R",IN_C,LY(2)+11,90]]},
   {c:"左腳退出，移到第 4 格旁邊", f:[["L",OUT_L,LY(3)-11,90]]},{c:"右腳退出，跟上", f:[["R",OUT_L,LY(3)+11,90]]}]},
- ski:{t:"雙腳一起跳：格內 → 右邊格外 → 格內 → 左邊格外", steps:[
-  {c:"雙腳跳進第 1 格", f:[["L",IN_L,LY(0),0],["R",IN_R,LY(0),0]]},{c:"跳到第 2 格右邊外面", f:[["L",OUT_R-11,LY(1),0],["R",OUT_R+11,LY(1),0]]},
-  {c:"跳進第 3 格", f:[["L",IN_L,LY(2),0],["R",IN_R,LY(2),0]]},{c:"跳到第 4 格左邊外面", f:[["L",OUT_L-11,LY(3),0],["R",OUT_L+11,LY(3),0]]},
-  {c:"跳進第 5 格", f:[["L",IN_L,LY(4),0],["R",IN_R,LY(4),0]]}]},
+ ski:{t:"往前小跳：一腳踩進格內、另一腳伸到繩梯外面，左右交替", steps:[
+  {c:"右腳踩進第 1 格，左腳伸到左邊外面（輕點地或懸空）", f:[["R",IN_C,LY(0),0],["L",OUT_L,LY(0),0]]},
+  {c:"小跳換腳：左腳踩進第 2 格，右腳伸到右邊外面", f:[["L",IN_C,LY(1),0],["R",OUT_R,LY(1),0]]},
+  {c:"右腳踩進第 3 格，左腳伸到左邊外面", f:[["R",IN_C,LY(2),0],["L",OUT_L,LY(2),0]]},
+  {c:"左腳踩進第 4 格，右腳伸到右邊外面", f:[["L",IN_C,LY(3),0],["R",OUT_R,LY(3),0]]},
+  {c:"右腳踩進第 5 格，左腳伸到左邊外面；重心一直放低", f:[["R",IN_C,LY(4),0],["L",OUT_L,LY(4),0]]}]},
  hop:{t:"格內單腳 → 下一格兩腳張開在格外 → 換另一腳", steps:[
   {c:"左腳單腳踩第 1 格", f:[["L",IN_C,LY(0),0]]},{c:"兩腳張開，踩在第 2 格兩邊外面", f:[["L",OUT_L,LY(1),0],["R",OUT_R,LY(1),0]]},
   {c:"右腳單腳踩第 3 格", f:[["R",IN_C,LY(2),0]]},{c:"兩腳張開，踩在第 4 格兩邊外面", f:[["L",OUT_L,LY(3),0],["R",OUT_R,LY(3),0]]},
   {c:"左腳單腳踩第 5 格", f:[["L",IN_C,LY(4),0]]}]},
- zig:{t:"站在繩梯左邊外面起跑；一次只動一隻腳，數「一、二、三」", steps:zigSteps()}
+ zig:{t:"進格 → 雙腳跳出到一邊外面 → 進下一格 → 雙腳跳出到另一邊，走 Z 字", steps:[
+  {c:"準備：站在繩梯右邊外面、第 1 格旁邊", f:[["L",OUT_R-11,LY(0)+14,0],["R",OUT_R+11,LY(0)+14,0]], start:true},
+  {c:"進第 1 格：左腳先、右腳跟上", f:[["L",IN_L,LY(0),0],["R",IN_R,LY(0),0]]},
+  {c:"雙腳跳出到左邊外面（左腳先出、右腳跟出）", f:[["L",OUT_L-11,LY(0)-6,0],["R",OUT_L+11,LY(0)-6,0]]},
+  {c:"進第 2 格：右腳先、左腳跟上", f:[["L",IN_L,LY(1),0],["R",IN_R,LY(1),0]]},
+  {c:"雙腳跳出到右邊外面", f:[["L",OUT_R-11,LY(1)-6,0],["R",OUT_R+11,LY(1)-6,0]]},
+  {c:"進第 3 格：左腳先、右腳跟上", f:[["L",IN_L,LY(2),0],["R",IN_R,LY(2),0]]},
+  {c:"雙腳跳出到左邊外面", f:[["L",OUT_L-11,LY(2)-6,0],["R",OUT_L+11,LY(2)-6,0]]},
+  {c:"進第 4 格，再跳出到右邊外面……一直 Z 字往前", f:[["L",IN_L,LY(3),0],["R",IN_R,LY(3),0]]}]}
 };
 function ladderSVG(key){
   const m = LADDER[key];
@@ -327,7 +337,7 @@ function ladderSVG(key){
   if(m.side) g += `<text x="14" y="252" font-size="11" fill="currentColor">身體在這邊、面向繩梯 →</text>`;
   const off = m.steps[0].start ? 0 : 1;
   m.steps.forEach((s,k)=>{ g += `<g class="fp" data-k="${k}">${s.f.map(([f,x,y,r])=>foot(x,y,f,r,s.start?"":k+off)).join("")}</g>`; });
-  return {svg:`<svg viewBox="0 0 200 260" role="img" aria-label="繩梯腳印圖：${esc(m.t)}">${DEFS}${g}</svg>`, steps:m.steps.map(s=>s.c), title:m.t, pair:m.steps.some(s=>s.f.length>1 && !s.start)};
+  return {svg:`<svg viewBox="0 0 200 260" role="img" aria-label="繩梯腳印圖：${esc(m.t)}">${DEFS}${g}</svg>`, steps:m.steps.map(s=>s.c), title:m.t, pair:m.steps.some(s=>s.f.length>1 && !s.start), pairNote:m.pairNote};
 }
 /* 攻擊步膠帶：從下往上跑，右手打的人 */
 function tapeSVG(){
@@ -502,7 +512,7 @@ function stepDia(data, extraTop){
   const id = "p"+(++plSeq);
   PL[id] = {n:data.steps.length, k: reduceMotion() ? data.steps.length-1 : 0, playing: !reduceMotion(), slow:false, steps:data.steps, timer:null, hold:0};
   return `<div class="dia" data-pl="${id}">${extraTop||""}${data.svg}<div class="cap" aria-live="polite"></div>
-  <div class="lg"><span><i style="background:${FOOT_L}"></i>左腳</span><span><i style="background:${FOOT_R}"></i>右腳</span>${data.pair?"<span>同一個數字＝兩腳一起</span>":""}<span>數字＝順序</span></div>
+  <div class="lg"><span><i style="background:${FOOT_L}"></i>左腳</span><span><i style="background:${FOOT_R}"></i>右腳</span>${data.pair?"<span>同一個數字＝同一步的兩隻腳</span>":""}<span>數字＝順序</span></div>
   <div class="ctl"><button class="btn" data-a="pl:${id}:prev" aria-label="上一步">‹ 上一步</button><button class="btn" data-a="pl:${id}:play"></button><button class="btn" data-a="pl:${id}:next" aria-label="下一步">下一步 ›</button><button class="btn" data-a="pl:${id}:slow" aria-pressed="false">慢速</button></div></div>`;
 }
 function plPaint(id){

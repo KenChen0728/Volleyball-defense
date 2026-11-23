@@ -57,6 +57,9 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:22
 .mv .tg{font-size:12px;font-weight:800;border:1.5px solid var(--line2);border-radius:999px;padding:0 8px;color:var(--ink2)}
 .mv ul{padding-left:20px;margin-top:6px}
 .mv li{margin:3px 0}
+.vid{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.vid .vh{font-size:13px;color:var(--ink2)}
+.vid a{display:flex;align-items:center;min-height:44px;padding:8px 12px;border:1.5px solid var(--line2);border-radius:12px;background:var(--card);color:var(--ink);font-weight:700;font-size:15px;text-decoration:none}
 .src{font-size:13px;color:var(--ink2);margin-top:8px}
 .warn{font-size:14px;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--soft);border:1.5px dashed var(--line2)}
 /* 示意圖 */
@@ -104,7 +107,7 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:22
 <div class="wrap" id="app"></div>
 <script>
 "use strict";
-const VERSION = "2026.11.24.1";
+const VERSION = "2026.11.24.2";
 
 /* ===================== 內容 ===================== */
 // 今天的流程（每次練球前請 Claude 改這一段）
@@ -127,9 +130,9 @@ const SECTIONS = [
  items:[
  {id:"dyn", name:"動態熱身", cnt:"約 6 分鐘", brief:"WGS、抱膝走、殭屍走、衝刺倒退跑、側併步、交叉步",
   moves:[
-   {n:"全世界最好的伸展 WGS", c:"原地 左右各 3 下", p:["右腳往前跨一大步成弓箭步，左膝可以輕碰地","雙手撐在右腳內側，右手肘往下壓向右腳跟","右手往天花板打開，眼睛跟著手看；動作慢，每個位置停 1 秒"]},
-   {n:"抱膝走", c:"*1", p:["往前走一步，另一腳膝蓋抬到胸前，雙手抱住小腿往胸口拉","支撐腳踮腳尖，身體挺直","走到中線，回程慢跑，手臂一邊往前繞圈"]},
-   {n:"殭屍走（直腿踢走）", c:"*1", p:["雙手往前平舉，膝蓋打直往上踢，用腳尖碰手掌","上半身挺直，不要彎腰去迎腳；先求腿直，不求踢高","回程慢跑，手臂一邊往後繞圈"]},
+   {n:"全世界最好的伸展 WGS", c:"原地 左右各 3 下", vid:["wgs"], p:["右腳往前跨一大步成弓箭步，左膝可以輕碰地","雙手撐在右腳內側，右手肘往下壓向右腳跟","右手往天花板打開，眼睛跟著手看；動作慢，每個位置停 1 秒"]},
+   {n:"抱膝走", c:"*1", vid:["dynw"], p:["往前走一步，另一腳膝蓋抬到胸前，雙手抱住小腿往胸口拉","支撐腳踮腳尖，身體挺直","走到中線，回程慢跑，手臂一邊往前繞圈"]},
+   {n:"殭屍走（直腿踢走）", c:"*1", vid:["dynw"], p:["雙手往前平舉，膝蓋打直往上踢，用腳尖碰手掌","上半身挺直，不要彎腰去迎腳；先求腿直，不求踢高","回程慢跑，手臂一邊往後繞圈"]},
    {n:"衝刺、倒退跑摸線", c:"*1", p:["底線出發 → 往前衝到三米線，摸線","倒退跑回底線，摸線 → 再往前衝到中線，摸線，結束","先用七、八成力；倒退跑到底線要煞車時，重心壓低，免得往後跌"], dia:"route:run"},
    {n:"側併步摸線", c:"*1", p:["路線一樣：三米線摸線 → 回底線摸線 → 中線摸線","身體一直面向同一邊，不用轉身：去的時候往右移，回來往左移","重心放低、速度快，兩腳不要碰在一起，就像攔網的螃蟹走"], dia:"route:side"},
    {n:"交叉步", c:"來回 *1", p:["側身移動，後腳輪流從前面、後面交叉","肩膀保持朝同一個方向，只有臀部跟著腳轉","走到中線再走回來，不用摸線"]}
@@ -137,12 +140,13 @@ const SECTIONS = [
  {id:"ladder", name:"繩梯", cnt:"約 5 分鐘", brief:"抬腿跑、交替腳橫移，再加輪換一項",
   flow:["會跳的人：沿著場上的線跑，用標誌盤標起點和終點，不用排隊","還不熟的人：用繩梯，比較看得清楚腳要踩哪裡","第一趟求對，第二趟求快；踩錯沒關係，繼續往前","沿著線跑沒有格子：步子小、踩得快，比跑得遠重要"],
   moves:[
-   {n:"抬腿跑", tag:"每天", c:"*2", p:["每格踩一腳，左右交替","膝蓋抬到腰的高度，身體挺直不後仰","用前腳掌落地，腳步輕、頻率快，手臂跟著擺"], dia:"ladder:knee", dia2:"pose:knee"},
-   {n:"交替腳橫移", tag:"每天", c:"左右各 *1", p:["站在繩梯旁邊、面向繩梯，身體跟繩梯成 90 度（腳尖朝繩梯）","橫著往旁邊移：一腳進、另一腳進，一腳出、另一腳出，每次往旁邊移一格","保持微蹲、重心低，眼睛看前方；回程換另一邊的腳先走"], dia:"ladder:side"},
+   {n:"抬腿跑", tag:"每天", c:"*2", p:["每格踩一腳，左右交替","膝蓋抬到腰的高度，身體挺直不後仰","用前腳掌落地，腳步輕、頻率快，手臂跟著擺"], dia:"ladder:knee", dia2:"pose:knee", vid:["lad1"]},
+   {n:"交替腳橫移", tag:"每天", c:"左右各 *1", p:["站在繩梯旁邊、面向繩梯，身體跟繩梯成 90 度（腳尖朝繩梯）","橫著往旁邊移：一腳進、另一腳進，一腳出、另一腳出，每次往旁邊移一格","保持微蹲、重心低，眼睛看前方；回程換另一邊的腳先走"], dia:"ladder:side", vid:["lad1"]},
    {n:"滑雪步", tag:"輪換", c:"*2", p:["雙腳併攏，一起跳：格內 → 右邊格外 → 格內 → 左邊格外，往前推進","膝蓋微彎，上半身保持朝前","落地輕，腳尖先著地"], dia:"ladder:ski"},
    {n:"開合單腳跳", tag:"輪換", c:"*2", p:["格內單腳落地 → 下一格兩腳張開踩在格外 → 再下一格換另一腳單腳","單腳落地要站穩，膝蓋不要往內夾","先求穩再求快"], dia:"ladder:hop"},
-   {n:"雙腳 Z 型跑", tag:"輪換", c:"*2", p:["雙腳一起，斜斜跳進格子、再斜斜跳到另一邊格外，像寫 Z 字往前","腳步小而快，重心保持在中間"], dia:"ladder:zig"}
+   {n:"雙腳 Z 型跑", tag:"輪換", c:"*2", p:["雙腳一起，斜斜跳進格子、再斜斜跳到另一邊格外，像寫 Z 字往前","腳步小而快，重心保持在中間"], dia:"ladder:zig", vid:["ladz"]}
   ],
+  vid:["lad2"],
   warn:"腳印是照隊上舊卡片的文字畫的，還沒跟大家實際的跳法對過；跟教練教的不一樣時，以教練為準。"},
  {id:"jump", name:"起跳", cnt:"約 3 分鐘", brief:"由輕到重：下蹲定住、小腿跳、屈膝跳、下蹲跳",
   flow:["順序由輕到重：先學煞住，再學彈起來，最後才跳高"],
@@ -178,14 +182,14 @@ const SECTIONS = [
    {n:"接住，直接推到對方手上", p:["不彈地，球來就用高手接住","接穩了再推出去，推到對方手上"]},
    {n:"連續對傳", p:["不接住，直接連續傳","傳不準就移動到球下面，不要伸手去撈"]}
   ],
-  tips:["手型像一個碗，放在額頭前上方","等球掉進手裡再推，先接穩再推","前後腳、膝蓋微蹲，推的時候腳也一起往上送"]},
+  vid:["set1"], tips:["手型像一個碗，放在額頭前上方","等球掉進手裡再推，先接穩再推","前後腳、膝蓋微蹲，推的時候腳也一起往上送"]},
  {id:"lo", name:"低手對墊", cnt:"10 分鐘", brief:"摸地板彈地接 → 摸地板接 → 連續對墊",
   moves:[
    {n:"摸地板，讓球彈地一次再接", p:["每次球來，先蹲下摸地板","讓球在地上彈一次，再墊回對方手上"]},
    {n:"摸地板，直接接", p:["一樣先摸地板，不讓球彈地，直接接起來"]},
    {n:"純粹接球（連續對墊）", p:["不摸地板，兩人連續對墊"]}
   ],
-  tips:["重點是讓大家蹲低","碰球的時候膝蓋還是彎的，用腳往上送，不是手甩","手臂伸直、兩手併好，接完手不要亂揮"]}
+  vid:["pas1","pas2"], tips:["重點是讓大家蹲低","碰球的時候膝蓋還是彎的，用腳往上送，不是手甩","手臂伸直、兩手併好，接完手不要亂揮"]}
  ]},
 {id:"serve", name:"發球", time:"18:40–18:50", color:"#b45309",
  notes:["大家先練低手發球。","連續十顆都發過網的人，可以去找教練學高手發球；還沒連續十顆的，繼續練低手到時間到。"],
@@ -193,7 +197,7 @@ const SECTIONS = [
  {id:"lo", name:"低手發球", cnt:"10 分鐘", brief:"要不要拋都可以，連續十顆過網就過關",
   flow:["用自己習慣的方式發，要不要拋都可以","站在自己發得過的位置，發得過再往後退","連續十顆都發過網 → 去找教練學高手發球"],
   tips:["右手發球：左手拿球放在肚子前下方；左腳在前、腳尖對著目標，兩膝微彎","右手先往後擺，再把球放開；要拋的話拋低一點，不要高過手","手像鐘擺一樣往前擺，用掌根打球的後下方；打的點不要高過腰，也不要太靠近身體","重心從後腳移到前腳，打完手往目標送：是「擺」過去，不是「撞」球","左撇子全部左右相反"],
-  src:"要領參考：中學體育教學網頁「排球-低手發球」"},
+  src:"要領參考：中學體育教學網頁「排球-低手發球」", vid:["srv1"]},
  {id:"hi", name:"高手發球（低手過關後）", cnt:"跟教練到牆邊", brief:"先打牆，再站遠一點打牆",
   flow:["低手發球連續十顆過網，才來找教練","在牆邊練：先打牆 → 站遠一點打牆"],
   tips:["後腳在發球手那一側、腳尖朝外，前腳指向目標","後腳推、腳跟抬起轉向前，再轉身揮臂","現場由教練教，這裡只列重點"]}
@@ -201,13 +205,13 @@ const SECTIONS = [
 {id:"block", name:"攔網", time:"18:50–19:00", color:"#be123c",
  notes:["全部人都練，不只攔中。","不要求跳過網子：盡量往上、手繃緊、頭保持正（不抬頭追球）、不碰網。"],
  items:[
- {id:"stand", name:"原地起跳", cnt:"*10", brief:"面對網子站一排，慢慢跳",
+ {id:"stand", name:"原地起跳", cnt:"*10", vid:["blk1"], brief:"面對網子站一排，慢慢跳",
   flow:["面對網子站一排，離網大約一個手臂遠，左右隔一個手臂","慢慢跳：每一下落地站穩、手回到耳朵旁，再跳下一下","往上跳時手往上、稍微往前伸，兩腳落地、落回原地","人多排兩排（網子一排大約 6 個人），前排跳完換後排","沒有網子：面對牆跳"]},
- {id:"shuffle", name:"側併一步跳", cnt:"來回一趟", brief:"兩人隔網面對面，從最右邊跳到最左邊再跳回來",
+ {id:"shuffle", name:"側併一步跳", cnt:"來回一趟", vid:["blk2"], brief:"兩人隔網面對面，從最右邊跳到最左邊再跳回來",
   flow:["兩人隔著網子面對面，像照鏡子一樣一起移動","從網子最右邊開始：側併一步、跳一下，一路跳到最左邊","再一路跳回最右邊；用距離算，不數次數"], dia:"court:shuffle"},
  {id:"relay", name:"攔網接力", cnt:"比賽", brief:"螃蟹走、蹲下拿球馬上跳，把球壓過網",
-  flow:["兩隊分在網子兩邊；一隊從最左邊、一隊從最右邊出發","邊線外放標誌盤，上面放一顆網球；每隊兩個（左右各一），共四個","用最快的速度螃蟹走（側併步）到邊線，手舉在耳朵旁","蹲下拿球：往右走用右手、往左走用左手，從界外單手拿","蹲下拿到球的那一下，就是起跳前的下蹲：拿到馬上跳起來","手往上伸到快要最直時放開球，往白帶上方推（往上、再稍微往前），讓球過網","螃蟹走回另一邊，一樣拿球、起跳 → 回到起點，拍下一個人"],
-  rules:["人不能超過邊線，在邊線上起跳","排隊的人站三米線附近；球過來馬上撿起來，放回自己這邊的標誌盤","網前有球還沒撿，下一個人先不要出發（避免踩到球扭傷）","碰網、超過邊線 → 回起點重做；先全部做完的那隊贏","不夠高、球推不過網沒關係，手往白帶上方推的方向對就好"], dia:"court:relay"}
+  flow:["兩隊分在網子兩邊；一隊從最左邊、一隊從最右邊出發","邊線外放標誌盤，上面放一顆網球；每隊兩個（左右各一），共四個","排隊：起點那邊的人排在標誌盤後面（邊線外、離網大約兩步）；另一邊的標誌盤後面站一個人負責撿球","用最快的速度螃蟹走（側併步）到邊線，手舉在耳朵旁","蹲下拿球：往右走用右手、往左走用左手，從界外單手拿","蹲下拿到球的那一下，就是起跳前的下蹲：拿到馬上跳起來","手往上伸到快要最直時放開球，往白帶上方推（往上、再稍微往前），讓球過網","螃蟹走回另一邊，一樣拿球、起跳 → 回到起點，拍下一個人"],
+  rules:["人不能超過邊線，在邊線上起跳","對面推過來的球會掉在標誌盤附近：旁邊的人馬上撿起來，放回標誌盤","跑完的人到另一邊換撿球，原本撿球的人回到起點隊伍最後面","網前有球還沒撿，下一個人先不要出發（避免踩到球扭傷）","碰網、超過邊線 → 回起點重做；先全部做完的那隊贏","不夠高、球推不過網沒關係，手往白帶上方推的方向對就好"], dia:"court:relay"}
  ]},
 {id:"split", name:"分組", time:"19:00–19:15", color:"#7a4fb5",
  notes:["舉球員到舉球組，其他人到攻擊組。","跑不順就留在前一關；卡很久的話，教練會過來看。"],
@@ -219,7 +223,7 @@ const SECTIONS = [
    {n:"五根手指接住，再推", c:"*10", p:["換成五根手指，一樣先接住再推"]},
    {n:"跑位轉身接", c:"做到時間到", p:["拋球的人拿著球站在後中；舉球員從網前跑過來，摸她手上的球","摸完往網子退回去，退的途中拋球的人把球拋出","舉球員一邊移動、一邊轉身面向 4 號位，接住再推；一開始三根手指，順了換五根"], dia:"court:set3"}
   ],
-  tips:["等球確實掉進手裡才出手，太早動，手型就跑掉了","大拇指要用力，不然推不高、會往前飛太多","往網子跑要側身、用側併步","不知道往哪裡推時，一開始可以用圈圈當目標，熟了就拿掉"]},
+  vid:["set1"], tips:["等球確實掉進手裡才出手，太早動，手型就跑掉了","大拇指要用力，不然推不高、會往前飛太多","往網子跑要側身、用側併步","不知道往哪裡推時，一開始可以用圈圈當目標，熟了就拿掉"]},
  {id:"atk", name:"攻擊組", cnt:"15 分鐘", brief:"丟標誌盤 → 直線攻擊步 → 抓球 → 扣球",
   moves:[
    {n:"丟標誌盤（膠帶步距）", c:"跑不順就一直練這關", p:["先跑幾次，跑到能煞住、往上跳的地方，請搭檔在腳踩的位置貼膠帶","三步「左、右、左」（右手打的人）：第一步小步，第二步跨最大，大約一步半","跨右腳那一大步時，兩手往後甩，在最後面放手丟出標誌盤","左腳很快跟上、踩在右腳旁邊，雙腳起跳，落回膠帶附近（往上跳，不是往前衝）","左撇子是「右、左、右」"], dia:"tape:atk", dia2:"pose:full"},
@@ -227,7 +231,7 @@ const SECTIONS = [
    {n:"正對面拋球，攻擊步抓住", c:"", p:["拋的人站正對面，拋高球","口令：「步子先跑完，再管球」；抓不到也要把三步踩完、跳起來","跳起來在最高點雙手抓住球"]},
    {n:"正對面拋球，攻擊步扣球", c:"", p:["同上一關，改成扣球","步子不順、抓不到的，先回上一關"]}
   ],
-  tips:["接不到球大多是攻擊步不順、在猶豫，二、三步沒跑完","側邊拋的角度，會在舉攻合練練到"]}
+  vid:["atk1","atk2"], tips:["接不到球大多是攻擊步不順、在猶豫，二、三步沒跑完","側邊拋的角度，會在舉攻合練練到"]}
  ]},
 {id:"combo", name:"舉攻合練", time:"19:15–19:30", color:"#1f7a8c",
  notes:["教練在後中用球車連續拋球；舉球員排在教練旁邊，從教練身邊往上跑去舉。","攻擊手在 4 號位排一排；一舉一打，打完兩個人都換下一個。"],
@@ -263,12 +267,13 @@ const SECTIONS = [
  {id:"plank", name:"棒式", fig:"plank", brief:"身體一直線，屁股不翹也不掉", p:["手肘在肩膀正下方，身體一直線","屁股不翹也不掉，肚子用力"], s:"肚子（腰痠就是屁股掉下來了）", e:"膝蓋著地；撐不住就先停一下再撐"},
  {id:"push", name:"伏地挺身", fig:"push", brief:"身體一直線不塌腰", p:["手比肩膀寬一點，身體一直線不塌腰","胸口慢慢往地板靠近，再推起來"], s:"胸口、手臂後面", e:"先一律跪著做；太難就手撐在階梯上"},
  {id:"pull", name:"彈力帶拉開", fig:"pull", brief:"拉到手臂成一個 T", p:["手伸直在胸前，往兩邊拉開到手臂成一個 T","背夾緊，再慢慢收回來"], s:"肩膀後面、兩片肩胛骨中間", e:"兩手握寬一點"},
- {id:"super", name:"超人式", fig:"super", brief:"肚子下面貼地，只抬胸口一點點", p:["趴著，兩手往前伸","肚子下面那塊（恥骨）貼住地板，只抬胸口和手，停 2 秒再慢慢放下","抬一點點就好，不用抬高；抬太高腰會痛"], s:"背、肩膀後面", e:"手放在身體兩側，只抬胸口"}
+ {id:"super", name:"超人式", fig:"super", vid:["sup1"], brief:"肚子下面貼地，只抬胸口一點點", p:["趴著，兩手往前伸","肚子下面那塊（恥骨）貼住地板，只抬胸口和手，停 2 秒再慢慢放下","抬一點點就好，不用抬高；抬太高腰會痛"], s:"背、肩膀後面", e:"手放在身體兩側，只抬胸口"}
  ]},
 {id:"cool", name:"收操", time:"20:25–20:30", color:"#6b7280",
  notes:["照隊上原本那一套做。"], items:[]}
 ];
 
+const VIDS = {wgs:["全世界最好的伸展 World's Greatest Stretch","https://www.youtube.com/watch?v=c1znbKp3HPA"],dynw:["10 個動態暖身（含站姿抱膝、直腿行軍走）","https://www.youtube.com/watch?v=Zf_qjFgUg90"],lad1:["羽球敏捷梯訓練示範（抬腿前進、側向進出…）","https://www.youtube.com/watch?v=6AHY2UObZkY"],lad2:["繩梯訓練 24 種示範（由簡入繁）","https://www.youtube.com/watch?v=P3e9feXmKl4"],ladz:["繩梯進階：Z 字型前進","https://www.youtube.com/watch?v=_511FReDgQU"],blk1:["Ming's 排球小教室：原地跳攔網","https://www.youtube.com/watch?v=JK3CnJ-7yLg"],blk2:["排憂解難 EP.9：側併步、助跑式移動攔網","https://www.youtube.com/watch?v=AHjkaBkRBxA"],atk1:["排憂解難 EP.1：三步助跑、擺臂","https://www.youtube.com/watch?v=Fg1dmg5SBHs"],atk2:["排憂解難 EP.6：跳躍扣球","https://www.youtube.com/watch?v=oXohsB1Gn2E"],set1:["排憂解難 EP.2：上手托球四個關鍵","https://www.youtube.com/watch?v=SrsPlzyHZdM"],pas1:["排憂解難 EP.4：低手接球四種常見錯誤","https://www.youtube.com/watch?v=-X4ExXi2Mq0"],pas2:["牛排 EP.1：排球低手擊球教學","https://www.youtube.com/watch?v=zXkCycV2G7A"],srv1:["排球低手發球＆上手發球教學","https://www.youtube.com/watch?v=XxW5OawFsUk"],sup1:["超人式教學","https://www.youtube.com/watch?v=RtOsyvRhPPo"]};
 /* ===================== 示意圖 ===================== */
 const FOOT_L = "#2563eb", FOOT_R = "#ea580c";
 const reduceMotion = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
@@ -436,12 +441,13 @@ const COURT = {
  relay(){ let g = courtBase();
    g += cone(-0.9,0.9,1) + cone(9.9,0.9,1) + cone(-0.9,-0.9,1) + cone(9.9,-0.9,1);
    g += tok(0.6,0.8,"A",BLUE) + tok(8.4,-0.8,"B",PURP);
-   g += [3.6,4.5,5.4].map((y,i)=>tok(1.2,y,"A",BLUE,{r:9,fs:10})).join("") + [-3.6,-4.5,-5.4].map(y=>tok(7.8,y,"B",PURP,{r:9,fs:10})).join("");
+   g += [2.3,3.2,4.1].map(y=>tok(-0.9,y,"A",BLUE,{r:9,fs:10})).join("") + tok(9.9,2.3,"撿",BLUE,{r:9,fs:10});
+   g += [-2.3,-3.2,-4.1].map(y=>tok(9.9,y,"B",PURP,{r:9,fs:10})).join("") + tok(-0.9,-2.3,"撿",PURP,{r:9,fs:10});
    g += arr([[1.4,1.6],[8.6,1.6]],BLUE) + arr([[8.6,2.3],[1.4,2.3]],BLUE,{dash:1});
    g += arr([[7.6,-1.6],[0.4,-1.6]],PURP) + arr([[0.4,-2.3],[7.6,-2.3]],PURP,{dash:1});
-   g += lbl(2.6,5.6,"A 隊排隊（三米線附近）",{a:"start",fs:10}) + lbl(6.4,-5.4,"B 隊排隊",{a:"end",fs:10});
-   g += lbl(4.5,3.1,"① 實線：螃蟹走過去　② 虛線：走回來",{fs:10});
-   return {svg:wrapCourt(g,"攔網接力站法"), cap:"A 隊從最左邊、B 隊從最右邊出發。邊線外的三角形是標誌盤，上面放網球；到邊線蹲下拿球，馬上起跳把球壓過網，再走回另一邊做一樣的事，回到起點拍下一個人。"}; },
+   g += lbl(0.2,5.0,"A 隊在起點排隊",{a:"start",fs:10}) + lbl(8.8,-4.8,"B 隊在起點排隊",{a:"end",fs:10}) + lbl(8.8,3.1,"撿球的人",{a:"end",fs:10}) + lbl(0.2,-3.6,"撿球的人",{a:"start",fs:10});
+   g += lbl(4.5,6.6,"① 實線：螃蟹走過去　② 虛線：走回來",{fs:10});
+   return {svg:wrapCourt(g,"攔網接力站法"), cap:"A 隊從最左邊、B 隊從最右邊出發。邊線外的三角形是標誌盤，上面放網球；排隊和撿球的人都站在標誌盤後面、邊線外，不擋跑的路線。對面推過來的球掉在標誌盤附近，旁邊的人撿起來放回去。"}; },
  set3(){ let g = courtBase();
    g += tok(4.5,6.2,"拋","#0f766e") + tok(6.2,0.8,"舉",BLUE,{cls:"fpx"}) + tok(1.2,1.6,"接","#b45309");
    g += arr([[6.0,1.6],[4.9,5.3]],BLUE) + lbl(5.9,3.6,"① 跑過來摸球",{a:"start",fs:10,b:1,col:BLUE});
@@ -557,15 +563,19 @@ function viewSection(id){
   ${s.items.map(it=>`<button class="tile" data-go="i/${s.id}/${it.id}"><span class="bar" style="background:${s.color}"></span><span class="m"><span class="n">${esc(it.name)}${it.cnt?`<small>${esc(it.cnt)}</small>`:""}</span><span class="d">${esc(it.brief||"")}</span></span><span class="go">打開 ›</span></button>`).join("")}
   ${nx?`<button class="btn navnext" data-go="s/${nx.id}">下一段：${esc(nx.name)} ›</button>`:""}${footer()}`;
 }
+function vidHTML(keys){
+  if(!keys || !keys.length) return "";
+  return `<div class="vid"><div class="vh">示範影片（網路上找的，跟教練教的不一樣時，以教練為準）</div>${keys.map(k=>`<a href="${VIDS[k][1]}" target="_blank" rel="noopener">▶ ${esc(VIDS[k][0])}</a>`).join("")}</div>`;
+}
 function moveCard(m, i, total, color){
-  return `<div class="mv" style="--c:${color}"><div class="hd">${total>1?`<span class="num">${i+1}</span>`:""}<span class="nn">${esc(m.n)}</span>${m.tag?`<span class="tg">${esc(m.tag)}</span>`:""}${m.c?`<span class="cnt">${esc(m.c)}</span>`:""}</div>${m.p?ul(m.p):""}${diaHTML(m.dia)}${diaHTML(m.dia2)}</div>`;
+  return `<div class="mv" style="--c:${color}"><div class="hd">${total>1?`<span class="num">${i+1}</span>`:""}<span class="nn">${esc(m.n)}</span>${m.tag?`<span class="tg">${esc(m.tag)}</span>`:""}${m.c?`<span class="cnt">${esc(m.c)}</span>`:""}</div>${m.p?ul(m.p):""}${diaHTML(m.dia)}${diaHTML(m.dia2)}${vidHTML(m.vid)}</div>`;
 }
 function viewItem(sid, iid){
   const s = secById(sid), it = s && s.items.find(x=>x.id===iid); if(!it) return viewSection(sid);
   const i = s.items.indexOf(it), nx = s.items[i+1], nsec = SECTIONS[SECTIONS.indexOf(s)+1];
   let h = topbar(it.name, "s/"+s.id, s.name) + (it.cnt?`<div style="color:var(--ink2);font-weight:700">${esc(it.cnt)}</div>`:"");
   if(it.fig){ // 體能
-    h += `<div class="sect" style="--c:${s.color}">${fig(it.fig)}<h3 style="margin-top:10px">怎麼做</h3>${ul(it.p)}<h3 style="margin-top:8px">哪裡痠才對</h3><p>${esc(it.s)}</p><h3 style="margin-top:8px">太難的簡單版</h3><p>${esc(it.e)}</p></div>`;
+    h += `<div class="sect" style="--c:${s.color}">${fig(it.fig)}<h3 style="margin-top:10px">怎麼做</h3>${ul(it.p)}<h3 style="margin-top:8px">哪裡痠才對</h3><p>${esc(it.s)}</p><h3 style="margin-top:8px">太難的簡單版</h3><p>${esc(it.e)}</p>${vidHTML(it.vid)}</div>`;
   } else {
     if(it.flow) h += `<div class="sect" style="--c:${s.color}"><h3>怎麼練</h3>${ul(it.flow, it.flow.length>2 && !it.moves)}${it.dia?diaHTML(it.dia):""}</div>`;
     else if(it.dia) h += diaHTML(it.dia);
@@ -573,6 +583,7 @@ function viewItem(sid, iid){
     if(it.rules) h += `<div class="sect" style="--c:${s.color}"><h3>規則</h3>${ul(it.rules)}</div>`;
     if(it.tips) h += `<div class="sect" style="--c:${s.color}"><h3>要領</h3>${ul(it.tips)}${it.src?`<div class="src">${esc(it.src)}</div>`:""}</div>`;
     else if(it.src) h += `<div class="src">${esc(it.src)}</div>`;
+    if(it.vid) h += `<div class="sect" style="--c:${s.color}">${vidHTML(it.vid)}</div>`;
     if(it.warn) h += `<div class="warn">${esc(it.warn)}</div>`;
   }
   if(nx) h += `<button class="btn navnext" data-go="i/${s.id}/${nx.id}">下一項：${esc(nx.name)} ›</button>`;

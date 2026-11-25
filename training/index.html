@@ -98,6 +98,25 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:22
 .foot{margin-top:28px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.8}
 .foot .lk{background:var(--card);border:1.5px solid var(--line2);border-radius:12px;min-height:44px;padding:0 14px;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
 .upd{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));z-index:50;background:var(--ink);color:var(--bg);border:none;border-radius:999px;min-height:44px;padding:0 18px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.pk{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;margin-bottom:8px;min-height:60px;width:100%;text-align:left}
+.pk .ck{width:26px;height:26px;border-radius:8px;border:2px solid var(--line2);flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px}
+.pk[aria-pressed=true]{border-color:var(--ink)}
+.pk[aria-pressed=true] .ck{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pk .m{flex:1;min-width:0}.pk .n{font-weight:800;display:block}.pk .d{font-size:14px;color:var(--ink2);display:block}
+.pk .min{font-weight:800;white-space:nowrap}
+.pk.no{background:var(--soft);border-style:dashed;cursor:default}
+.pk.fix{background:var(--soft)}
+.stp{display:flex;align-items:center;gap:6px;margin:-2px 0 10px 36px}
+.stp .btn{width:44px;min-height:44px;padding:0;font-size:20px}
+.stp span{font-size:14px;color:var(--ink2)}
+.sum{position:sticky;bottom:0;background:var(--bg);padding:8px 0 calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:12px;z-index:10}
+.sum .t{font-weight:800;text-align:center}
+html:has(.sum){scroll-padding-bottom:130px}
+@media (max-height:520px){.sum{position:static}}
+.sum .btn.pri{margin-top:6px}
+.out{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:15px;margin-top:10px}
+.row2{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.row2 .btn{flex:1 1 140px;width:auto}
+h3.st{font-size:17px;font-weight:800;margin:18px 0 8px}h3.st b{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);align-items:center;justify-content:center;font-size:14px;margin-right:6px}
 @media (hover:hover){.tile:hover,.pl:hover{background:var(--soft)}}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 @media (min-width:900px){.two{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start}}
@@ -107,7 +126,7 @@ h2{font-size:15px;font-weight:800;color:var(--ink2);letter-spacing:1px;margin:22
 <div class="wrap" id="app"></div>
 <script>
 "use strict";
-const VERSION = "2026.11.24.7";
+const VERSION = "2026.11.25.1";
 
 /* ===================== 內容 ===================== */
 // 今天的流程（每次練球前請 Claude 改這一段）
@@ -556,6 +575,108 @@ function courtDia(k, state){
   return `<div class="dia" data-court="${k}">${sw}${d.svg}${lg}<div class="cap" style="text-align:left">${d.cap}</div></div>`;
 }
 
+
+/* ===================== 自己排菜單 ===================== */
+/* need: "net" 要網子（室內沒有就不排）；in: 室內有牆時的做法；min: 預設分鐘 */
+const PLAN_ITEMS = [
+ {id:"warm",  sec:"warm",  name:"熱身", min:20, fix:true, d:"動態熱身、繩梯、起跳、用球熱身", in:"用標誌盤標出起點和終點（約 9 公尺）"},
+ {id:"hi",    sec:"basic", name:"高手對傳", min:10, d:"彈地接住推 → 接住推 → 連續對傳", in:"沒有搭檔的人對牆傳"},
+ {id:"lo",    sec:"basic", name:"低手對墊", min:10, d:"摸地板彈地接 → 摸地板接 → 連續對墊", in:"沒有搭檔的人對牆墊"},
+ {id:"serve", sec:"serve", name:"低手發球", min:10, d:"連續十顆過網就過關", in:"對牆打，打到約 2.24 公尺高的記號以上才算"},
+ {id:"block", sec:"block", name:"攔網", min:10, d:"原地跳 → 側併一步跳 → 攔網接力", in:"離牆一個手臂、不要碰牆；接力改成拿球走到另一頭"},
+ {id:"split", sec:"split", name:"分組（舉球組／攻擊組）", min:15, d:"舉球：三指 → 五指 → 跑位轉身；攻擊：丟標誌盤 → 攻擊步", in:"扣球改成自拋打牆"},
+ {id:"combo", sec:"combo", name:"舉攻合練", min:15, need:"net", d:"推三個標誌盤，都推到才攻擊"},
+ {id:"dig",   sec:"team",  name:"接扣隊形", min:20, d:"教練在對面丟球，跑到防守位置", in:"用標誌盤框出半場，用抓拋跑"},
+ {id:"recv",  sec:"team",  name:"接發球隊形", min:15, need:"net", d:"真的發球，用抓拋跑到死球"},
+ {id:"game",  sec:"team",  name:"分隊比賽", min:20, need:"net", d:"人夠就 6 打 6，不夠就後排三人＋舉球員"},
+ {id:"fit",   sec:"fit",   name:"體能", min:15, fix:true, d:"深蹲、弓箭步、臀橋、棒式、伏地挺身、超人式"},
+ {id:"cool",  sec:"cool",  name:"收操", min:5, fix:true, d:"照隊上那一套"}
+];
+const PLAN_KEY = "vbtrain-plan";
+const PLAN_DEF = {venue:"out", start:"18:00", total:150, on:{hi:1,lo:1,serve:1,block:1,split:1,dig:1}, min:{}};
+let PLAN = (()=>{ try{ const o = JSON.parse(localStorage.getItem(PLAN_KEY)||"null"); if(o && o.on) return Object.assign({}, PLAN_DEF, o); }catch(e){} return JSON.parse(JSON.stringify(PLAN_DEF)); })();
+function planSave(){ try{ localStorage.setItem(PLAN_KEY, JSON.stringify(PLAN)); }catch(e){} }
+const pMin = it => PLAN.min[it.id] || it.min;
+const pOk = it => !(it.need==="net" && PLAN.venue==="in");
+const pOn = it => it.fix || (pOk(it) && PLAN.on[it.id]);
+function pUsed(){ return PLAN_ITEMS.filter(pOn).reduce((a,it)=>a+pMin(it),0); }
+function hm(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+function tStr(x){ return String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0"); }
+function seg(a, cur, opts){ return `<div class="seg" role="group">${opts.map(([v,t])=>`<button class="btn" data-a="pv:${a}:${v}" aria-pressed="${String(cur)===String(v)}">${String(cur)===String(v)?"✓ ":""}${t}</button>`).join("")}</div>`; }
+
+function viewPlan(){
+  const used = pUsed(), left = PLAN.total - used;
+  const hidden = PLAN_ITEMS.filter(it=>!pOk(it)).map(it=>it.name);
+  const card = it => {
+    if(it.fix) return `<div class="pk fix"><span class="ck">✓</span><span class="m"><span class="n">${esc(it.name)}（每次都做）</span><span class="d">${esc(it.d)}</span></span><span class="min">${pMin(it)} 分</span></div>`;
+    const on = !!PLAN.on[it.id], tooLong = !on && pMin(it) > left;
+    return `<button class="pk${tooLong?" no":""}" data-a="${tooLong?"pt:"+it.id:"pc:"+it.id}" aria-pressed="${on}"><span class="ck">${on?"✓":""}</span><span class="m"><span class="n">${esc(it.name)}</span><span class="d">${tooLong?`時間不夠（還剩 ${left} 分）`:esc(it.d)}</span></span><span class="min">${pMin(it)} 分</span></button>`
+     + (on?`<div class="stp"><button class="btn" data-a="pm:${it.id}:-5" aria-label="少 5 分鐘">−</button><button class="btn" data-a="pm:${it.id}:5" aria-label="多 5 分鐘"${left<5?" disabled":""}>＋</button><span>每按一下 5 分鐘</span></div>`:"");
+  };
+  return topbar("自己排菜單","","首頁") + `<p style="color:var(--ink2);margin:6px 0 0">選好場地、時間，勾想練的項目，就會排出一張菜單。</p>
+  <h3 class="st"><b>1</b>場地</h3>${seg("venue",PLAN.venue,[["out","室外球場（有網子）"],["in","室內（有牆、沒網子）"]])}
+  ${hidden.length?`<p style="font-size:14px;color:var(--ink2)">沒有網子，${hidden.join("、")}先不排。</p>`:""}
+  <h3 class="st"><b>2</b>時間</h3>
+  <p style="font-size:14px;color:var(--ink2);margin-bottom:4px">幾點開始</p>${seg("start",PLAN.start,[["17:30","17:30"],["18:00","18:00"],["18:30","18:30"]])}
+  <p style="font-size:14px;color:var(--ink2);margin-bottom:4px">總共多久</p>${seg("total",PLAN.total,[[60,"1 小時"],[90,"1.5 小時"],[120,"2 小時"],[150,"2.5 小時"]])}
+  <h3 class="st"><b>3</b>勾想練的項目</h3>
+  ${PLAN_ITEMS.filter(pOk).map(card).join("")}
+  <div class="sum"><div class="t">${left>=0?`已排 ${used} 分，還剩 ${left} 分`:`超過 ${-left} 分，請少勾一項或按 −`}</div>
+  <button class="btn pri" data-go="plan/out"${left<0?' disabled aria-disabled="true"':""}><b style="margin-right:4px">4</b>產生今天的菜單</button></div>`;
+}
+function planRows(){
+  let t = hm(PLAN.start); const rows = [];
+  PLAN_ITEMS.filter(pOn).forEach(it=>{ rows.push([tStr(t), it, pMin(it)]); t += pMin(it); });
+  const left = PLAN.total - pUsed();
+  if(left>0){ const k = rows.findIndex(r=>r[1].id==="fit"); rows.splice(k,0,[tStr(hm(rows[k][0])), {id:"free",sec:"",name:"自由練習",d:"想加強的再練一下"}, left]); for(let j=k+1;j<rows.length;j++) rows[j][0]=tStr(hm(rows[j][0])+left); }
+  return {rows, end:tStr(hm(PLAN.start)+PLAN.total)};
+}
+function planText(){
+  const {rows,end} = planRows(), inn = PLAN.venue==="in";
+  return `${PLAN.start}–${end} 練球菜單｜${inn?"室內（有牆）":"室外球場"}\n` + rows.map(([t,it,m])=>`${t} ${it.name} ${m}分\n ・${inn&&it.in?it.in:it.d}`).join("\n") + `\n晚到的人：先做 5 分鐘熱身短版，再加入`;
+}
+function viewPlanOut(){
+  const {rows,end} = planRows(), inn = PLAN.venue==="in";
+  return topbar("今天的菜單","plan","自己排菜單") + `<div style="color:var(--ink2);font-weight:700">${PLAN.start}–${end}｜${inn?"室內（有牆）":"室外球場"}</div>
+  <div class="plan">${rows.map(([t,it,m])=>{ const s = secById(it.sec); return `<${s?`button class="pl" data-go="s/${it.sec}"`:'div class="pl"'}><span class="tm">${t}</span><span class="bar" style="background:${s?s.color:"#999"}"></span><span class="m"><span class="n">${esc(it.name)}<small>${m}分</small></span><br><span class="d">${esc(inn&&it.in?it.in:it.d)}</span></span>${s?'<span class="go">›</span></button>':"</div>"}`; }).join("")}</div>
+  <div class="row2"><button class="btn pri" style="margin-top:0" data-a="po:img">存成圖片／傳 LINE</button><button class="btn" data-a="po:txt">複製文字</button></div>
+  <p id="pmsg" style="font-size:14px;color:var(--ink2);margin-top:6px" role="status"></p>${footer()}`;
+}
+function planImg(){
+  const {rows,end} = planRows(), inn = PLAN.venue==="in", W=1080, sc=2, pad=60;
+  const c = document.createElement("canvas"), x = c.getContext("2d"), F = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  const H = 300 + rows.length*150 + 80; c.width=W; c.height=H;
+  x.fillStyle="#f4f1ea"; x.fillRect(0,0,W,H);
+  x.fillStyle="#1f2a37"; x.font=`900 64px ${F}`; x.fillText("今天的練球菜單",pad,130);
+  x.fillStyle="#4b5563"; x.font=`700 38px ${F}`; x.fillText(`${PLAN.start}–${end}｜${inn?"室內（有牆）":"室外球場"}`,pad,200);
+  rows.forEach(([t,it,m],i)=>{ const y=260+i*150, s=secById(it.sec);
+    x.fillStyle="#fff"; x.beginPath(); x.roundRect(pad,y,W-pad*2,130,24); x.fill();
+    x.fillStyle=s?s.color:"#9ca3af"; x.fillRect(pad+190,y+20,10,90);
+    x.fillStyle="#1f2a37"; x.font=`800 40px ${F}`; x.fillText(t,pad+28,y+78);
+    x.font=`800 44px ${F}`; x.fillText(`${it.name}  ${m}分`,pad+226,y+60);
+    x.fillStyle="#4b5563"; x.font=`500 30px ${F}`; let d=inn&&it.in?it.in:it.d; while(x.measureText(d).width>W-pad*2-260 && d.length>2) d=d.slice(0,-2)+"…"; x.fillText(d,pad+226,y+106); });
+  x.fillStyle="#4b5563"; x.font=`600 30px ${F}`; x.fillText("晚到的人：先做 5 分鐘熱身短版，再加入",pad,H-50);
+  return c;
+}
+function planOut(k){
+  const msg = t => { const e=$("#pmsg"); if(e) e.textContent=t; };
+  if(k==="txt"){ const t = planText(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>msg("已複製，可以直接貼到 LINE。"),()=>{ msg("沒辦法自動複製，請長按下面的文字複製。"); const o=document.createElement("div"); o.className="out"; o.textContent=t; $("#pmsg").after(o); }); return; }
+  msg("圖片產生中…");
+  planImg().toBlob(b=>{
+    if(!b){ msg("圖片產生失敗，請改用「複製文字」。"); return; }
+    const f = new File([b], "練球菜單.png", {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f]}).then(()=>msg("已分享。"),()=>msg("沒有分享。要存圖可以再按一次。"));
+    else { const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="練球菜單.png"; document.body.appendChild(a); a.click(); a.remove(); msg("已下載圖片。"); }
+  },"image/png");
+}
+function planAct(t,x,y){
+  if(t==="pv"){ PLAN[x] = x==="total" ? Number(y) : y; }
+  if(t==="pc"){ if(PLAN.on[x]) delete PLAN.on[x]; else PLAN.on[x]=1; }
+  if(t==="pm"){ const it = PLAN_ITEMS.find(i=>i.id===x); PLAN.min[x] = Math.max(5, pMin(it)+Number(y)); }
+  planSave();
+  const sy = window.scrollY; route(); window.scrollTo(0,sy);
+}
+
 /* ===================== 畫面 ===================== */
 const $ = s => document.querySelector(s);
 const secById = id => SECTIONS.find(s=>s.id===id);
@@ -566,6 +687,7 @@ function ul(arr, ord){ return `<${ord?"ol":"ul"}>${arr.map(x=>`<li>${x}</li>`).j
 function viewHome(){
   return `<div class="hero"><div class="t">練球手冊</div><div class="s">社工女排｜練球前先看過，練完回來複習</div></div>
   <button class="btn pri" data-go="today">今天的流程 <small>${esc(TODAY.date)}</small></button>
+  <button class="btn" style="margin-top:8px" data-go="plan">自己排菜單 <small style="font-weight:600;color:var(--ink2)">選場地、時間、項目</small></button>
   <h2>每一段怎麼練</h2>
   ${SECTIONS.map(s=>`<button class="tile" data-go="s/${s.id}"><span class="bar" style="background:${s.color}"></span><span class="m"><span class="n">${esc(s.name)}<small>${s.time}</small></span><span class="d">${s.items.length ? s.items.map(i=>esc(i.name)).join("、") : esc(s.notes[0])}</span></span><span class="go">打開 ›</span></button>`).join("")}
   ${footer()}`;
@@ -624,6 +746,7 @@ function route(){
   let html;
   if(p[0]==="today") html = viewToday();
   else if(p[0]==="help") html = viewHelp();
+  else if(p[0]==="plan") html = p[1]==="out" ? viewPlanOut() : viewPlan();
   else if(p[0]==="s") html = viewSection(p[1]);
   else if(p[0]==="i") html = viewItem(p[1], p[2]);
   else html = viewHome();
@@ -639,6 +762,9 @@ document.addEventListener("click", e=>{
   const a = e.target.closest("[data-a]"); if(!a) return;
   const [t,x,y] = a.dataset.a.split(":");
   if(t==="pl") plAct(x,y);
+  if(t==="pv"||t==="pc"||t==="pm") planAct(t,x,y);
+  if(t==="pt"){ const e=a.querySelector(".d"); if(e) e.textContent="時間不夠：先取消別的項目，或按 − 縮短時間"; }
+  if(t==="po") planOut(x);
   if(t==="cs"){ const box = a.closest("[data-court]"); box.outerHTML = courtDia(x,y); }
 });
 window.addEventListener("hashchange", route);

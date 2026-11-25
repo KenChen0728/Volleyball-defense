@@ -29,7 +29,7 @@ MEASURE = r"""() => {
 def routes(page):
     page.goto(BASE); page.wait_for_timeout(200)
     data = page.evaluate("() => SECTIONS.map(s => [s.id, s.items.map(i => i.id)])")
-    r = ["", "today", "help"]
+    r = ["", "today", "help", "plan", "plan/out"]
     for sid, items in data:
         r.append("s/" + sid); r += ["i/%s/%s" % (sid, i) for i in items]
     return r

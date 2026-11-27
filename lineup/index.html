@@ -32,9 +32,11 @@ button{font:inherit;color:inherit;cursor:pointer}
 .lbl{font-size:13px;color:var(--ink2);font-weight:700;margin-bottom:2px}
 .main{display:flex;flex-direction:column;gap:8px}
 .courtbox{display:flex;justify-content:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px}
-#court{display:block;width:100%;height:auto;max-height:max(250px,calc(100dvh - 440px));touch-action:none;user-select:none;-webkit-user-select:none}
+#court{display:block;width:100%;height:auto;max-height:max(170px,calc(100dvh - 420px));touch-action:none;user-select:none;-webkit-user-select:none}
 .side{display:flex;flex-direction:column;gap:8px}
-.cap{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:14px;padding:8px 12px;height:110px;overflow-y:auto;font-size:15px}
+.cap{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:14px;padding:8px 12px;min-height:64px;font-size:15px}
+.cap .do{font-size:17px;font-weight:900;line-height:1.4;margin:1px 0 2px}
+.cap .cs{color:var(--ink2);font-size:15px}
 .cap .no{font-size:13px;color:var(--ink2);font-weight:800}
 .cap ul{padding-left:18px;margin-top:2px}.cap li{margin:1px 0}
 .cap .bad{color:var(--bad);font-weight:700}
@@ -61,21 +63,18 @@ dialog h2{font-size:18px;margin-bottom:6px}
 dialog ol{padding-left:20px}dialog li{margin:4px 0}
 .upd{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));z-index:50;background:var(--ink);color:var(--bg);border:none;border-radius:999px;min-height:44px;padding:0 18px;font-weight:800;white-space:nowrap}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-@media (min-height:800px) and (orientation:portrait) and (max-width:819px){.cap{height:146px}#court{max-height:max(250px,calc(100dvh - 476px))}}
-@media (max-height:700px) and (orientation:portrait){.cap{height:92px;font-size:14px}.app{gap:6px}}
-@media (min-width:820px){
+@media (max-height:700px) and (orientation:portrait){.app{gap:6px}.cap .do{font-size:16px}}
+@media (min-width:600px) and (min-aspect-ratio:4/5){
   .main{flex-direction:row;align-items:flex-start}
   .courtbox{flex:0 0 auto}
-  #court{width:auto;height:min(calc(100dvh - var(--top,200px) - 26px),48vw);max-height:none;min-height:0}
+  #court{width:auto;height:min(calc(100dvh - var(--top,200px) - 26px),58vw);max-height:none;min-height:0}
   .side{flex:1;min-width:0}
-  .cap{height:200px}
 }
 @media (max-height:520px) and (orientation:landscape){
   .main{flex-direction:row;align-items:flex-start}
   .courtbox{flex:0 0 auto}
   #court{width:auto;height:calc(100dvh - var(--top,180px) - 22px);max-height:none;min-height:0}
   .side{flex:1;min-width:0}
-  .cap{height:92px}
   .app{padding-top:4px;padding-bottom:4px}
 }
 </style>
@@ -103,7 +102,8 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
     <li>上面選這一輪：前排的舉球員站在 4、3 還是 2 號位。</li>
     <li>按「播放」看一整波：接發球 → 攻擊 → 回防 → 攔網、防守 → 第二波攻擊。可以暫停、上一步、下一步，「慢速」會放慢。</li>
     <li>先拖上面的<b>紅色三角形</b>選對方發球員站哪裡，大家的接發球位置會跟著微調；站好後<b>點我們的場上</b>選發球落點，看誰去接。</li>
-    <li>對方要攻擊時會停下來：點我們場上任何一個地方，或按「直線」「斜線」「吊球」這些路線，看誰接、誰補位。看完按「再一球」換別的地方。上面可以切換誰攔網。</li>
+    <li>要點場上的時候，場上會框起來、有一隻手指在點：發球落點、我們要打哪裡、對方要打哪裡，都是直接點場上任何地方。看完可以按「換個地方打」再試。</li>
+    <li>我們攻擊時會看到對方怎麼站，上面可以切換對方有沒有攔網；對方防守時上面可以切換我們誰攔網。</li>
     <li>按「換你擺」：自己把人拖到接發球位置，按「檢查」看有沒有站錯；後面到了防守也會停下來讓你擺。</li>
   </ol>
   <h2 style="margin-top:10px">加到手機主畫面</h2>
@@ -117,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.7";
+const VERSION = "2026.11.27.8";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -160,12 +160,29 @@ const BLOCK = {
      tags:{FS:"攔網",FM:"攔網",FO:"靠網守小斜線",BO:"守斜線",BM:"偏攔網這邊",BS:"守直線"},
      cap:"<b>舉球員和攔中兩個人攔</b>，擋住的範圍比較寬。"}
 };
+// 對方防守（我們從 4 號位、在我們左邊攻擊）：有攔網時兩個人攔，其他人照攔網沒擋到的地方站（暫定）
+const OD = {
+  yes:{o2:[0.9,-0.4],o3:[1.9,-0.4],o4:[7.0,-3.0],o1:[0.8,-6.0],o5:[4.6,-7.8],o6:[7.8,-6.0]},
+  no:{o2:[1.2,-2.6],o3:[3.8,-2.4],o4:[7.0,-3.0],o1:[1.0,-6.2],o5:[4.5,-7.6],o6:[7.8,-6.2]}
+};
+const OBL = ["o2","o3"], VB2 = [1.0,4.1];
+function ofanPoly(near){ const xs = OBL.map(k=>OD.yes[k][0]), lo = Math.min(...xs)-0.55, hi = Math.max(...xs)+0.55, y0 = -0.15, y1 = near ? -4.5 : -9;
+  const at = (x,y) => VB2[0] + (x - VB2[0]) * (y - VB2[1]) / (y0 - VB2[1]); return [[lo,y0],[hi,y0],[at(hi,y1),y1],[at(lo,y1),y1]]; }
+// 我們攻擊打到哪裡：被攔、空檔、還是對方接得到（離越近越接得到；往後退算 1.6 倍）
+function oresolve(L){
+  const blk = S.oblk==="yes", pos = OD[S.oblk];
+  if(blk && L[1] > -4.5 && inPoly(L, ofanPoly(true))) return {blocked:true};
+  const cand = Object.keys(pos).filter(k=>!(blk && OBL.includes(k)));
+  const cost = k => { const p = pos[k], dx = L[0]-p[0], dy = L[1]-p[1]; return Math.hypot(dx, dy<0 ? dy*1.6 : dy); };
+  const k = cand.sort((a,b)=>cost(a)-cost(b))[0], c = cost(k);
+  return {k, gap: c > 2.3};
+}
 const SHOTS = [["直線",[8.3,5.2]],["小斜線",[1.0,2.3]],["斜線",[1.5,5.6]],["對角深",[1.2,8.2]],["後中",[4.6,7.9]],["吊球",[6.8,2.1]]];
 
 /* ===================== 狀態 ===================== */
-const S = {rot:0, ver:"in", blk:"M", step:0, t:1, playing:false, slow:false, land:null, srvX:7.5, dland:null, shot:"", prac:null, waitDef:0, steps:[]};
-try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver) S.ver=o.ver; if(BLOCK[o.blk]) S.blk=o.blk; if(o.slow) S.slow=true; }catch(e){}
-function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({rot:S.rot,ver:S.ver,blk:S.blk,slow:S.slow})); }catch(e){} }
+const S = {rot:0, ver:"in", blk:"M", oblk:"yes", aland:null, step:0, t:1, playing:false, slow:false, land:null, srvX:7.5, dland:null, shot:"", prac:null, waitDef:0, steps:[]};
+try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver) S.ver=o.ver; if(BLOCK[o.blk]) S.blk=o.blk; if(OD[o.oblk]) S.oblk=o.oblk; if(o.slow) S.slow=true; }catch(e){}
+function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({rot:S.rot,ver:S.ver,blk:S.blk,oblk:S.oblk,slow:S.slow})); }catch(e){} }
 
 const HINT = {srv:false, tap:false};
 try{ HINT.srv = localStorage.getItem("vblineup-hint-srv")==="1"; HINT.tap = localStorage.getItem("vblineup-hint-tap")==="1"; }catch(e){}
@@ -257,15 +274,18 @@ function build(){
   const P0 = {}; ROLES.forEach(r=>P0[r]=ZC[R.zone[r]].slice());
   const O0 = Object.assign({o1:srv.slice()}, cp(OPP0));
   const steps = [];
-  const add = (prev, ch) => { const s = cp(prev); Object.assign(s, {tags:{}, trail:true, fan:false, frames:false, cap:"", ballH:0, choose:false, arrow:false}, ch); s.pos = Object.assign(cp(prev.pos), ch.pos||{}); s.opp = Object.assign(cp(prev.opp), ch.opp||{}); steps.push(s); return s; };
+  const add = (prev, ch) => { const s = cp(prev); Object.assign(s, {tags:{}, trail:true, fan:false, ofan:false, frames:false, cap:"", ballH:0, arrow:false, cam:0, otag:null, blocked:false}, ch); s.pos = Object.assign(cp(prev.pos), ch.pos||{}); s.opp = Object.assign(cp(prev.opp), ch.opp||{}); steps.push(s); return s; };
 
-  const s0 = {pos:P0, opp:O0, ball:top.slice(), ballH:0, tags:{}, trail:false, frames:true, fan:false, arrow:false, title:"照號位站好",
-    cap:`<b>發球那一刻</b>要照輪轉順序站（看腳踩的位置）：<br><span class="fb">前後關係</span>：同一直排，前排要比後排<b>更靠近網子</b>。<br><span class="lr">左右關係</span>：同一橫排，左邊比中間<b>靠左</b>、右邊比中間<b>靠右</b>。<br>發球打出去後就能自由跑。後排攔中換成自由。`};
-  steps.push(s0);
-  add(s0, {pos:{}, trail:false, title:"發球員在哪裡", arrow:true,
-    cap:`先決定<b>對方發球員站哪裡</b>：按住上面的<b>紅色三角形</b>左右拖。發球員站在<b>對方底線後面</b>，中間的對方場地省略沒畫。決定好了按「決定好了」。`});
-  const s1 = add(steps[1], {pos:recv, title:"接發球站位", tags:{FS:"不接",FM:"不接"}, arrow:true,
-    cap:`四個人接（前排大砲、後排大砲、後排舉球員、自由）；前排的<b>舉球員和攔中不接</b>，靠網子躲好。${side==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${side}，大家一起往${side}<b>移一點</b>（約半步），身體轉向發球員。`}`});
+  // 0 號位
+  steps.push({pos:P0, opp:O0, ball:top.slice(), ballH:0, tags:{}, trail:false, frames:true, fan:false, ofan:false, arrow:false, cam:0, otag:null, title:"看懂前後、左右關係",
+    cap:`<span class="fb">前後關係</span>：同一直排，前排要比後排更靠近網子。<br><span class="lr">左右關係</span>：同一橫排，左邊比中間靠左、右邊比中間靠右。<br>只在發球那一刻要遵守，看腳踩的位置；後排攔中換成自由。`});
+  // 1 發球員
+  add(steps[0], {pos:{}, trail:false, arrow:true, title:"拖紅色三角形：對方發球員站哪裡",
+    cap:`發球員在對方底線後面，中間的對方場地省略沒畫。`});
+  // 2 接發球站位（停下來選落點）
+  const s1 = add(steps[1], {pos:recv, tags:{FS:"不接",FM:"不接"}, arrow:true, title:"點我們的場上：發球落在哪裡",
+    cap:`${side==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${side}，大家往${side}移一點、身體轉向她。`}前排舉球員和攔中不接。`});
+  // 3 發球出手
   const passer = nearest(PASSERS, land, s1.pos);
   const pl = toward(s1.pos[passer], land, Math.max(0, 1 - 0.35/Math.max(dist(s1.pos[passer],land),0.01)));
   const others = PASSERS.filter(r=>r!==passer).sort((a,b)=>dist(s1.pos[a],pl)-dist(s1.pos[b],pl)).slice(0,2);
@@ -273,54 +293,68 @@ function build(){
   others.forEach(r=>{ p2[r] = toward(s1.pos[r], pl, 0.3); t2[r] = "補位"; });
   if(B){ p2.FM = [0.9,3.0]; t2.FM = "留外面"; }
   else { p2.FM = R.key==="r4" ? [3.6,2.8] : [4.3,2.6]; t2.FM = "往中間"; }
-  const verCap = R.key!=="r4" ? "" : B ? "<br>這一輪<b>攔中先留外面</b>：攔中不跑進去，等一下打 4 號位；大砲接完球再走進中間。" : "<br>這一輪<b>攔中跑進中間</b>：發球一出手就往中間走，要繞開大砲，不要擋到大砲接球。";
-  add(s1, {pos:p2, opp:{o1:[1.5,-6]}, ball:land.slice(), ballH:3, tags:t2, title:"發球出手",
-    cap:`發球一出手，離球最近的<b>${nm(passer)}</b>去接，旁邊的人<b>往她靠近補位</b>，不要站著看；舉球員馬上跑去網前舉球的位置。${verCap}`});
+  const verCap = R.key!=="r4" ? "" : B ? "攔中先留外面，等一下打 4 號位。" : "攔中往中間走，要繞開大砲。";
+  add(s1, {pos:p2, opp:{o1:[1.5,-6]}, ball:land.slice(), ballH:3, tags:t2, title:`${nm(passer)}接，旁邊的人補位`,
+    cap:`大家都要動，不要站著看；舉球員跑去網前舉球。${verCap}`});
+  // 4 一傳
   const hitter = B ? "FM" : "FO", decoy = B ? "FO" : "FM";
   const p3 = {[hitter]:[0.9,3.4], [decoy]:[4.3,3.0]};
   if(passer!==hitter && passer!==decoy) p3[passer] = toward(steps[3].pos[passer], [4.5,5.5], 0.25);
-  add(steps[3], {pos:p3, ball:T.slice(), ballH:2.2, tags:{[hitter]:"準備攻擊",[decoy]:"準備攻擊",FS:"舉球"}, title:"一傳",
-    cap:`球確定往舉球員飛了，攻擊手才<b>退出去準備攻擊</b>：${NAME[hitter]}退到左邊三米線外，${NAME[decoy]}到中間。${B?"大砲接完球直接走進中間。":""}`});
+  add(steps[3], {pos:p3, ball:T.slice(), ballH:2.2, tags:{[hitter]:"準備攻擊",[decoy]:"準備攻擊",FS:"舉球"}, title:"球往舉球員飛了，攻擊手才退出去",
+    cap:`${NAME[hitter]}退到左邊三米線外，${NAME[decoy]}到中間。${B?"大砲接完球走進中間。":""}`});
+  // 5 舉球：鏡頭移到對方那邊，停下來選要打哪裡
   const back = ["BS","BM","BO"], cov = assign(back, [[2.2,2.6],[1.0,4.6],[3.6,4.2]], steps[4].pos);
   const p4 = Object.assign({[hitter]:H.slice(), [decoy]:[4.5,0.9]}, cov), t4 = {[hitter]:"攻擊",[decoy]:"假裝快攻"};
   back.forEach(r=>t4[r]="掩護");
-  add(steps[4], {pos:p4, ball:[H[0]+0.2,H[1]], ballH:3.2, tags:t4, title:"舉球",
-    cap:`舉給 4 號位的${NAME[hitter]}。${NAME[decoy]}在中間跳，讓對方攔網不知道打誰；後排三個人圍在攻擊手後面<b>掩護</b>，被攔下來的球要接得起來。`});
-  add(steps[5], {pos:{}, ball:[6.4,-3.7], ballH:1.2, opp:{o6:[6.6,-4.1]}, tags:{[hitter]:"打過去"}, title:"攻擊過網",
-    cap:`打過去了。這時候不要停在原地看，馬上準備回防。`});
+  const OPPD = OD[S.oblk];
+  add(steps[4], {pos:p4, opp:cp(OPPD), ball:[H[0]+0.2,H[1]], ballH:3.2, tags:t4, cam:1, ofan:S.oblk==="yes", title:"點對方的場上：要打哪裡",
+    cap: S.oblk==="yes" ? "灰色是對方攔網擋住的地方，打那裡容易被攔回來；找攔網沒擋到、離對方遠的地方。" : "對方沒有攔網：看對方站哪裡，找離大家都遠的空檔。"});
+  // 6 攻擊
+  const AL = S.aland || [5.6,-4.6], ar = oresolve(AL);
+  if(ar.blocked){
+    const bk = [H[0]+1.3, 2.3], who = nearest(back, bk, p4);
+    add(steps[5], {pos:{[who]:toward(p4[who], bk, 0.85)}, ball:bk, ballH:0.8, cam:1, ofan:true, blocked:true, tags:{[hitter]:"被攔",[who]:"接起來"}, title:"被攔網擋住了",
+      cap:`打到攔網擋住的地方，球被攔回來，${nm(who)}掩護接起來。按「換個地方打」再試一次。`});
+  } else {
+    const op = OPPD[ar.k], to = ar.gap ? toward(op, AL, 0.5) : toward(op, AL, Math.max(0, 1 - 0.3/Math.max(dist(op,AL),0.01)));
+    add(steps[5], {pos:{}, opp:{[ar.k]:to}, ball:AL.slice(), ballH:1.0, cam:1, ofan:S.oblk==="yes", tags:{[hitter]:"打過去"}, otag:[ar.k, ar.gap?"來不及":"接"],
+      title: ar.gap ? "打到空檔，對方很難接！" : "對方接得到",
+      cap: ar.gap ? "這裡離對方每個人都很遠，是好球。" : "這裡離對方的人很近，容易被接起來。看看哪裡比較空，按「換個地方打」再試一次。"});
+  }
+  // 7 回防（鏡頭回到我們這邊）
   const t6 = {}; ROLES.forEach(r=>{ if(R.zone[r]!==BZONE[r] && !FRONT(r)) t6[r] = "換到 "+BZONE[r]; });
   if(B){ t6.FM = "換回中間"; t6.FO = "換回 4"; }
   t6.FS = "守 2";
-  add(steps[6], {pos:cp(BASE), ball:[2.7,-0.8], ballH:2.5, opp:{o3:[2.7,-0.9], o4:[8.4,-3.3]}, tags:t6, title:"回防",
-    cap:`回到固定的防守位置：前排大砲 4、攔中 3、舉球員 2；後排大砲 5、自由 6、舉球員 1。${B?"這一輪攔中和大砲在這裡<b>換回來</b>。":"後排照號位換過去。"}`});
-  // 7 攔網、找線守（停下來選對方打哪裡）
-  add(steps[7], {pos:cp(D.def), ball:A.slice(), ballH:3, opp:{o3:[2.7,-0.9], o4:A.slice()}, fan:true, tags:cp(D.tags), title:"攔網、找線守", choose:true,
-    cap:`對方從我們的右邊攻擊。${D.cap}灰色是<b>攔網擋住的地方</b>，越靠網越擋得住，後面還是可能有球；其他人去守攔網沒擋到的路線，<b>不要躲在攔網後面</b>。`});
-  // 8 對方攻擊
+  add(steps[6], {pos:cp(BASE), ball:[2.7,-0.8], ballH:2.5, opp:{o3:[2.7,-0.9], o4:[8.4,-3.3]}, tags:t6, title:"回防：回到固定位置",
+    cap:`前排大砲 4、攔中 3、舉球員 2；後排大砲 5、自由 6、舉球員 1。${B?"這一輪攔中和大砲在這裡換回來。":""}`});
+  // 8 攔網、找線守（停下來選對方打哪裡）
+  add(steps[7], {pos:cp(D.def), ball:A.slice(), ballH:3, opp:{o3:[2.7,-0.9], o4:A.slice()}, fan:true, tags:cp(D.tags), title:"點我們的場上：對方打哪裡",
+    cap:`${D.cap}灰色是攔網擋住的地方，其他人去守沒擋到的路線。`});
+  // 9 對方攻擊
   const L = S.dland || SHOTS[2][1], shot = S.shot || (S.dland ? "" : "斜線");
   const res = resolve(S.blk, L, shot);
-  add(steps[8], {pos:res.mv, ball:L.slice(), ballH:res.tip?1.6:0.6, fan:true, tags:res.tags, title:`對方${res.tip?"吊":"打"}${res.tip && inPoly(L, fanPoly(S.blk,true)) ? "攔網後面" : where(L)}`,
-    cap:`${res.why}${res.helpers.length?`<br>${res.helpers.map(nm).join("、")}也要<b>往球靠過去</b>，萬一沒接好還有人補。`:""}`});
-  // 9 防起來給舉球員
+  add(steps[8], {pos:res.mv, ball:L.slice(), ballH:res.tip?1.6:0.6, fan:true, tags:res.tags, title:`對方${res.tip?"吊":"打"}${res.tip && inPoly(L, fanPoly(S.blk,true)) ? "攔網後面" : where(L)}：${nm(res.recv)}接`,
+    cap:`${res.why}${res.helpers.length?`${res.helpers.map(nm).join("、")}往球靠過去補位。`:""}`});
+  // 10 防起來給舉球員
   const setter = res.recv==="FS" ? "BS" : "FS";
   const hitter2 = res.recv==="FO" ? "FM" : "FO";
   const p9 = {[setter]:[5.8,1.3]}, t9 = {[setter]: setter==="BS" ? "衝上來舉" : "去舉"};
   if(setter==="BS"){ p9.FS = [7.9,2.2]; t9.FS = "接高後退開"; }
-  if(hitter2==="FO"){ p9.FO = [0.9,3.4]; t9.FO = "準備攻擊"; if(res.recv!=="FM" && !BLOCK[S.blk].bl.includes("FM")) {} }
+  if(hitter2==="FO"){ p9.FO = [0.9,3.4]; t9.FO = "準備攻擊"; }
   if(res.recv!=="FM"){ p9.FM = [4.3,3.0]; t9.FM = hitter2==="FM" ? "準備攻擊" : "準備快攻"; }
   else { p9.FO = [0.9,3.4]; t9.FO = "準備攻擊"; }
-  add(steps[9], {pos:p9, ball:[5.8,1.1], ballH:2.4, fan:false, tags:t9, title:"防起來",
-    cap: setter==="BS" ? `前排舉球員接到第一球：<b>原地把球接高</b>就退開；後排舉球員一看到是小球就先衝上來舉。` : `防起來的球往舉球員那邊送。${BLOCK[S.blk].bl.includes("FS")?"舉球員攔網落地後<b>轉身</b>去接。":"舉球員往網前移去舉。"}攻擊手退到三米線外準備攻擊。`});
-  // 10 第二波
+  add(steps[9], {pos:p9, ball:[5.8,1.1], ballH:2.4, fan:false, tags:t9, title: setter==="BS" ? "前排舉球員接高，後排舉球員衝上來舉" : "防起來，舉球員去舉",
+    cap: setter==="BS" ? "前排舉球員原地把球接高就退開。" : `${BLOCK[S.blk].bl.includes("FS")?"舉球員攔網落地後轉身去接。":"舉球員往網前移。"}攻擊手退到三米線外。`});
+  // 11 第二波
   const hp = hitter2==="FO" ? H.slice() : [4.5,0.9];
   const rest = ROLES.filter(r=>r!==hitter2 && r!==setter);
   const cov2 = assign(rest.filter(r=>!(hitter2==="FO" && r==="FM")), hitter2==="FO" ? [[2.2,2.6],[1.0,4.6],[3.6,4.2]] : [[3.4,2.6],[5.6,2.8],[4.5,4.6]], steps[10].pos);
   const t10 = {[hitter2]:"攻擊"}; Object.keys(cov2).forEach(r=>t10[r]="掩護");
   const p10 = Object.assign({[hitter2]:hp}, cov2); if(hitter2==="FO"){ p10.FM = [4.5,0.9]; t10.FM = "假裝快攻"; }
-  add(steps[10], {pos:p10, ball:[hp[0]+0.2,hp[1]], ballH:3.2, tags:t10, title:"第二波攻擊",
-    cap:`舉給${hitter2==="FO"?"4 號位的大砲":"中間的攔中（大砲剛接完球，來不及攻擊）"}，其他人一樣圍上去<b>掩護</b>。`});
-  add(steps[11], {pos:{}, ball:[4.8,-3.6], ballH:1.2, tags:{[hitter2]:"打過去"}, title:"一個來回",
-    cap:`這樣就是一個來回：<b>接發球 → 攻擊 → 回防 → 攔網防守 → 再攻擊</b>。按「再一球」換對方打別的地方。`});
+  add(steps[10], {pos:p10, ball:[hp[0]+0.2,hp[1]], ballH:3.2, tags:t10, title:"第二波攻擊，大家掩護",
+    cap: hitter2==="FO" ? "舉給 4 號位的大砲。" : "大砲剛接完球來不及，舉給中間的攔中。"});
+  add(steps[11], {pos:{}, ball:[4.8,-3.6], ballH:1.2, tags:{[hitter2]:"打過去"}, title:"一個來回完成",
+    cap:`接發球 → 攻擊 → 回防 → 攔網防守 → 再攻擊。`});
   return steps;
 }
 
@@ -333,7 +367,9 @@ let G = {};
 function drawStatic(){
   svg.innerHTML = `<defs>
     <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b7280" stop-opacity=".55"/><stop offset=".45" stop-color="#6b7280" stop-opacity=".3"/><stop offset="1" stop-color="#6b7280" stop-opacity=".04"/></linearGradient>
+    <linearGradient id="fg2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6b7280" stop-opacity=".55"/><stop offset=".45" stop-color="#6b7280" stop-opacity=".3"/><stop offset="1" stop-color="#6b7280" stop-opacity=".04"/></linearGradient>
     <clipPath id="ourc"><rect x="${X(0)}" y="${Y(0)}" width="270" height="270"/></clipPath>
+    <clipPath id="oppc"><rect x="${X(0)}" y="${Y(-9)}" width="270" height="270"/></clipPath>
     <clipPath id="bc"><circle r="10"/></clipPath>
   </defs>`;
   el("rect",{x:X(0),y:Y(-9),width:270,height:270,fill:"var(--opp)",stroke:"var(--cline)","stroke-width":2.5},svg);
@@ -341,10 +377,14 @@ function drawStatic(){
   el("line",{x1:X(0),y1:Y(-3),x2:X(9),y2:Y(-3),stroke:"var(--cline)","stroke-width":1.5},svg);
   el("line",{x1:X(0),y1:Y(3),x2:X(9),y2:Y(3),stroke:"var(--cline)","stroke-width":1.5},svg);
   el("line",{x1:X(-0.6),y1:Y(0),x2:X(9.6),y2:Y(0),stroke:"var(--cline)","stroke-width":5},svg);
-  const t2 = el("text",{x:X(4.5),y:Y(8.6),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); t2.textContent = "我們";
+  G.ours = el("text",{x:X(4.5),y:Y(8.6),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); G.ours.textContent = "我們";
   G.fanG = el("g",{"clip-path":"url(#ourc)",opacity:0},svg);
   G.fan = el("polygon",{fill:"url(#fg)",stroke:"#6b7280","stroke-dasharray":"5 4","stroke-opacity":.7},G.fanG);
   G.fanT = el("text",{"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.fanG); G.fanT.textContent = "攔網擋住";
+  G.ofanG = el("g",{"clip-path":"url(#oppc)",opacity:0},svg);
+  el("polygon",{points:ofanPoly(false).map(p=>X(p[0])+","+Y(p[1])).join(" "),fill:"url(#fg2)",stroke:"#6b7280","stroke-dasharray":"5 4","stroke-opacity":.7},G.ofanG);
+  const oft = el("text",{x:X(2.4),y:Y(-3.2),"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.ofanG); oft.textContent = "攔網擋住";
+  const ot = el("text",{x:X(4.5),y:Y(-8.4),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); ot.textContent = "對方"; G.theirs = ot;
   G.frames = el("g",{opacity:0},svg);
   const fr = (x0,y0,x1,y1,c) => el("rect",{x:X(x0),y:Y(y0),width:X(x1)-X(x0),height:Y(y1)-Y(y0),rx:6,fill:"none",stroke:c,"stroke-width":3},G.frames);
   const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c,stroke:"var(--court)","stroke-width":5,"paint-order":"stroke","stroke-linejoin":"round"},G.frames); e.textContent = t; };
@@ -352,7 +392,7 @@ function drawStatic(){
   [1.5,6.0].forEach(y=>{ fr(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab(0.3,y-0.92,"左右關係","var(--lr)","start"); });
   G.ghost = el("g",{},svg);
   G.trail = el("g",{},svg);
-  G.pick = el("g",{},svg);
+  G.tapR = el("rect",{rx:10,fill:"var(--acc)","fill-opacity":.1,stroke:"var(--acc)","stroke-width":3,"stroke-dasharray":"8 6",opacity:0,"pointer-events":"none"},svg);
   G.opp = {};
   ["o1","o2","o3","o4","o5","o6"].forEach(k=>{ const g = el("g",{},svg); el("circle",{r:13,fill:"#9ca3af",stroke:"var(--cline)","stroke-width":2},g); G.opp[k]=g; });
   G.srvT = el("text",{opacity:0},svg);
@@ -371,7 +411,7 @@ function drawStatic(){
   G.arrow = el("g",{id:"srv"},svg);
   el("rect",{x:-44,y:-4,width:88,height:48,fill:"transparent"},G.arrow);
   el("path",{d:"M-14 20 L14 20 L0 38 Z",fill:"#e5484d",stroke:"var(--cline)","stroke-width":2},G.arrow);
-  const at = el("text",{y:14,"text-anchor":"middle","font-size":16,"font-weight":800,fill:"var(--ink)"},G.arrow); at.textContent = "↔ 發球員";
+  const at = el("text",{y:14,"text-anchor":"middle","font-size":16,"font-weight":800,fill:"var(--ink)"},G.arrow); at.textContent = "發球員";
   // 操作提示：手指（左右滑＝可以拖；點一下＝點場上）
   const hand = g => { el("path",{d:"M0 0 C-3 0 -4 2 -4 4 L-4 20 L-8 16 C-10 14 -13 15 -12 18 L-4 30 C-2 34 2 36 6 36 L12 36 C18 36 21 32 21 26 L21 14 C21 11 17 11 17 14 L17 12 C17 9 13 9 13 12 L13 10 C13 7 9 7 9 10 L4 10 L4 4 C4 2 3 0 0 0 Z",fill:"#fff",stroke:"#111","stroke-width":1.8,"stroke-linejoin":"round"},g); };
   G.hintS = el("g",{class:"hint",opacity:0},svg); const hs = el("g",{class:"sw"},G.hintS); el("circle",{r:9,fill:"#e5484d","fill-opacity":.35},hs); hand(hs);
@@ -393,22 +433,36 @@ function drawStatic(){
   el("path",{d:"M-5 13 Q3 3 2 -13",stroke:"#f2c230","stroke-width":6.5,fill:"none"},bi);
   el("path",{d:"M-13 3 Q-2 -3 12 -9 M-5 13 Q3 3 2 -13",stroke:"#1f2a37","stroke-width":1.2,fill:"none"},bi);
   el("circle",{r:10,fill:"none",stroke:"#111","stroke-width":2},G.ball);
+  G.otag = el("g",{class:"tag",opacity:0},svg); el("rect",{rx:6,height:20,y:-36},G.otag); el("text",{"text-anchor":"middle",y:-21},G.otag);
   G.bad = el("g",{},svg);
+  // 要點場上的時候：大字提示＋一直點的手指（放在最上層，不擋點擊）
+  G.tapT = el("text",{"text-anchor":"middle","font-size":19,"font-weight":900,fill:"var(--acc)",stroke:"var(--card)","stroke-width":6,"paint-order":"stroke","stroke-linejoin":"round",opacity:0,"pointer-events":"none"},svg);
+  svg.appendChild(G.hintT); svg.appendChild(G.hintS);
 }
 const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 function lerp(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]; }
 function setBall(p, h){ G.shadow.setAttribute("cx",X(p[0])); G.shadow.setAttribute("cy",Y(p[1])); G.ball.setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])-h*14}) scale(${1+h*0.16})`); }
+const VB_OUR = 235, VB_OPP = 24;
+const TAPS = {serve:{y0:0,y1:9,txt:"點一下：發球落在哪裡"}, attack:{y0:-9,y1:0,txt:"點一下：要打哪裡"}, def:{y0:0,y1:9,txt:"點一下：對方打哪裡"}};
 function paint(){
   const st = S.steps, i = S.step, cur = st[i], prev = st[Math.max(0,i-1)], t = i===0 ? 1 : S.t, e = ease(t);
   const pos = S.prac && S.prac.pos ? S.prac.pos : null;
-  // 畫面遠近：發球前看整個球場，發球飛過來時拉近到我們這邊
-  // 發球員的三角形：畫在對方場地上方，可以左右拖
+  // 鏡頭：我們攻擊的時候移到對方那邊（大小不變，只是往上移）
+  const cam = pos ? 0 : (i===0 ? cur.cam : (prev.cam||0) + ((cur.cam||0)-(prev.cam||0))*e);
+  svg.setAttribute("viewBox", `0 ${(VB_OUR + (VB_OPP-VB_OUR)*cam).toFixed(1)} 330 368`);
+  // 發球員的三角形
   const showArrow = pos ? S.prac.stage==="recv" : !!cur.arrow;
   G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-2.55)})`); G.arrow.setAttribute("opacity", showArrow?1:0);
   G.cut.setAttribute("opacity", showArrow?1:0);
-  const hS = !pos && !S.playing && i===1 && !S.land && !HINT.srv, hT = chooseKind()==="serve" && !HINT.tap && !(S.prac);
+  // 要點場上：框出那半場、寫大字、手指一直點
+  const kind = chooseKind(), tp = TAPS[kind];
+  G.tapR.setAttribute("opacity", tp?1:0); G.tapT.setAttribute("opacity", tp?1:0);
+  if(tp){ G.tapR.setAttribute("x",X(0)+4); G.tapR.setAttribute("width",262); G.tapR.setAttribute("y",Y(tp.y0)+4); G.tapR.setAttribute("height",Y(tp.y1)-Y(tp.y0)-8);
+    G.tapT.textContent = tp.txt; G.tapT.setAttribute("x",X(4.5)); G.tapT.setAttribute("y",Y(tp.y0<0 ? -8.0 : 8.55)); }
+  G.ours.setAttribute("opacity", tp && tp.y0>=0 ? 0 : .8); G.theirs.setAttribute("opacity", tp && tp.y0<0 ? 0 : .8);
+  const hS = !pos && !S.playing && i===1 && !S.land && !HINT.srv, hT = !!tp;
   G.hintS.setAttribute("opacity", hS?1:0); G.hintS.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-2.55)+30})`);
-  G.hintT.setAttribute("opacity", hT?1:0); G.hintT.setAttribute("transform",`translate(${X(4.6)} ${Y(3.9)})`);
+  G.hintT.setAttribute("opacity", hT?1:0); if(tp) G.hintT.setAttribute("transform",`translate(${X(4.5)} ${Y((tp.y0+tp.y1)/2+0.2)})`);
   HINT.on = hS || hT; if(HINT.on) hintLoop();
   for(const k in G.opp) G.opp[k].setAttribute("opacity", i<=2 && !pos ? 0 : (pos && S.prac.stage==="recv" ? 0 : 1));
   const boxes = [];
@@ -426,7 +480,12 @@ function paint(){
       boxes.push(pick[2]);
       tg.setAttribute("transform",`translate(${pick[0]} ${py+pick[1]})`); }
   });
-  for(const k in G.opp){ const p = lerp(prev.opp[k], cur.opp[k], e); G.opp[k].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); if(k==="o1"){ G.srvT.setAttribute("x",X(p[0])); G.srvT.setAttribute("y",Y(p[1])-18); G.srvT.setAttribute("opacity", (i<=1 && !pos) || (pos&&S.prac.stage==="recv") ? 1 : 0); } }
+  for(const k in G.opp){ const p = lerp(prev.opp[k], cur.opp[k], e); G.opp[k].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); }
+  // 對方被打到的那個人的標籤
+  const ot = !pos && t>=0.98 && cur.otag;
+  G.otag.setAttribute("opacity", ot?1:0);
+  if(ot){ const p = cur.opp[ot[0]], w = 14*ot[1].length+12; G.otag.querySelector("rect").setAttribute("width",w); G.otag.querySelector("rect").setAttribute("x",-w/2); G.otag.querySelector("text").textContent = ot[1];
+    G.otag.setAttribute("transform",`translate(${Math.min(Math.max(X(p[0]), w/2+2), 328-w/2)} ${Y(p[1])})`); }
   const bp = i===0 ? cur.ball : lerp(prev.ball, cur.ball, t), h = (i===0?0:cur.ballH)*Math.sin(Math.PI*t);
   setBall(bp, h);
   const showBall = !(pos && S.prac.stage==="def");
@@ -436,6 +495,7 @@ function paint(){
   G.fan.setAttribute("points", fp.map(p=>X(p[0])+","+Y(p[1])).join(" "));
   G.fanT.setAttribute("x", X((fp[0][0]+fp[1][0]+fp[2][0]+fp[3][0])/4 - 0.3)); G.fanT.setAttribute("y", Y(3.4));
   G.fanG.setAttribute("opacity", fo);
+  G.ofanG.setAttribute("opacity", pos ? 0 : (cur.ofan ? (prev.ofan?1:e) : (prev.ofan && i>0 ? 1-e : 0)));
   G.frames.setAttribute("opacity", (pos && S.prac.stage==="recv") || (!pos && cur.frames) ? 1 : 0);
   G.trail.innerHTML = "";
   if(!pos && i>0 && t>=0.98 && cur.trail){
@@ -443,13 +503,10 @@ function paint(){
       el("line",{x1:X(a[0]),y1:Y(a[1]),x2:X(b[0]),y2:Y(b[1]),stroke:"var(--ink)","stroke-width":2,"stroke-dasharray":"5 4",opacity:.7},G.trail);
       el("circle",{cx:X(a[0]),cy:Y(a[1]),r:4,fill:"var(--ink)",opacity:.5},G.trail); } });
   }
-  // 選對方打哪裡：在我們場上畫可以點的提示
-  G.pick.innerHTML = "";
-  if(chooseKind()==="def"){ SHOTS.forEach(([n,p])=>{ el("circle",{cx:X(p[0]),cy:Y(p[1]),r:7,fill:"none",stroke:"var(--ink)","stroke-width":1.5,"stroke-dasharray":"3 3",opacity:.6},G.pick); }); }
   if(!pos && i<=2 && !(i===2 && t<1)){ G.ball.setAttribute("opacity",0); G.shadow.setAttribute("opacity",0); }
   svg.classList.toggle("drag", !!pos || (i<=2 && !S.playing && !S.land) || choosing());
 }
-const chooseKind = () => (S.prac || S.playing || S.t<1) ? "" : (S.step===2 && !S.land) ? "serve" : (S.step===8 && !S.dland) ? "def" : "";
+const chooseKind = () => (S.prac || S.playing || S.t<1) ? "" : (S.step===2 && !S.land) ? "serve" : (S.step===5 && !S.aland) ? "attack" : (S.step===8 && !S.dland) ? "def" : "";
 const choosing = () => chooseKind()!=="";
 
 /* ===================== 說明和按鈕 ===================== */
@@ -458,32 +515,34 @@ function btn(label, act, o={}){ return `<button class="btn${o.cls?" "+o.cls:""}"
 let lastOpt = "";
 function render(){
   $("rotSeg").innerHTML = ROT.map((r,k)=>btn((k===S.rot?"✓ ":"")+r.seg, "rot:"+k, {pressed:k===S.rot})).join("");
-  // 第二排按鈕：前半段在 4 號位那輪選攔中跑法，後半段選誰攔網
-  const os = $("optSeg"), def = S.prac ? S.prac.stage==="def" : S.step>=7;
+  // 第二排按鈕：看現在在哪一段（4 號位那輪的攔中跑法／對方有沒有攔網／我們誰攔網）
+  const os = $("optSeg"), def = S.prac ? S.prac.stage==="def" : S.step>=7, atk = !S.prac && (S.step===5 || S.step===6);
   let html = "", lab = "";
-  if(def){ lab = "誰攔網"; html = Object.keys(BLOCK).map(k=>btn((S.blk===k?"✓ ":"")+BLOCK[k].seg, "blk:"+k, {pressed:S.blk===k})).join(""); }
+  if(atk){ lab = "對方有沒有攔網"; html = btn((S.oblk==="yes"?"✓ ":"")+"對方有攔網","oblk:yes",{pressed:S.oblk==="yes"}) + btn((S.oblk==="no"?"✓ ":"")+"對方沒攔網","oblk:no",{pressed:S.oblk==="no"}); }
+  else if(def){ lab = "誰攔網"; html = Object.keys(BLOCK).map(k=>btn((S.blk===k?"✓ ":"")+BLOCK[k].seg, "blk:"+k, {pressed:S.blk===k})).join(""); }
   else if(ROT[S.rot].key==="r4" && !(S.prac && S.prac.stage==="recv")){ lab = "這一輪的攔中"; html = btn((S.ver==="in"?"✓ ":"")+"攔中跑進中間","ver:in",{pressed:S.ver==="in"}) + btn((S.ver==="out"?"✓ ":"")+"攔中先留外面","ver:out",{pressed:S.ver==="out"}); }
-  const key = lab ? "on" : "";
   os.innerHTML = html; os.setAttribute("aria-label", lab); os.hidden = !html;
-  if(key !== lastOpt){ lastOpt = key; requestAnimationFrame(fit); }
-  const n = S.steps.length, cur = S.steps[S.step];
+  const n = S.steps.length, cur = S.steps[S.step], kind = chooseKind();
+  const head = `<div class="no">第 ${S.step+1}／${n} 步</div><div class="do">${cur.title}</div>${cur.cap?`<div class="cs">${cur.cap}</div>`:""}`;
   if(S.prac){
     const P = S.prac;
-    $("cap").innerHTML = `<div class="no">換你擺｜${P.stage==="recv"?"接發球站位":"防守站位"}</div>${P.msg||""}`;
+    $("cap").innerHTML = `<div class="no">換你擺</div><div class="do">${P.stage==="recv"?"拖人擺好接發球站位，再按檢查":"拖人擺好防守站位，再按檢查"}</div><div class="cs">${P.msg||""}</div>`;
     $("ctl").innerHTML = btn("檢查","pchk",{cls:"pri"}) + btn("看答案","pans") + btn(P.stage==="recv"?"繼續 ›":"看後面 ›","pnext") + btn("結束練習","pend");
-  } else if(chooseKind()==="serve"){
-    $("cap").innerHTML = `<div class="no">第 ${S.step+1}／${n} 步｜站好了，發球會落在哪裡？</div><p><b>點我們的場上</b>，選發球會落在哪裡，就會播誰去接、誰補位。</p><p style="margin-top:4px">${cur.cap}</p>`;
-    $("ctl").innerHTML = btn("‹ 上一步","prev",{aria:"上一步"}) + btn("隨便發一球","rand",{cls:"pri"}) + btn("換你擺","prac");
-  } else if(chooseKind()==="def"){
-    $("cap").innerHTML = `<div class="no">第 ${S.step+1}／${n} 步｜對方要攻擊了</div><p><b>對方會打哪裡？</b>直接點我們的場上，或按下面的路線。</p><p style="margin-top:4px">${cur.cap}</p>`;
-    $("ctl").innerHTML = SHOTS.map(([nn],k)=>btn(nn,"shot:"+k)).join("") + btn("‹ 上一步","prev",{aria:"上一步"});
+  } else if(kind){
+    $("cap").innerHTML = head;
+    $("ctl").innerHTML = btn("‹ 上一步","prev",{aria:"上一步"}) + (kind==="serve" ? btn("隨便發一球","rand",{cls:"pri"}) + btn("換你擺","prac")
+      : kind==="attack" ? btn("換發球落點","reland") + btn("隨便打一球","randA",{cls:"pri"})
+      : btn("換個地方攻擊","reatk") + btn("隨便打一球","randD",{cls:"pri"}));
   } else {
-    $("cap").innerHTML = `<div class="no">第 ${S.step+1}／${n} 步｜${cur.title}</div>${cur.cap}`;
+    $("cap").innerHTML = head;
     const last = S.step===n-1;
-    if(S.step<=1){ $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.step===0?"下一步 ›":"決定好了 ›","next",{cls:"pri"}) + btn("換你擺","prac"); paint(); return; }
-    $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.playing?"❚❚ 暫停":(last?"再一球":"▶ 播放"),"play",{cls:"pri play"}) + btn("下一步 ›","next",{dis:last,aria:"下一步"})
-      + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow}) + (last ? btn("再發一球","reserve") : btn("換你擺","prac"));
+    if(S.step<=1){ $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.step===0?"下一步 ›":"決定好了 ›","next",{cls:"pri"}) + btn("換你擺","prac"); fitLater(); paint(); return; }
+    // 看完一球：可以直接回去換個地方
+    const redo = S.playing ? "" : (S.step>=9 ? btn("換個地方打","redef",{cls:last?"pri":""}) : S.step>=6 ? btn("換個地方打","reatk",{cls:cur.blocked?"pri":""}) : S.step>=3 ? btn("換發球落點","reland") : "");
+    const main = last ? btn("再發一球","reserve") : btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:(cur.blocked||S.playing)?"play":"pri play"});
+    $("ctl").innerHTML = btn("‹ 上一步","prev",{aria:"上一步"}) + main + (last ? "" : btn("下一步 ›","next",{aria:"下一步"})) + redo + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow});
   }
+  fitLater();
   paint();
 }
 
@@ -504,24 +563,28 @@ function playFrom(i){
     if(!S.playing) return;
     if(S.waitDef===k){ S.waitDef = 0; S.playing=false; startPrac("def"); return; }
     animTo(k, ()=>{
-      if(k>=S.steps.length-1 || k===1 || (k===2 && !S.land) || (k===8 && !S.dland)){ S.playing=false; render(); return; }   // 停下來選發球落點、對方打哪裡
+      // 停下來：拖發球員、選發球落點、選要打哪裡、被攔、選對方打哪裡、最後一步
+      if(k>=S.steps.length-1 || k===1 || (k===2 && !S.land) || (k===5 && !S.aland) || (k===6 && S.steps[6].blocked) || (k===8 && !S.dland)){ S.playing=false; render(); return; }
       holdTimer = setTimeout(()=>go(k+1), S.slow?1400:800); });
   };
   go(i);
 }
 function rebuild(keepStep){ const s = S.step; S.steps = build(); S.step = keepStep ? Math.min(s, S.steps.length-1) : 0; S.t = 1; render(); }
+function goStep(i){ stopPlay(); S.steps = build(); S.step = i; S.t = 1; render(); }
 function pickShot(L, name){ S.dland = L; S.shot = name||""; S.steps = build(); S.step = 8; S.t = 1; playFrom(9); }
-function pickServe(L){ S.land = L; S.dland = null; S.shot = ""; S.steps = build(); S.step = 2; S.t = 1; playFrom(3); }
+function pickAttack(L){ S.aland = L; S.dland = null; S.shot = ""; S.steps = build(); S.step = 5; S.t = 1; playFrom(6); }
+function pickServe(L){ S.land = L; S.aland = null; S.dland = null; S.shot = ""; S.steps = build(); S.step = 2; S.t = 1; playFrom(3); }
 function randServe(){ return [0.8+Math.random()*7.4, 3.6+Math.random()*4.9]; }
-function oneMore(){ stopPlay(); S.dland = null; S.shot = ""; S.steps = build(); S.step = 8; S.t = 1; render(); }
-function reServe(){ stopPlay(); S.land = null; S.dland = null; S.shot = ""; S.steps = build(); S.step = 1; S.t = 1; render(); }
+function randOpp(){ return [0.6+Math.random()*7.8, -1.2-Math.random()*7.4]; }
+function randOur(){ return [0.6+Math.random()*7.8, 1.0+Math.random()*7.6]; }
+function reServe(){ stopPlay(); S.land = null; S.aland = null; S.dland = null; S.shot = ""; goStep(1); }
 
 /* ===================== 換你擺 ===================== */
 function startPrac(stage){
   stopPlay();
   const st = S.steps;
-  if(stage==="recv"){ S.land = null; S.dland = null; S.steps = build(); S.step = 2; S.prac = {stage, pos:cp(S.steps[0].pos), msg:`從號位圖開始，把每個人<b>拖到接發球的位置</b>，再按「檢查」。<br>記得：前後框、左右框的順序不能顛倒。`}; }
-  else { S.step = 8; S.prac = {stage, pos:cp(st[7].pos), msg:`對方要從我們的<b>右邊</b>攻擊了（上面可以選誰攔網）。把人拖到防守的位置，擺好按「檢查」。`}; }
+  if(stage==="recv"){ S.land = null; S.aland = null; S.dland = null; S.steps = build(); S.step = 2; S.prac = {stage, pos:cp(S.steps[0].pos), msg:`從號位圖開始拖；前後框、左右框的順序不能顛倒。`}; }
+  else { S.step = 8; S.prac = {stage, pos:cp(st[7].pos), msg:`對方要從我們的右邊攻擊（上面可以選誰攔網）。`}; }
   G.ghost.innerHTML = ""; G.bad.innerHTML = ""; markBad([]);
   render();
 }
@@ -534,6 +597,7 @@ function check(){
     FB.forEach(([f,b])=>{ const a = at[f], c = at[b]; if(pos[a][1] + 0.15 > pos[c][1]){ bad.push(a,c); msgs.push(`<span class="bad">站位犯規：${nm(a)}（${f} 號位）要站在${nm(c)}（${b} 號位）的前面。</span>`); line(pos[a],pos[c]); } });
     LR.forEach(([l,r2])=>{ const a = at[l], c = at[r2]; if(pos[a][0] + 0.15 > pos[c][0]){ bad.push(a,c); msgs.push(`<span class="bad">站位犯規：${nm(a)}（${l} 號位）要站在${nm(c)}（${r2} 號位）的左邊。</span>`); line(pos[a],pos[c]); } });
     if(!msgs.length) msgs.push("✓ 沒有站位犯規。");
+    msgs.push("圓圈只是示意，比賽時看的是<b>腳踩的位置</b>。");
     ["FS","FM"].forEach(r=>{ if(pos[r][1] > 3.2) msgs.push(`${nm(r)}不接發球，要靠網子躲好。`); });
     PASSERS.forEach(r=>{ if(dist(pos[r], S.steps[2].pos[r]) > 1.6) msgs.push(`${nm(r)}跟隊上的站法差比較多，按「看答案」對照一下。`); });
   } else {
@@ -568,7 +632,9 @@ svg.addEventListener("pointerdown", ev=>{
   const pl = ev.target.closest(".pl"), isBall = !!ev.target.closest("#ball"), isSrv = ev.target.closest("#srv");
   if(S.prac && S.prac.pos && pl) drag = {k:"pl", r:pl.dataset.r};
   else if(!S.playing && S.step<=2 && !S.land && isSrv && (!S.prac || S.prac.stage==="recv")) drag = {k:"srv"};
-  else if(choosing()){ const [x,y] = svgPt(ev); if(x>-0.2 && x<9.2 && y>0.2 && y<9.2){ if(chooseKind()==="serve"){ hintDone("tap"); pickServe(clampP([x,Math.max(1.5,y)])); } else pickShot(clampP([x,y]), ""); } return; }
+  else if(choosing()){ const [x,y] = svgPt(ev), k = chooseKind(); if(x<-0.2 || x>9.2) return;
+    if(k==="attack"){ if(y < -0.1 && y > -9.2) pickAttack([Math.max(0.3,Math.min(8.7,x)), Math.max(-8.7,Math.min(-0.5,y))]); return; }
+    if(y>0.2 && y<9.2){ if(k==="serve") pickServe(clampP([x,Math.max(1.5,y)])); else pickShot(clampP([x,y]), ""); } return; }
   if(drag){ if(drag.k==="srv"){ hintDone("srv"); paint(); } svg.setPointerCapture(ev.pointerId); ev.preventDefault(); }
 });
 svg.addEventListener("pointermove", ev=>{
@@ -584,16 +650,20 @@ svg.addEventListener("pointercancel", ()=>{ drag = null; });
 document.addEventListener("click", ev=>{
   const b = ev.target.closest("[data-a]"); if(!b || b.disabled) return;
   const [a,v] = b.dataset.a.split(":");
-  if(a==="rot"){ stopPlay(); S.prac=null; S.rot = +v; S.land = null; S.dland = null; saveUI(); rebuild(); }
+  if(a==="rot"){ stopPlay(); S.prac=null; S.rot = +v; S.land = null; S.aland = null; S.dland = null; saveUI(); rebuild(); }
   if(a==="rand") pickServe(randServe());
+  if(a==="randA") pickAttack(randOpp());
+  if(a==="randD") pickShot(randOur(), "");
+  if(a==="reland"){ S.land = null; S.aland = null; S.dland = null; goStep(2); }
+  if(a==="reatk"){ S.aland = null; S.dland = null; goStep(5); }
+  if(a==="redef"){ S.dland = null; S.shot = ""; goStep(8); }
+  if(a==="oblk"){ S.oblk = v; saveUI(); S.aland = null; S.dland = null; goStep(5); }
   if(a==="reserve") reServe();
   if(a==="ver"){ stopPlay(); S.prac=null; S.ver = v; saveUI(); rebuild(true); }
   if(a==="blk"){ const keep = S.prac; stopPlay(); S.blk = v; saveUI(); if(keep && keep.stage==="def"){ S.prac = keep; S.steps = build(); G.ghost.innerHTML=""; G.bad.innerHTML=""; markBad([]); render(); } else { S.prac = null; S.dland = null; S.shot = ""; S.steps = build(); S.step = Math.min(S.step,8); S.t = 1; render(); } }
-  if(a==="prev"){ stopPlay(); if(S.step===9){ S.dland = null; S.shot = ""; S.steps = build(); } if(S.step===3){ S.land = null; S.steps = build(); } S.step = Math.max(0,S.step-1); S.t = 1; render(); }
-  if(a==="next"){ stopPlay(); if(S.step===2 && !S.land){ pickServe(ROT[S.rot].land.slice()); return; } if(S.step===8 && !S.dland){ pickShot(SHOTS[2][1], SHOTS[2][0]); return; } animTo(Math.min(S.steps.length-1,S.step+1)); }
-  if(a==="play"){ if(S.playing){ stopPlay(); render(); } else if(S.step===S.steps.length-1) oneMore(); else playFrom(S.step+1); }
-  if(a==="restart"){ stopPlay(); S.land = null; S.dland = null; S.shot = ""; rebuild(); }
-  if(a==="shot"){ const [nn,p] = SHOTS[+v]; pickShot(p.slice(), nn); }
+  if(a==="prev"){ stopPlay(); if(S.step===9){ S.dland = null; S.shot = ""; } if(S.step===6){ S.aland = null; S.dland = null; } if(S.step===3){ S.land = null; S.aland = null; S.dland = null; } goStep(Math.max(0,S.step-1)); }
+  if(a==="next"){ stopPlay(); if(S.step===2 && !S.land){ pickServe(ROT[S.rot].land.slice()); return; } if(S.step===5 && !S.aland){ pickAttack([5.6,-4.6]); return; } if(S.step===8 && !S.dland){ pickShot(SHOTS[2][1], SHOTS[2][0]); return; } animTo(Math.min(S.steps.length-1,S.step+1)); }
+  if(a==="play"){ if(S.playing){ stopPlay(); render(); } else playFrom(S.step+1); }
   if(a==="slow"){ S.slow = !S.slow; saveUI(); render(); }
   if(a==="prac") startPrac("recv");
   if(a==="pchk") check();
@@ -604,7 +674,15 @@ document.addEventListener("click", ev=>{
 $("helpBtn").onclick = $("help2").onclick = () => $("help").showModal();
 document.addEventListener("keydown", ev=>{ if($("help").open) return; if(ev.key==="ArrowRight") document.querySelector('[data-a="next"]')?.click(); if(ev.key==="ArrowLeft") document.querySelector('[data-a="prev"]')?.click(); });
 
-function fit(){ const m = document.querySelector(".main"); document.documentElement.style.setProperty("--top", Math.round(m.getBoundingClientRect().top + scrollY) + "px"); }
+// 版面：直的時候，球場高度＝螢幕剩下的高度（扣掉說明和按鈕），說明字多時球場自動縮小，不用上下滑
+function fit(){
+  const m = document.querySelector(".main"); document.documentElement.style.setProperty("--top", Math.round(m.getBoundingClientRect().top + scrollY) + "px");
+  const c = $("court"), row = getComputedStyle(m).flexDirection === "row";
+  if(row){ c.style.maxHeight = ""; return; }
+  const top = c.getBoundingClientRect().top + scrollY, h = innerHeight - top - $("cap").offsetHeight - $("ctl").offsetHeight - 40;
+  c.style.maxHeight = Math.max(170, Math.round(h)) + "px";
+}
+let fitQ = 0; function fitLater(){ if(fitQ) return; fitQ = requestAnimationFrame(()=>{ fitQ = 0; fit(); }); }
 addEventListener("resize", fit);
 drawStatic(); rebuild(); fit();
 if(navigator.webdriver) window.addEventListener("error", e=>{ document.title = "ERROR: " + e.message; });

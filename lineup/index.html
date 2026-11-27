@@ -52,10 +52,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 @keyframes swipe{0%,100%{transform:translateX(-38px)}50%{transform:translateX(38px)}}
 @keyframes tapk{0%,100%{transform:scale(1)}50%{transform:scale(.82)}}
 @keyframes ring{0%{r:6;opacity:.9}100%{r:26;opacity:0}}
-.hint .sw{animation:swipe 1.8s ease-in-out 3}
-.hint .tp{animation:tapk 1s ease-in-out 4}
-.hint .rg{animation:ring 1s ease-out 4}
-@media (prefers-reduced-motion:reduce){.hint .sw,.hint .tp,.hint .rg{animation:none}}
+
 .drag .pl,.drag #srv{cursor:grab}
 dialog{margin:auto;border:none;border-radius:16px;padding:16px 18px;max-width:min(440px,92vw);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
@@ -118,7 +115,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.4";
+const VERSION = "2026.11.27.5";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -170,6 +167,22 @@ function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({rot:
 
 const HINT = {srv:false, tap:false};
 try{ HINT.srv = localStorage.getItem("vblineup-hint-srv")==="1"; HINT.tap = localStorage.getItem("vblineup-hint-tap")==="1"; }catch(e){}
+// 手指一直動：左右滑（可以拖）、一直點（點這裡）；真的操作過一次就不再出現
+let hintRaf = 0;
+function hintLoop(){
+  if(hintRaf) return;
+  const sw = G.hintS.querySelector(".sw"), tp = G.hintT.querySelector(".tp"), rg = G.hintT.querySelector(".rg");
+  const f = now => {
+    if(!HINT.on){ hintRaf = 0; return; }
+    const a = (now % 1800) / 1800, b = (now % 1100) / 1100;
+    sw.setAttribute("transform", `translate(${(38*Math.sin(a*2*Math.PI)).toFixed(1)} 0)`);
+    const press = b < .3 ? b/.3 : b < .55 ? 1 : 1 - (b-.55)/.45;
+    tp.setAttribute("transform", `translate(0 ${(4*press).toFixed(1)}) scale(${(1-0.12*press).toFixed(3)})`);
+    rg.setAttribute("r", (6 + 22*b).toFixed(1)); rg.setAttribute("opacity", (b<.25 ? 0 : 1-(b-.25)/.75).toFixed(2));
+    hintRaf = requestAnimationFrame(f);
+  };
+  hintRaf = requestAnimationFrame(f);
+}
 function hintDone(k){ if(HINT[k]) return; HINT[k] = true; try{ localStorage.setItem("vblineup-hint-"+k,"1"); }catch(e){} }
 const cp = o => JSON.parse(JSON.stringify(o));
 const dist = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
@@ -248,7 +261,7 @@ function build(){
     cap:`照輪轉的號位站成兩排。<b>前後框</b>裡的兩個人不能前後顛倒，<b>左右框</b>裡的人不能左右顛倒；等一下怎麼移動，都不能破壞這個順序。後排攔中換成<b>自由</b>。`};
   steps.push(s0);
   add(s0, {pos:{}, trail:false, title:"發球員在哪裡", arrow:true,
-    cap:`先看對方的<b>發球員站在哪裡</b>：按住上面的<b>紅色三角形</b>左右拖，換發球員的位置。好了按「下一步」。`});
+    cap:`先看對方的<b>發球員站在哪裡</b>：按住上面的<b>紅色三角形</b>左右拖，換發球員的位置。好了按「站好了」。`});
   const s1 = add(steps[1], {pos:recv, title:"接發球站位", tags:{FS:"不接",FM:"不接"}, arrow:true,
     cap:`四個人接（前排大砲、後排大砲、後排舉球員、自由）；前排的<b>舉球員和攔中不接</b>，靠網子躲好。${side==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${side}，大家一起往${side}<b>移一點</b>（約半步），身體轉向發球員。`}`});
   const passer = nearest(PASSERS, land, s1.pos);
@@ -377,9 +390,10 @@ function paint(){
   // 發球員的三角形：畫在對方場地上方，可以左右拖
   const showArrow = pos ? S.prac.stage==="recv" : !!cur.arrow;
   G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-1.5)})`); G.arrow.setAttribute("opacity", showArrow?1:0);
-  const hS = !pos && !S.playing && i===1 && !S.land && !HINT.srv, hT = chooseKind()==="serve" && !HINT.tap && !(S.prac);
+  const hS = !pos && !S.playing && i<=1 && !S.land && !HINT.srv, hT = chooseKind()==="serve" && !HINT.tap && !(S.prac);
   G.hintS.setAttribute("opacity", hS?1:0); G.hintS.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-1.5)+30})`);
   G.hintT.setAttribute("opacity", hT?1:0); G.hintT.setAttribute("transform",`translate(${X(4.6)} ${Y(3.9)})`);
+  HINT.on = hS || hT; if(HINT.on) hintLoop();
   for(const k in G.opp) G.opp[k].setAttribute("opacity", i<=2 && !pos ? 0 : (pos && S.prac.stage==="recv" ? 0 : 1));
   const boxes = [];
   ROLES.forEach(r=>{ const p = pos ? pos[r] : lerp(prev.pos[r], cur.pos[r], e); G.pl[r].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-21,Y(p[1])-21,X(p[0])+21,Y(p[1])+21]); });
@@ -450,6 +464,7 @@ function render(){
   } else {
     $("cap").innerHTML = `<div class="no">第 ${S.step+1}／${n} 步｜${cur.title}</div>${cur.cap}`;
     const last = S.step===n-1;
+    if(S.step<=1){ $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.step===0?"下一步 ›":"站好了 ›","next",{cls:"pri"}) + btn("換你擺","prac"); paint(); return; }
     $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.playing?"❚❚ 暫停":(last?"再一球":"▶ 播放"),"play",{cls:"pri play"}) + btn("下一步 ›","next",{dis:last,aria:"下一步"})
       + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow}) + (last ? btn("再發一球","reserve") : btn("換你擺","prac"));
   }

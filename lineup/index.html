@@ -117,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.8";
+const VERSION = "2026.11.27.9";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -180,7 +180,7 @@ function oresolve(L){
 const SHOTS = [["直線",[8.3,5.2]],["小斜線",[1.0,2.3]],["斜線",[1.5,5.6]],["對角深",[1.2,8.2]],["後中",[4.6,7.9]],["吊球",[6.8,2.1]]];
 
 /* ===================== 狀態 ===================== */
-const S = {rot:0, ver:"in", blk:"M", oblk:"yes", aland:null, step:0, t:1, playing:false, slow:false, land:null, srvX:7.5, dland:null, shot:"", prac:null, waitDef:0, steps:[]};
+const S = {rel:"fb", rot:0, ver:"in", blk:"M", oblk:"yes", aland:null, step:0, t:1, playing:false, slow:false, land:null, srvX:7.5, dland:null, shot:"", prac:null, waitDef:0, steps:[]};
 try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver) S.ver=o.ver; if(BLOCK[o.blk]) S.blk=o.blk; if(OD[o.oblk]) S.oblk=o.oblk; if(o.slow) S.slow=true; }catch(e){}
 function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({rot:S.rot,ver:S.ver,blk:S.blk,oblk:S.oblk,slow:S.slow})); }catch(e){} }
 
@@ -277,8 +277,10 @@ function build(){
   const add = (prev, ch) => { const s = cp(prev); Object.assign(s, {tags:{}, trail:true, fan:false, ofan:false, frames:false, cap:"", ballH:0, arrow:false, cam:0, otag:null, blocked:false}, ch); s.pos = Object.assign(cp(prev.pos), ch.pos||{}); s.opp = Object.assign(cp(prev.opp), ch.opp||{}); steps.push(s); return s; };
 
   // 0 號位
-  steps.push({pos:P0, opp:O0, ball:top.slice(), ballH:0, tags:{}, trail:false, frames:true, fan:false, ofan:false, arrow:false, cam:0, otag:null, title:"看懂前後、左右關係",
-    cap:`<span class="fb">前後關係</span>：同一直排，前排要比後排更靠近網子。<br><span class="lr">左右關係</span>：同一橫排，左邊比中間靠左、右邊比中間靠右。<br>只在發球那一刻要遵守，看腳踩的位置；後排攔中換成自由。`});
+  const fbx = S.rel==="fb";
+  steps.push({pos:P0, opp:O0, ball:top.slice(), ballH:0, tags:{}, trail:false, frames:true, fan:false, ofan:false, arrow:false, cam:0, otag:null,
+    title: fbx ? `<span class="fb">前後關係</span>：前排要比後排更靠近網子` : `<span class="lr">左右關係</span>：左邊比中間靠左、右邊比中間靠右`,
+    cap: (fbx ? "藍框裡是同一直排的兩個人。" : "橘框裡是同一橫排的三個人。") + "只在發球那一刻要遵守，看的是腳踩的位置。"});
   // 1 發球員
   add(steps[0], {pos:{}, trail:false, arrow:true, title:"拖紅色三角形：對方發球員站哪裡",
     cap:`發球員在對方底線後面，中間的對方場地省略沒畫。`});
@@ -388,8 +390,11 @@ function drawStatic(){
   G.frames = el("g",{opacity:0},svg);
   const fr = (x0,y0,x1,y1,c) => el("rect",{x:X(x0),y:Y(y0),width:X(x1)-X(x0),height:Y(y1)-Y(y0),rx:6,fill:"none",stroke:c,"stroke-width":3},G.frames);
   const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c,stroke:"var(--court)","stroke-width":5,"paint-order":"stroke","stroke-linejoin":"round"},G.frames); e.textContent = t; };
-  [1.5,4.5,7.5].forEach(x=>{ fr(x-0.95,0.55,x+0.95,6.95,"var(--fb)"); lab(x,7.55,"前後關係","var(--fb)"); });
-  [1.5,6.0].forEach(y=>{ fr(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab(0.3,y-0.92,"左右關係","var(--lr)","start"); });
+  const gF = el("g",{},G.frames), gL = el("g",{},G.frames); G.frFB = gF; G.frLR = gL;
+  let tgt = gF; const fr2 = (...a)=>{ const r = fr(...a); tgt.appendChild(r); }, lab2 = (...a)=>{ lab(...a); tgt.appendChild(G.frames.lastChild); };
+  [1.5,4.5,7.5].forEach(x=>{ fr2(x-0.95,0.55,x+0.95,6.95,"var(--fb)"); lab2(x,7.55,"前後關係","var(--fb)"); });
+  tgt = gL;
+  [1.5,6.0].forEach(y=>{ fr2(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab2(0.3,y-0.92,"左右關係","var(--lr)","start"); });
   G.ghost = el("g",{},svg);
   G.trail = el("g",{},svg);
   G.tapR = el("rect",{rx:10,fill:"var(--acc)","fill-opacity":.1,stroke:"var(--acc)","stroke-width":3,"stroke-dasharray":"8 6",opacity:0,"pointer-events":"none"},svg);
@@ -497,6 +502,7 @@ function paint(){
   G.fanG.setAttribute("opacity", fo);
   G.ofanG.setAttribute("opacity", pos ? 0 : (cur.ofan ? (prev.ofan?1:e) : (prev.ofan && i>0 ? 1-e : 0)));
   G.frames.setAttribute("opacity", (pos && S.prac.stage==="recv") || (!pos && cur.frames) ? 1 : 0);
+  G.frFB.setAttribute("opacity", pos || S.rel==="fb" ? 1 : 0); G.frLR.setAttribute("opacity", pos || S.rel==="lr" ? 1 : 0);
   G.trail.innerHTML = "";
   if(!pos && i>0 && t>=0.98 && cur.trail){
     ROLES.forEach(r=>{ const a = prev.pos[r], b = cur.pos[r]; if(dist(a,b)>0.6){
@@ -518,7 +524,8 @@ function render(){
   // 第二排按鈕：看現在在哪一段（4 號位那輪的攔中跑法／對方有沒有攔網／我們誰攔網）
   const os = $("optSeg"), def = S.prac ? S.prac.stage==="def" : S.step>=7, atk = !S.prac && (S.step===5 || S.step===6);
   let html = "", lab = "";
-  if(atk){ lab = "對方有沒有攔網"; html = btn((S.oblk==="yes"?"✓ ":"")+"對方有攔網","oblk:yes",{pressed:S.oblk==="yes"}) + btn((S.oblk==="no"?"✓ ":"")+"對方沒攔網","oblk:no",{pressed:S.oblk==="no"}); }
+  if(!S.prac && S.step===0){ lab = "看哪一種關係"; html = btn((S.rel==="fb"?"✓ ":"")+"前後關係","rel:fb",{pressed:S.rel==="fb"}) + btn((S.rel==="lr"?"✓ ":"")+"左右關係","rel:lr",{pressed:S.rel==="lr"}); }
+  else if(atk){ lab = "對方有沒有攔網"; html = btn((S.oblk==="yes"?"✓ ":"")+"對方有攔網","oblk:yes",{pressed:S.oblk==="yes"}) + btn((S.oblk==="no"?"✓ ":"")+"對方沒攔網","oblk:no",{pressed:S.oblk==="no"}); }
   else if(def){ lab = "誰攔網"; html = Object.keys(BLOCK).map(k=>btn((S.blk===k?"✓ ":"")+BLOCK[k].seg, "blk:"+k, {pressed:S.blk===k})).join(""); }
   else if(ROT[S.rot].key==="r4" && !(S.prac && S.prac.stage==="recv")){ lab = "這一輪的攔中"; html = btn((S.ver==="in"?"✓ ":"")+"攔中跑進中間","ver:in",{pressed:S.ver==="in"}) + btn((S.ver==="out"?"✓ ":"")+"攔中先留外面","ver:out",{pressed:S.ver==="out"}); }
   os.innerHTML = html; os.setAttribute("aria-label", lab); os.hidden = !html;
@@ -651,6 +658,7 @@ document.addEventListener("click", ev=>{
   const b = ev.target.closest("[data-a]"); if(!b || b.disabled) return;
   const [a,v] = b.dataset.a.split(":");
   if(a==="rot"){ stopPlay(); S.prac=null; S.rot = +v; S.land = null; S.aland = null; S.dland = null; saveUI(); rebuild(); }
+  if(a==="rel"){ S.rel = v; S.steps = build(); render(); }
   if(a==="rand") pickServe(randServe());
   if(a==="randA") pickAttack(randOpp());
   if(a==="randD") pickShot(randOur(), "");

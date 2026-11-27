@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .lbl{font-size:13px;color:var(--ink2);font-weight:700;margin-bottom:2px}
 .main{display:flex;flex-direction:column;gap:8px}
 .courtbox{display:flex;justify-content:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px}
-#court{display:block;height:max(250px,calc(100dvh - 440px));width:auto;max-width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#court{display:block;width:100%;height:auto;max-height:max(250px,calc(100dvh - 440px));touch-action:none;user-select:none;-webkit-user-select:none}
 .side{display:flex;flex-direction:column;gap:8px}
 .cap{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:14px;padding:8px 12px;height:110px;overflow-y:auto;font-size:15px}
 .cap .no{font-size:13px;color:var(--ink2);font-weight:800}
@@ -45,9 +45,17 @@ button{font:inherit;color:inherit;cursor:pointer}
 .foot button{background:none;border:none;text-decoration:underline;min-height:44px;font-size:13px;color:var(--ink2)}
 .pl circle.b{stroke:var(--cline);stroke-width:3}
 .pl.bad circle.b{stroke:var(--bad);stroke-width:5}
-.pl text{font-weight:800;font-size:15px;fill:#111;pointer-events:none}
+.pl text{font-weight:800;font-size:17px;fill:#111;pointer-events:none}
 .tag rect{fill:var(--card);stroke:var(--cline);stroke-width:1.2}
-.tag text{font-size:13px;font-weight:800;fill:var(--ink)}
+.tag text{font-size:14px;font-weight:800;fill:var(--ink)}
+.hint{pointer-events:none}
+@keyframes swipe{0%,100%{transform:translateX(-38px)}50%{transform:translateX(38px)}}
+@keyframes tapk{0%,100%{transform:scale(1)}50%{transform:scale(.82)}}
+@keyframes ring{0%{r:6;opacity:.9}100%{r:26;opacity:0}}
+.hint .sw{animation:swipe 1.8s ease-in-out 3}
+.hint .tp{animation:tapk 1s ease-in-out 4}
+.hint .rg{animation:ring 1s ease-out 4}
+@media (prefers-reduced-motion:reduce){.hint .sw,.hint .tp,.hint .rg{animation:none}}
 .drag .pl,.drag #srv{cursor:grab}
 dialog{margin:auto;border:none;border-radius:16px;padding:16px 18px;max-width:min(440px,92vw);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
@@ -59,14 +67,14 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 @media (min-width:820px){
   .main{flex-direction:row;align-items:flex-start}
   .courtbox{flex:0 0 auto}
-  #court{height:min(calc(100dvh - var(--top,200px) - 26px),calc(48vw * 1.345));min-height:0}
+  #court{width:auto;height:min(calc(100dvh - var(--top,200px) - 26px),48vw);max-height:none;min-height:0}
   .side{flex:1;min-width:0}
   .cap{height:200px}
 }
 @media (max-height:520px) and (orientation:landscape){
   .main{flex-direction:row;align-items:flex-start}
   .courtbox{flex:0 0 auto}
-  #court{height:calc(100dvh - var(--top,180px) - 22px);min-height:0}
+  #court{width:auto;height:calc(100dvh - var(--top,180px) - 22px);max-height:none;min-height:0}
   .side{flex:1;min-width:0}
   .cap{height:92px}
   .app{padding-top:4px;padding-bottom:4px}
@@ -82,7 +90,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
   </div>
   <div class="seg" id="optSeg" role="group" hidden></div>
   <div class="main">
-    <div class="courtbox"><svg id="court" viewBox="0 168 330 444" role="img" aria-label="球場示意圖：下面是我們，上面是對方"></svg></div>
+    <div class="courtbox"><svg id="court" viewBox="0 255 330 348" role="img" aria-label="球場示意圖：下面是我們，上面是對方"></svg></div>
     <div class="side">
       <div class="cap" id="cap" role="status" aria-live="polite"></div>
       <div class="ctl" id="ctl"></div>
@@ -110,7 +118,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.3";
+const VERSION = "2026.11.27.4";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -137,7 +145,7 @@ const BASE = {FO:[1.6,1.7],FM:[4.5,0.85],FS:[7.4,1.7],BO:[1.5,5.7],BM:[4.5,7.4],
 const BZONE = {FO:4,FM:3,FS:2,BO:5,BM:6,BS:1};
 const A = [7.9,-1.0];                           // 對方 4 號位攻擊點（在我們的右邊）
 const V = [7.9,-4.5];                           // 畫攔網擋住範圍用的起點
-const OPP0 = {o2:[1.5,-1.5],o3:[4.5,-1.5],o4:[7.5,-1.5],o5:[4.5,-6],o6:[7.5,-6]};
+const OPP0 = {o2:[1.5,-1.0],o3:[4.5,-1.0],o4:[7.5,-1.0],o5:[4.5,-6],o6:[7.5,-6]};
 // 攔網：誰攔、其他人守哪裡（暫定，等教練確認）
 const BLOCK = {
   M:{seg:"攔中攔", bl:["FM"],
@@ -160,6 +168,9 @@ const S = {rot:0, ver:"in", blk:"M", step:0, t:1, playing:false, slow:false, lan
 try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver) S.ver=o.ver; if(BLOCK[o.blk]) S.blk=o.blk; if(o.slow) S.slow=true; }catch(e){}
 function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({rot:S.rot,ver:S.ver,blk:S.blk,slow:S.slow})); }catch(e){} }
 
+const HINT = {srv:false, tap:false};
+try{ HINT.srv = localStorage.getItem("vblineup-hint-srv")==="1"; HINT.tap = localStorage.getItem("vblineup-hint-tap")==="1"; }catch(e){}
+function hintDone(k){ if(HINT[k]) return; HINT[k] = true; try{ localStorage.setItem("vblineup-hint-"+k,"1"); }catch(e){} }
 const cp = o => JSON.parse(JSON.stringify(o));
 const dist = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
 const toward = (a,b,k) => [a[0]+(b[0]-a[0])*k, a[1]+(b[1]-a[1])*k];
@@ -225,7 +236,7 @@ function resolve(blk, L, shot){
 /* ===================== 一波的步驟 ===================== */
 function build(){
   const R = ROT[S.rot], B = R.key==="r4" && S.ver==="out", D = BLOCK[S.blk];
-  const land = S.land || R.land, srv = [S.srvX,-9.6], top = [S.srvX,-4.4];
+  const land = S.land || R.land, srv = [S.srvX,-9.6], top = [S.srvX,-1.2];
   const sh = Math.max(-0.45, Math.min(0.45, (S.srvX-4.5)*0.13)), side = S.srvX < 3 ? "左邊" : S.srvX > 6 ? "右邊" : "中間";
   const recv = {}; ROLES.forEach(r=>recv[r] = [Math.max(0.3,Math.min(8.7,R.recv[r][0]+sh)), R.recv[r][1]]);
   const P0 = {}; ROLES.forEach(r=>P0[r]=ZC[R.zone[r]].slice());
@@ -237,7 +248,7 @@ function build(){
     cap:`照輪轉的號位站成兩排。<b>前後框</b>裡的兩個人不能前後顛倒，<b>左右框</b>裡的人不能左右顛倒；等一下怎麼移動，都不能破壞這個順序。後排攔中換成<b>自由</b>。`};
   steps.push(s0);
   add(s0, {pos:{}, trail:false, title:"發球員在哪裡", arrow:true,
-    cap:`先看對方的<b>發球員站在哪裡</b>。可以拖上面的<b>紅色三角形</b>，換發球員的位置。`});
+    cap:`先看對方的<b>發球員站在哪裡</b>：按住上面的<b>紅色三角形</b>左右拖，換發球員的位置。好了按「下一步」。`});
   const s1 = add(steps[1], {pos:recv, title:"接發球站位", tags:{FS:"不接",FM:"不接"}, arrow:true,
     cap:`四個人接（前排大砲、後排大砲、後排舉球員、自由）；前排的<b>舉球員和攔中不接</b>，靠網子躲好。${side==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${side}，大家一起往${side}<b>移一點</b>（約半步），身體轉向發球員。`}`});
   const passer = nearest(PASSERS, land, s1.pos);
@@ -301,7 +312,7 @@ function build(){
 /* ===================== 畫面 ===================== */
 const svg = document.getElementById("court"), NS = "http://www.w3.org/2000/svg";
 const X = x => 30*(x+1), Y = y => 30*(y+10.5);
-const VB_NEAR = [0, 168, 330, 444];
+const VB_NEAR = [0, 255, 330, 348];
 const el = (t,a,p) => { const e = document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; };
 let G = {};
 function drawStatic(){
@@ -315,7 +326,6 @@ function drawStatic(){
   el("line",{x1:X(0),y1:Y(-3),x2:X(9),y2:Y(-3),stroke:"var(--cline)","stroke-width":1.5},svg);
   el("line",{x1:X(0),y1:Y(3),x2:X(9),y2:Y(3),stroke:"var(--cline)","stroke-width":1.5},svg);
   el("line",{x1:X(-0.6),y1:Y(0),x2:X(9.6),y2:Y(0),stroke:"var(--cline)","stroke-width":5},svg);
-  const t1 = el("text",{x:X(4.5),y:Y(-4.6),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)"},svg); t1.textContent = "對方";
   const t2 = el("text",{x:X(4.5),y:Y(8.6),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); t2.textContent = "我們";
   G.fanG = el("g",{"clip-path":"url(#ourc)",opacity:0},svg);
   G.fan = el("polygon",{fill:"url(#fg)",stroke:"#6b7280","stroke-dasharray":"5 4","stroke-opacity":.7},G.fanG);
@@ -331,13 +341,17 @@ function drawStatic(){
   ["o1","o2","o3","o4","o5","o6"].forEach(k=>{ const g = el("g",{},svg); el("circle",{r:13,fill:"#9ca3af",stroke:"var(--cline)","stroke-width":2},g); G.opp[k]=g; });
   G.srvT = el("text",{opacity:0},svg);
   G.arrow = el("g",{id:"srv"},svg);
-  el("rect",{x:-36,y:-2,width:72,height:46,fill:"transparent"},G.arrow);
-  el("path",{d:"M-13 18 L13 18 L0 36 Z",fill:"#e5484d",stroke:"var(--cline)","stroke-width":2},G.arrow);
-  const at = el("text",{y:13,"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.arrow); at.textContent = "↔ 發球員";
+  el("rect",{x:-44,y:-4,width:88,height:48,fill:"transparent"},G.arrow);
+  el("path",{d:"M-14 20 L14 20 L0 38 Z",fill:"#e5484d",stroke:"var(--cline)","stroke-width":2},G.arrow);
+  const at = el("text",{y:14,"text-anchor":"middle","font-size":16,"font-weight":800,fill:"var(--ink)"},G.arrow); at.textContent = "↔ 發球員";
+  // 操作提示：手指（左右滑＝可以拖；點一下＝點場上）
+  const hand = g => { el("path",{d:"M0 0 C-3 0 -4 2 -4 4 L-4 20 L-8 16 C-10 14 -13 15 -12 18 L-4 30 C-2 34 2 36 6 36 L12 36 C18 36 21 32 21 26 L21 14 C21 11 17 11 17 14 L17 12 C17 9 13 9 13 12 L13 10 C13 7 9 7 9 10 L4 10 L4 4 C4 2 3 0 0 0 Z",fill:"#fff",stroke:"#111","stroke-width":1.8,"stroke-linejoin":"round"},g); };
+  G.hintS = el("g",{class:"hint",opacity:0},svg); const hs = el("g",{class:"sw"},G.hintS); el("circle",{r:9,fill:"#e5484d","fill-opacity":.35},hs); hand(hs);
+  G.hintT = el("g",{class:"hint",opacity:0},svg); el("circle",{class:"rg",r:6,fill:"none",stroke:"var(--ink)","stroke-width":2.5},G.hintT); const ht = el("g",{class:"tp"},G.hintT); hand(ht);
   G.pl = {}; G.tag = {};
   ROLES.forEach(r=>{
     const g = el("g",{class:"pl","data-r":r},svg);
-    el("circle",{class:"b",r:19,fill:FRONT(r)?"#e48ad8":(r==="BM"?"#f5b942":"#5ccf72")},g);
+    el("circle",{class:"b",r:21,fill:FRONT(r)?"#e48ad8":(r==="BM"?"#f5b942":"#5ccf72")},g);
     const t = el("text",{"text-anchor":"middle","dominant-baseline":"central"},g); t.textContent = NAME[r];
     G.pl[r] = g;
   });
@@ -362,18 +376,22 @@ function paint(){
   // 畫面遠近：發球前看整個球場，發球飛過來時拉近到我們這邊
   // 發球員的三角形：畫在對方場地上方，可以左右拖
   const showArrow = pos ? S.prac.stage==="recv" : !!cur.arrow;
-  G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-4.85)})`); G.arrow.setAttribute("opacity", showArrow?1:0);
+  G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-1.5)})`); G.arrow.setAttribute("opacity", showArrow?1:0);
+  const hS = !pos && !S.playing && i===1 && !S.land && !HINT.srv, hT = chooseKind()==="serve" && !HINT.tap && !(S.prac);
+  G.hintS.setAttribute("opacity", hS?1:0); G.hintS.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-1.5)+30})`);
+  G.hintT.setAttribute("opacity", hT?1:0); G.hintT.setAttribute("transform",`translate(${X(4.6)} ${Y(3.9)})`);
+  for(const k in G.opp) G.opp[k].setAttribute("opacity", i<=2 && !pos ? 0 : (pos && S.prac.stage==="recv" ? 0 : 1));
   const boxes = [];
-  ROLES.forEach(r=>{ const p = pos ? pos[r] : lerp(prev.pos[r], cur.pos[r], e); G.pl[r].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-19,Y(p[1])-19,X(p[0])+19,Y(p[1])+19]); });
+  ROLES.forEach(r=>{ const p = pos ? pos[r] : lerp(prev.pos[r], cur.pos[r], e); G.pl[r].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-21,Y(p[1])-21,X(p[0])+21,Y(p[1])+21]); });
   const hit = b => boxes.some(o => b[0]<o[2] && b[2]>o[0] && b[1]<o[3] && b[3]>o[1]);
   ROLES.forEach(r=>{
     const p = pos ? pos[r] : lerp(prev.pos[r], cur.pos[r], e);
     const tg = G.tag[r], txt = !pos && t>=0.98 ? cur.tags[r] : "";
     tg.setAttribute("opacity", txt?1:0);
-    if(txt){ const tx = tg.querySelector("text"); tx.textContent = txt; const w = 13*txt.length+12; const rc = tg.querySelector("rect"); rc.setAttribute("width",w); rc.setAttribute("x",-w/2);
+    if(txt){ const tx = tg.querySelector("text"); tx.textContent = txt; const w = 14*txt.length+12; const rc = tg.querySelector("rect"); rc.setAttribute("width",w); rc.setAttribute("x",-w/2);
       const px = Math.min(Math.max(X(p[0]), w/2+2), 328-w/2), py = Y(p[1]);
       // 標籤先放頭上；擋到別人就改放右邊、左邊、下面
-      const cand = [[0,0],[21+w/2,31],[-(21+w/2),31],[0,62]].map(([ox,oy])=>{ const cx = Math.min(Math.max(px+ox, w/2+2), 328-w/2); return [cx, oy, [cx-w/2,py-41+oy,cx+w/2,py-21+oy]]; });
+      const cand = [[0,-2],[23+w/2,31],[-(23+w/2),31],[0,66]].map(([ox,oy])=>{ const cx = Math.min(Math.max(px+ox, w/2+2), 328-w/2); return [cx, oy, [cx-w/2,py-41+oy,cx+w/2,py-21+oy]]; });
       const pick = cand.find(c=>!hit(c[2])) || cand[0];
       boxes.push(pick[2]);
       tg.setAttribute("transform",`translate(${pick[0]} ${py+pick[1]})`); }
@@ -455,7 +473,7 @@ function playFrom(i){
     if(!S.playing) return;
     if(S.waitDef===k){ S.waitDef = 0; S.playing=false; startPrac("def"); return; }
     animTo(k, ()=>{
-      if(k>=S.steps.length-1 || (k===2 && !S.land) || (k===8 && !S.dland)){ S.playing=false; render(); return; }   // 停下來選發球落點、對方打哪裡
+      if(k>=S.steps.length-1 || k===1 || (k===2 && !S.land) || (k===8 && !S.dland)){ S.playing=false; render(); return; }   // 停下來選發球落點、對方打哪裡
       holdTimer = setTimeout(()=>go(k+1), S.slow?1400:800); });
   };
   go(i);
@@ -519,8 +537,8 @@ svg.addEventListener("pointerdown", ev=>{
   const pl = ev.target.closest(".pl"), isBall = !!ev.target.closest("#ball"), isSrv = ev.target.closest("#srv");
   if(S.prac && S.prac.pos && pl) drag = {k:"pl", r:pl.dataset.r};
   else if(!S.playing && S.step<=2 && !S.land && isSrv && (!S.prac || S.prac.stage==="recv")) drag = {k:"srv"};
-  else if(choosing()){ const [x,y] = svgPt(ev); if(x>-0.2 && x<9.2 && y>0.2 && y<9.2){ if(chooseKind()==="serve") pickServe(clampP([x,Math.max(1.5,y)])); else pickShot(clampP([x,y]), ""); } return; }
-  if(drag){ svg.setPointerCapture(ev.pointerId); ev.preventDefault(); }
+  else if(choosing()){ const [x,y] = svgPt(ev); if(x>-0.2 && x<9.2 && y>0.2 && y<9.2){ if(chooseKind()==="serve"){ hintDone("tap"); pickServe(clampP([x,Math.max(1.5,y)])); } else pickShot(clampP([x,y]), ""); } return; }
+  if(drag){ if(drag.k==="srv"){ hintDone("srv"); paint(); } svg.setPointerCapture(ev.pointerId); ev.preventDefault(); }
 });
 svg.addEventListener("pointermove", ev=>{
   if(!drag) return; const [x,y] = svgPt(ev);

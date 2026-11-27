@@ -117,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.9";
+const VERSION = "2026.11.27.10";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -262,7 +262,7 @@ function resolve(blk, L, shot){
     mv[r] = clampP(toward(pos[r], L, k));
     if(k >= 0.35){ tags[r] = "補位"; helpers.push(r); }
   });
-  return {recv, mv, tags, why, tip, helpers, giveway};
+  return {recv, mv, tags, why, tip, helpers, giveway, at};   // at：球被接到的位置（球先經過她時，就在她身上，不會再飛到後面）
 }
 
 /* ===================== 一波的步驟 ===================== */
@@ -319,9 +319,9 @@ function build(){
       cap:`打到攔網擋住的地方，球被攔回來，${nm(who)}掩護接起來。按「換個地方打」再試一次。`});
   } else {
     const op = OPPD[ar.k], to = ar.gap ? toward(op, AL, 0.5) : toward(op, AL, Math.max(0, 1 - 0.3/Math.max(dist(op,AL),0.01)));
-    add(steps[5], {pos:{}, opp:{[ar.k]:to}, ball:AL.slice(), ballH:1.0, cam:1, ofan:S.oblk==="yes", tags:{[hitter]:"打過去"}, otag:[ar.k, ar.gap?"來不及":"接"],
-      title: ar.gap ? "打到空檔，對方很難接！" : "對方接得到",
-      cap: ar.gap ? "這裡離對方每個人都很遠，是好球。" : "這裡離對方的人很近，容易被接起來。看看哪裡比較空，按「換個地方打」再試一次。"});
+    add(steps[5], {pos:{}, opp:{[ar.k]:to}, ball:AL.slice(), ballH:1.0, cam:1, ofan:S.oblk==="yes", tags:{[hitter]:"打過去"}, otag:[ar.k, ar.gap?"來不及":"接"], point:ar.gap,
+      title: ar.gap ? "打到空檔，得分！" : "對方接得到",
+      cap: ar.gap ? "這裡離對方每個人都很遠，對方來不及接。按「換個地方打」試別的地方，或按「下一步」繼續看回防（當作對方有接起來）。" : "這裡離對方的人很近，容易被接起來。看看哪裡比較空，按「換個地方打」再試一次。"});
   }
   // 7 回防（鏡頭回到我們這邊）
   const t6 = {}; ROLES.forEach(r=>{ if(R.zone[r]!==BZONE[r] && !FRONT(r)) t6[r] = "換到 "+BZONE[r]; });
@@ -335,7 +335,7 @@ function build(){
   // 9 對方攻擊
   const L = S.dland || SHOTS[2][1], shot = S.shot || (S.dland ? "" : "斜線");
   const res = resolve(S.blk, L, shot);
-  add(steps[8], {pos:res.mv, ball:L.slice(), ballH:res.tip?1.6:0.6, fan:true, tags:res.tags, title:`對方${res.tip?"吊":"打"}${res.tip && inPoly(L, fanPoly(S.blk,true)) ? "攔網後面" : where(L)}：${nm(res.recv)}接`,
+  add(steps[8], {pos:res.mv, ball:res.at.slice(), ballH:res.tip?1.6:0.6, fan:true, tags:res.tags, title:`對方${res.tip?"吊":"打"}${res.tip && inPoly(L, fanPoly(S.blk,true)) ? "攔網後面" : where(L)}：${nm(res.recv)}接`,
     cap:`${res.why}${res.helpers.length?`${res.helpers.map(nm).join("、")}往球靠過去補位。`:""}`});
   // 10 防起來給舉球員
   const setter = res.recv==="FS" ? "BS" : "FS";
@@ -545,8 +545,8 @@ function render(){
     const last = S.step===n-1;
     if(S.step<=1){ $("ctl").innerHTML = btn("‹ 上一步","prev",{dis:S.step===0,aria:"上一步"}) + btn(S.step===0?"下一步 ›":"決定好了 ›","next",{cls:"pri"}) + btn("換你擺","prac"); fitLater(); paint(); return; }
     // 看完一球：可以直接回去換個地方
-    const redo = S.playing ? "" : (S.step>=9 ? btn("換個地方打","redef",{cls:last?"pri":""}) : S.step>=6 ? btn("換個地方打","reatk",{cls:cur.blocked?"pri":""}) : S.step>=3 ? btn("換發球落點","reland") : "");
-    const main = last ? btn("再發一球","reserve") : btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:(cur.blocked||S.playing)?"play":"pri play"});
+    const redo = S.playing ? "" : (S.step>=9 ? btn("換個地方打","redef",{cls:last?"pri":""}) : S.step>=6 ? btn("換個地方打","reatk",{cls:(cur.blocked||cur.point)?"pri":""}) : S.step>=3 ? btn("換發球落點","reland") : "");
+    const main = last ? btn("再發一球","reserve") : btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:(cur.blocked||cur.point||S.playing)?"play":"pri play"});
     $("ctl").innerHTML = btn("‹ 上一步","prev",{aria:"上一步"}) + main + (last ? "" : btn("下一步 ›","next",{aria:"下一步"})) + redo + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow});
   }
   fitLater();
@@ -571,7 +571,7 @@ function playFrom(i){
     if(S.waitDef===k){ S.waitDef = 0; S.playing=false; startPrac("def"); return; }
     animTo(k, ()=>{
       // 停下來：拖發球員、選發球落點、選要打哪裡、被攔、選對方打哪裡、最後一步
-      if(k>=S.steps.length-1 || k===1 || (k===2 && !S.land) || (k===5 && !S.aland) || (k===6 && S.steps[6].blocked) || (k===8 && !S.dland)){ S.playing=false; render(); return; }
+      if(k>=S.steps.length-1 || k===1 || (k===2 && !S.land) || (k===5 && !S.aland) || (k===6 && (S.steps[6].blocked || S.steps[6].point)) || (k===8 && !S.dland)){ S.playing=false; render(); return; }
       holdTimer = setTimeout(()=>go(k+1), S.slow?1400:800); });
   };
   go(i);

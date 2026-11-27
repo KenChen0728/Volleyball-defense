@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="站位練習">
 <style>
-:root{--bg:#f4f1ea;--card:#fff;--ink:#1f2a37;--ink2:#4b5563;--line:#e5e7eb;--line2:#9ca3af;--acc:#1f4e8c;--acc-ink:#fff;--soft:#f3f4f6;--court:#dceef5;--cline:#1f2a37;--opp:#eef2f5;--bad:#b91c1c}
-@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1c2128;--ink:#eef0f3;--ink2:#b4bcc6;--line:#2d343d;--line2:#6b7280;--acc:#6ea8ff;--acc-ink:#0b1a33;--soft:#252b33;--court:#1d3440;--cline:#c9d3dc;--opp:#1a242c;--bad:#f87171}}
+:root{--fb:#1d6fb8;--lr:#b45309;--bg:#f4f1ea;--card:#fff;--ink:#1f2a37;--ink2:#4b5563;--line:#e5e7eb;--line2:#9ca3af;--acc:#1f4e8c;--acc-ink:#fff;--soft:#f3f4f6;--court:#dceef5;--cline:#1f2a37;--opp:#eef2f5;--bad:#b91c1c}
+@media (prefers-color-scheme:dark){:root{--fb:#5aa2e6;--lr:#e0873a;--bg:#111418;--card:#1c2128;--ink:#eef0f3;--ink2:#b4bcc6;--line:#2d343d;--line2:#6b7280;--acc:#6ea8ff;--acc-ink:#0b1a33;--soft:#252b33;--court:#1d3440;--cline:#c9d3dc;--opp:#1a242c;--bad:#f87171}}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 html,body{min-height:100%}
@@ -38,6 +38,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cap .no{font-size:13px;color:var(--ink2);font-weight:800}
 .cap ul{padding-left:18px;margin-top:2px}.cap li{margin:1px 0}
 .cap .bad{color:var(--bad);font-weight:700}
+.cap .fb{color:var(--fb);font-weight:800}.cap .lr{color:var(--lr);font-weight:800}
 .ctl{display:flex;gap:6px;flex-wrap:wrap}
 .ctl .btn{flex:1 1 0;min-width:72px}
 .ctl .btn.play{flex:1.4 1 0}
@@ -60,6 +61,7 @@ dialog h2{font-size:18px;margin-bottom:6px}
 dialog ol{padding-left:20px}dialog li{margin:4px 0}
 .upd{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));z-index:50;background:var(--ink);color:var(--bg);border:none;border-radius:999px;min-height:44px;padding:0 18px;font-weight:800;white-space:nowrap}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media (min-height:800px) and (orientation:portrait) and (max-width:819px){.cap{height:146px}#court{max-height:max(250px,calc(100dvh - 476px))}}
 @media (max-height:700px) and (orientation:portrait){.cap{height:92px;font-size:14px}.app{gap:6px}}
 @media (min-width:820px){
   .main{flex-direction:row;align-items:flex-start}
@@ -115,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.6";
+const VERSION = "2026.11.27.7";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -258,7 +260,7 @@ function build(){
   const add = (prev, ch) => { const s = cp(prev); Object.assign(s, {tags:{}, trail:true, fan:false, frames:false, cap:"", ballH:0, choose:false, arrow:false}, ch); s.pos = Object.assign(cp(prev.pos), ch.pos||{}); s.opp = Object.assign(cp(prev.opp), ch.opp||{}); steps.push(s); return s; };
 
   const s0 = {pos:P0, opp:O0, ball:top.slice(), ballH:0, tags:{}, trail:false, frames:true, fan:false, arrow:false, title:"照號位站好",
-    cap:`照輪轉的號位站成兩排。<b>前後框</b>裡的兩個人不能前後顛倒，<b>左右框</b>裡的人不能左右顛倒；等一下怎麼移動，都不能破壞這個順序。後排攔中換成<b>自由</b>。`};
+    cap:`<b>發球那一刻</b>要照輪轉順序站（看腳踩的位置）：<br><span class="fb">前後關係</span>：同一直排，前排要比後排<b>更靠近網子</b>。<br><span class="lr">左右關係</span>：同一橫排，左邊比中間<b>靠左</b>、右邊比中間<b>靠右</b>。<br>發球打出去後就能自由跑。後排攔中換成自由。`};
   steps.push(s0);
   add(s0, {pos:{}, trail:false, title:"發球員在哪裡", arrow:true,
     cap:`先決定<b>對方發球員站哪裡</b>：按住上面的<b>紅色三角形</b>左右拖。發球員站在<b>對方底線後面</b>，中間的對方場地省略沒畫。決定好了按「決定好了」。`});
@@ -345,8 +347,9 @@ function drawStatic(){
   G.fanT = el("text",{"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.fanG); G.fanT.textContent = "攔網擋住";
   G.frames = el("g",{opacity:0},svg);
   const fr = (x0,y0,x1,y1,c) => el("rect",{x:X(x0),y:Y(y0),width:X(x1)-X(x0),height:Y(y1)-Y(y0),rx:6,fill:"none",stroke:c,"stroke-width":3},G.frames);
-  [1.5,4.5,7.5].forEach(x=>fr(x-0.95,0.55,x+0.95,6.95,"#1d6fb8"));
-  [1.5,6.0].forEach(y=>fr(0.2,y-0.8,8.8,y+0.8,"#b45309"));
+  const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c,stroke:"var(--court)","stroke-width":5,"paint-order":"stroke","stroke-linejoin":"round"},G.frames); e.textContent = t; };
+  [1.5,4.5,7.5].forEach(x=>{ fr(x-0.95,0.55,x+0.95,6.95,"var(--fb)"); lab(x,7.55,"前後關係","var(--fb)"); });
+  [1.5,6.0].forEach(y=>{ fr(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab(0.3,y-0.92,"左右關係","var(--lr)","start"); });
   G.ghost = el("g",{},svg);
   G.trail = el("g",{},svg);
   G.pick = el("g",{},svg);

@@ -1,7 +1,7 @@
 /* 站位練習：離線快取。先問網站有沒有新版（最多等 3 秒），連不上或回錯誤就用存好的版本。
    快取名稱用 vblineup- 開頭，不會動到排球站位教室（vbdef-）的快取。 */
 const PREFIX = 'vblineup-';
-const VERSION = '2026.11.27.11';
+const VERSION = '2026.11.27.12';
 const CACHE = PREFIX + VERSION;
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
 

@@ -117,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.11";
+const VERSION = "2026.11.27.12";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -250,7 +250,7 @@ function resolve(blk, L, shot){
   if(!why && deepest && L[1] > pos[recv][1]) why = `${nm(recv)}後面已經沒有人了，<b>一定要擋起來</b>。`;
   if(!why) why = `${nm(recv)}離球最近、移動最順，所以是她接。`;
   const mv = {}, tags = {};
-  const rp = toward(pos[recv], at, Math.max(0, 1 - 0.35/Math.max(dist(pos[recv],at),0.01)));
+  const rp = toward(pos[recv], at, Math.max(0, 1 - 0.75/Math.max(dist(pos[recv],at),0.01)));
   mv[recv] = clampP(rp); tags[recv] = "接";
   const helpers = [];
   defs.forEach(r=>{
@@ -289,7 +289,7 @@ function build(){
     cap:`${side==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${side}，大家往${side}移一點、身體轉向她。`}前排舉球員和攔中不接。`});
   // 3 發球出手
   const passer = nearest(PASSERS, land, s1.pos);
-  const pl = toward(s1.pos[passer], land, Math.max(0, 1 - 0.35/Math.max(dist(s1.pos[passer],land),0.01)));
+  const pl = toward(s1.pos[passer], land, Math.max(0, 1 - 0.75/Math.max(dist(s1.pos[passer],land),0.01)));
   const others = PASSERS.filter(r=>r!==passer).sort((a,b)=>dist(s1.pos[a],pl)-dist(s1.pos[b],pl)).slice(0,2);
   const p2 = {[passer]:pl, FS:T.slice()}, t2 = {[passer]:"接", FS:"跑去舉"};
   others.forEach(r=>{ p2[r] = toward(s1.pos[r], pl, 0.3); t2[r] = "補位"; });
@@ -318,7 +318,7 @@ function build(){
     add(steps[5], {pos:{[who]:toward(p4[who], bk, 0.85)}, ball:bk, ballH:0.8, cam:1, ofan:true, blocked:true, tags:{[hitter]:"被攔",[who]:"接起來"}, title:"被攔網擋住了",
       cap:`打到攔網擋住的地方，球被攔回來，${nm(who)}掩護接起來。按「換個地方打」再試一次。`});
   } else {
-    const op = OPPD[ar.k], to = ar.gap ? toward(op, AL, 0.5) : toward(op, AL, Math.max(0, 1 - 0.3/Math.max(dist(op,AL),0.01)));
+    const op = OPPD[ar.k], to = ar.gap ? toward(op, AL, 0.5) : toward(op, AL, Math.max(0, 1 - 0.75/Math.max(dist(op,AL),0.01)));
     add(steps[5], {pos:{}, opp:{[ar.k]:to}, ball:AL.slice(), ballH:1.0, cam:1, ofan:S.oblk==="yes", tags:{[hitter]:"打過去"}, otag:[ar.k, ar.gap?"來不及":"接"], point:ar.gap,
       title: ar.gap ? "打到空檔，得分！" : "對方接得到",
       cap: ar.gap ? "這裡離對方每個人都很遠，對方來不及接。按「換個地方打」試別的地方，或按「下一步」繼續看回防（當作對方有接起來）。" : "這裡離對方的人很近，容易被接起來。看看哪裡比較空，按「換個地方打」再試一次。"});
@@ -430,14 +430,15 @@ function drawStatic(){
   });
   ROLES.forEach(r=>{ const g = el("g",{class:"tag",opacity:0},svg); el("rect",{rx:6,height:20,y:-41},g); el("text",{"text-anchor":"middle",y:-26},g); G.tag[r]=g; });
   G.shadow = el("ellipse",{rx:8,ry:4,fill:"#000","fill-opacity":.25,"pointer-events":"none"},svg);
-  // 自己畫的排球：白底、藍黃兩條彎的色帶
+  // 自己畫的排球：三片彎曲的面（藍、黃、白）從中心旋轉出去，每片中間一條分條
   G.ball = el("g",{id:"ball","pointer-events":"none"},svg);
   const bi = el("g",{"clip-path":"url(#bc)"},G.ball);
-  el("circle",{r:10,fill:"#fff"},bi);
-  el("path",{d:"M-13 3 Q-2 -3 12 -9",stroke:"#1d6fd1","stroke-width":6.5,fill:"none"},bi);
-  el("path",{d:"M-5 13 Q3 3 2 -13",stroke:"#f2c230","stroke-width":6.5,fill:"none"},bi);
-  el("path",{d:"M-13 3 Q-2 -3 12 -9 M-5 13 Q3 3 2 -13",stroke:"#1f2a37","stroke-width":1.2,fill:"none"},bi);
-  el("circle",{r:10,fill:"none",stroke:"#111","stroke-width":2},G.ball);
+  el("path",{d:"M0 0 Q5.47 2.91 0.00 10.00 A10 10 0 0 1 -8.66 -5.00 Q-5.26 3.29 0 0Z",fill:"#1e5fc4"},bi);
+  el("path",{d:"M0 0 Q-5.26 3.29 -8.66 -5.00 A10 10 0 0 1 8.66 -5.00 Q-0.22 -6.20 0 0Z",fill:"#f5c518"},bi);
+  el("path",{d:"M0 0 Q-0.22 -6.20 8.66 -5.00 A10 10 0 0 1 0.00 10.00 Q5.47 2.91 0 0Z",fill:"#ffffff"},bi);
+  el("path",{d:"M0 0 Q5.47 2.91 0.00 10.00 A10 10 0 0 1 -8.66 -5.00 Q-5.26 3.29 0 0Z M0 0 Q-5.26 3.29 -8.66 -5.00 A10 10 0 0 1 8.66 -5.00 Q-0.22 -6.20 0 0Z M0 0 Q-0.22 -6.20 8.66 -5.00 A10 10 0 0 1 0.00 10.00 Q5.47 2.91 0 0Z",fill:"none",stroke:"#1f2a37","stroke-width":0.85,"stroke-linejoin":"round"},bi);
+  el("path",{d:"M1.84 2.62 Q-0.97 5.51 -9.27 3.75 M-3.19 0.28 Q-4.29 -3.60 1.39 -9.90 M1.35 -2.90 Q5.26 -1.92 7.88 6.16",fill:"none",stroke:"#1f2a37","stroke-width":0.65},bi);
+  el("circle",{r:10,fill:"none",stroke:"#111","stroke-width":1.6},G.ball);
   G.otag = el("g",{class:"tag",opacity:0},svg); el("rect",{rx:6,height:20,y:-36},G.otag); el("text",{"text-anchor":"middle",y:-21},G.otag);
   G.bad = el("g",{},svg);
   // 要點場上的時候：大字提示＋一直點的手指（放在最上層，不擋點擊）

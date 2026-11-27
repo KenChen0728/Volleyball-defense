@@ -63,9 +63,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .ctl .btn.ic2{flex:0 0 44px;min-width:44px;padding:0;font-size:22px}
 .foot{text-align:center;font-size:12px;color:var(--ink2);padding:4px 0 2px}
 .foot button{background:none;border:none;text-decoration:underline;min-height:44px;font-size:13px;color:var(--ink2)}
-.pl circle.b{stroke:var(--cline);stroke-width:3}
+#court{--in:#e2894a;--out:#2f8a73;--cl:#fff;--net:#1f2937;--wood:0}
+#court.wood{--in:#d9a066;--out:#c4894f;--wood:1}
+:root[data-theme=dark] #court{--in:#8a4a22;--out:#1d4a40;--net:#e5e7eb}
+:root[data-theme=dark] #court.wood{--in:#5a3c22;--out:#4a311c}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) #court{--in:#8a4a22;--out:#1d4a40;--net:#e5e7eb}:root:not([data-theme=light]) #court.wood{--in:#5a3c22;--out:#4a311c}}
+.pl .sh{stroke:#111;stroke-width:1.5}
+.pl.bad .sh{stroke:var(--bad);stroke-width:4}
 .pl.bad circle.b{stroke:var(--bad);stroke-width:5}
-.pl text{font-weight:800;font-size:17px;fill:#111;pointer-events:none}
+.pl text{font-weight:900;font-size:13px;fill:#fff;stroke:#111;stroke-width:3.5;paint-order:stroke;pointer-events:none}
 .tag rect{fill:var(--card);stroke:var(--cline);stroke-width:1.2}
 .tag text{font-size:14px;font-weight:800;fill:var(--ink)}
 .hint{pointer-events:none}
@@ -89,7 +95,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
   .main{display:contents}
   .courtbox{grid-column:1;grid-row:2/span 3;align-self:start}
   .side{grid-column:2;grid-row:4;min-width:0}
-  #court{width:auto;height:min(calc(100dvh - var(--top,200px) - 26px),calc((min(100vw,1100px) - 380px)*1.115));max-height:none;min-height:0}
+  #court{width:auto;height:min(calc(100dvh - var(--top,200px) - 26px),calc((min(100vw,1100px) - 380px)*1.152));max-height:none;min-height:0}
 }
 @media (max-height:520px) and (orientation:landscape){
   #court{height:calc(100dvh - var(--top,120px) - 14px)}
@@ -104,6 +110,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
   <button class="card pri" data-a="go:teach"><b>教學</b><span>先看大家怎麼站、怎麼跑，看完再換你試試看</span></button>
   <button class="card" data-a="go:game"><b>練習</b><span>像比賽一樣打一球，結果會隨機，看站位哪裡有洞</span></button>
   <div class="row" style="margin-top:6px"><span class="rl">外觀</span><div class="seg" id="themeSeg"></div></div>
+  <div class="row"><span class="rl">球場</span><div class="seg" id="courtSeg"></div></div>
   <button class="lnk" id="help3">怎麼用・加到主畫面</button>
   <div class="foot">版本 <span id="ver2"></span><br>© 2026 Ken Chen｜免費使用｜有問題請截圖（附版本號）給教練</div>
 </div>
@@ -112,7 +119,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
   <div class="row rot"><span class="rl">雙舉，前排<br>舉球員在</span><div class="seg" id="rotSeg"></div></div>
   <div id="opt" hidden></div>
   <div class="main">
-    <div class="courtbox"><svg id="court" viewBox="0 235 330 368" role="img" aria-label="球場示意圖：下面是我們，上面是對方"></svg></div>
+    <div class="courtbox"><svg id="court" viewBox="0 235 330 380" role="img" aria-label="球場示意圖：下面是我們，上面是對方"></svg></div>
     <div class="side">
       <div class="cap" id="cap" role="status" aria-live="polite"></div>
       <div class="ctl" id="ctl"></div>
@@ -148,7 +155,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.28.1";
+const VERSION = "2026.11.28.2";
 document.getElementById("ver").textContent = VERSION; document.getElementById("ver2").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -180,26 +187,26 @@ const OR = {o1:[1.6,-6.2],o2:[1.4,-3.6],o3:[3.4,-0.6],o4:[7.4,-3.4],o5:[4.5,-6.9
 const OPASS = ["o1","o2","o4","o5","o6"];
 // 攔網：誰攔、其他人守哪裡（暫定，等教練確認）
 const BLOCK = {
-  M:{seg:"攔中攔", bl:["FM"],
-     def:{FM:[7.3,0.4],FS:[8.2,2.5],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
+  M:{seg:"攔中", bl:["FM"],
+     def:{FM:[7.3,0.65],FS:[8.2,2.5],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
      tags:{FM:"攔網",FS:"守 2 號位小球",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"舉球員還不會攔網，先由<b>攔中一個人攔</b>；舉球員守 2 號位的小球。"},
-  S:{seg:"舉球員攔", bl:["FS"],
-     def:{FS:[7.5,0.4],FM:[4.6,2.6],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
+  S:{seg:"舉球員", bl:["FS"],
+     def:{FS:[7.5,0.65],FM:[4.6,2.6],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
      tags:{FS:"攔網",FM:"退下來",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"<b>舉球員一個人攔</b>，攔中退到三米線附近守吊球。"},
-  MS:{seg:"兩個人攔", bl:["FS","FM"],
-     def:{FS:[7.6,0.4],FM:[6.35,0.4],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
+  MS:{seg:"兩個人", bl:["FS","FM"],
+     def:{FS:[7.6,0.65],FM:[6.35,0.65],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
      tags:{FS:"攔網",FM:"攔網",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"<b>舉球員和攔中兩個人攔</b>，擋住的範圍比較寬。"},
-  N:{seg:"攔中沒上去", bl:[],
+  N:{seg:"沒人攔", bl:[],
      def:{FM:[5.4,2.9],FS:[8.2,2.5],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
      tags:{FM:"退下來守小球",FS:"守 2 號位小球",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"<b>攔中來不及就不要硬跳</b>，退到三米線附近守前面的吊球和小球；對方可以直接扣，後面的人要準備好。"}
 };
 // 對方攔中快攻（教練 11/27）：攔中攔中間；前排兩個往前、往攔中靠守小球；後排兩邊靠三米線；自由留後面補（位置暫擺）
 const AM = [4.5,-0.8];
-const MIDDEF = {bl:["FM"], def:{FM:[4.5,0.4],FO:[2.7,1.5],FS:[6.3,1.5],BO:[1.6,3.6],BS:[7.4,3.6],BM:[4.5,7.0]},
+const MIDDEF = {bl:["FM"], def:{FM:[4.5,0.65],FO:[2.7,1.5],FS:[6.3,1.5],BO:[1.6,3.6],BS:[7.4,3.6],BM:[4.5,7.0]},
   tags:{FM:"攔中間",FO:"守攔網旁小球",FS:"守攔網旁小球",BO:"靠三米線",BS:"靠三米線",BM:"後面補"},
   cap:"對方快攻：<b>攔中攔中間</b>；前排兩個人往前、往攔中靠，守攔網旁邊的小球；後排兩邊靠近三米線（快攻的球最快落在那裡）；自由留在後面補。"};
 const DUMPS = [["4 號位的小球",[1.4,1.4]],["中間的短球",[4.4,1.6]],["2 號位的小球",[7.6,1.4]],["斜線",[2.6,3.0]]];
@@ -208,8 +215,8 @@ const ZCOL = {FS:"#db2777",FM:"#0891b2",FO:"#7c3aed",BS:"#2563eb",BM:"#d97706",B
 // 對方防守：f＝back 後中靠後／up 後中靠前；n＝攔網人數；hx＝我們攻擊手的位置（攔網的人跟著她）
 function odef(f, n, hx){
   const bx = Math.max(0.9, Math.min(7.6, hx - 0.1)), o = {};
-  o.o2 = n>=1 ? [bx,-0.4] : [Math.max(1.2,hx-0.4), -3.0];
-  o.o3 = n>=2 ? [Math.min(8.4,bx+1.0),-0.4] : [Math.min(7.0, hx+2.4), -2.6];
+  o.o2 = n>=1 ? [bx,-0.65] : [Math.max(1.2,hx-0.4), -3.0];
+  o.o3 = n>=2 ? [Math.min(8.4,bx+1.0),-0.65] : [Math.min(7.0, hx+2.4), -2.6];
   o.o4 = [7.3,-3.0];
   if(f==="up"){ o.o5 = [Math.max(1.8, Math.min(7.2, hx+1.4)), -3.4]; o.o1 = [0.8,-6.8]; o.o6 = [7.9,-6.8]; }
   else { o.o5 = [4.5,-7.8]; o.o1 = [0.8,-6.0]; o.o6 = [7.8,-6.0]; }
@@ -220,10 +227,10 @@ const OBLK = n => ["o2","o3"].slice(0,n);
 
 /* ===================== 狀態 ===================== */
 const S = {mode:"teach", rot:0, ver:"in", blk:"M", of:"back", on:2, set:"long", tq:"", atype:"spike", rel:"fb", me:"", why:false, slow:false, zones:false,
-  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set(), home:true, auto:false, quiz:false, pickMe:false, over:"save", theme:"auto"};
+  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set(), home:true, court:"two", auto:false, quiz:false, pickMe:false, over:"save", theme:"auto"};
 try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.mode==="game") S.mode="game"; if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver==="out") S.ver="out"; if(BLOCK[o.blk]) S.blk=o.blk;
-  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; if(o.auto) S.auto=true; if(["light","dark"].includes(o.theme)) S.theme=o.theme; }catch(e){}
-function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why,theme:S.theme,auto:S.auto})); }catch(e){} }
+  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; if(o.auto) S.auto=true; if(o.court==="wood") S.court="wood"; if(["light","dark"].includes(o.theme)) S.theme=o.theme; }catch(e){}
+function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why,theme:S.theme,auto:S.auto,court:S.court})); }catch(e){} }
 
 const HINT = {srv:false, tap:false, mv:false};
 try{ ["srv","tap","mv"].forEach(k=>HINT[k] = localStorage.getItem("vblineup-hint-"+k)==="1"); }catch(e){}
@@ -582,7 +589,7 @@ PH.atkSet = (c, a) => {
     return finish(c, null);
   }
   const opos = odef(c.f, c.n, hp[0]), obl = OBLK(c.n), of = c.n ? fanP(-1, hp, obl.map(k=>opos[k][0]), false) : null;
-  add({pos:Object.assign({[hitter]:hp.slice()}, cov), ball:[hp[0]+0.2,hp[1]], ballH: a.v==="two" ? 2.0 : 3.2, tags:tg, hl:hitter,
+  add({pos:Object.assign({[hitter]:hp.slice()}, cov), ball:[hp[0]+0.2,hp[1]], ballH: a.v==="two" ? 2.0 : 3.2, tags:tg, hl:hitter, jump:[hitter],
     q:true, qtxt:`${setName ? setName + "，" : ""}要攻擊了。你要去哪？`, title:`${setName ? setName + "給" + nm(hitter) : nm(hitter) + "攻擊"}，大家掩護`, cap:"攻擊手助跑，其他人靠過去掩護，準備接被攔回來的球。"});
   const s = add({opp:opos, cam:1, ofan:of, atkStep:true, setV:a.v, title:"點對方的場上：要打哪裡",
     cap: note + (setName ? `${setName}給${nm(hitter)}。` : "") + (c.n ? `灰色是對方攔網擋住的地方（${c.n} 個人攔），找攔網沒擋到、離對方遠的地方。` : "對方沒有攔網：找離大家都遠的空檔。") + `對方${c.f==="up"?"後中靠前，後面中間比較空":"後中靠後，攔網後面的吊球比較空"}。`});
@@ -697,6 +704,7 @@ PH.defRes = (c, a) => {
   const bh = type==="lob" ? 4.2 : type==="tip" ? 1.6 : 0.6;
   const hit = {q:true, qtxt: type==="tip" ? "對方吊球了！你往哪裡走？" : type==="lob" ? "對方高吊到後面了！你往哪裡走？" : "球一出手，你往哪裡走？"};
   const tipCap = type==="tip" ? "吊球節奏一變，大家都要往前。" : "";
+  hit.jump = type==="spike" ? r.bl.slice() : []; if(r.who && (r.kind==="miss" || (r.C && r.C[r.who] > 2.2))) hit.dive = {r:r.who, side: L[0] < pos[r.who][0] ? -1 : 1};
   if(r.kind==="blocked"){
     const bk = [Math.max(0.6, Math.min(8.4, r.hand[0] - 1.0)), -2.4], opos = last().opp, k = nearestOf(Object.keys(opos).filter(x=>x!=="o4"), bk, opos), pt = teach || rnd(c) < 0.55;
     add({opp: pt ? {} : {[k]:stopShort(opos[k], bk, 0.75)}, ball:bk, via:r.hand, hitMark:r.hand, ballH:0.8, fan, landed:pt, ohl: pt ? null : k, title: pt ? "攔網擋回去，得分！" : "攔網擋回去，對方救起來", cap:"對方扣到我們攔網的手，球被擋回對方那邊。"});
@@ -740,20 +748,23 @@ function drawStatic(){
     <clipPath id="oppc"><rect x="${X(0)}" y="${Y(-9)}" width="270" height="270"/></clipPath>
     <clipPath id="bc"><circle r="10"/></clipPath>
   </defs>`;
-  el("rect",{x:X(0),y:Y(-9),width:270,height:270,fill:"var(--opp)",stroke:"var(--cline)","stroke-width":2.5},svg);
-  el("rect",{x:X(0),y:Y(0),width:270,height:270,fill:"var(--court)",stroke:"var(--cline)","stroke-width":2.5},svg);
+  el("rect",{x:-30,y:-30,width:390,height:700,fill:"var(--out)"},svg);
+  el("rect",{x:X(0),y:Y(-9),width:270,height:540,fill:"var(--in)"},svg);
+  G.wood = el("g",{opacity:0,"pointer-events":"none"},svg);
+  for(let i=-2;i<14;i++) el("rect",{x:i*24.5,y:-30,width:24.5,height:700,fill:i%2?"#000":"#fff","fill-opacity":.06},G.wood);
+  el("rect",{x:X(0),y:Y(-9),width:270,height:540,fill:"none",stroke:"var(--cl)","stroke-width":2.5},svg);
   G.zones = el("g",{"clip-path":"url(#ourc)",opacity:0,"pointer-events":"none"},svg);
-  el("line",{x1:X(0),y1:Y(-3),x2:X(9),y2:Y(-3),stroke:"var(--cline)","stroke-width":1.5},svg);
-  el("line",{x1:X(0),y1:Y(3),x2:X(9),y2:Y(3),stroke:"var(--cline)","stroke-width":1.5},svg);
-  el("line",{x1:X(-0.6),y1:Y(0),x2:X(9.6),y2:Y(0),stroke:"var(--cline)","stroke-width":5},svg);
-  G.ours = el("text",{x:X(4.5),y:Y(8.6),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); G.ours.textContent = "我們";
+  el("line",{x1:X(0),y1:Y(-3),x2:X(9),y2:Y(-3),stroke:"var(--cl)","stroke-width":2},svg);
+  el("line",{x1:X(0),y1:Y(3),x2:X(9),y2:Y(3),stroke:"var(--cl)","stroke-width":2},svg);
+  el("line",{x1:X(-0.6),y1:Y(0),x2:X(9.6),y2:Y(0),stroke:"var(--net)","stroke-width":5},svg); [X(0),X(9)].forEach(x=>el("circle",{cx:x,cy:Y(0),r:5,fill:"#e5484d",stroke:"#111","stroke-width":1.2},svg));
+  G.ours = el("text",{x:X(4.5),y:Y(9.75),"text-anchor":"middle","font-size":14,"font-weight":800,fill:"#fff",opacity:.7},svg); G.ours.textContent = "我們";
   G.fanG = el("g",{"clip-path":"url(#ourc)",opacity:0},svg);
   G.fan = el("polygon",{fill:"url(#fg)",stroke:"#6b7280","stroke-dasharray":"5 4","stroke-opacity":.7},G.fanG);
   G.fanT = el("text",{"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.fanG); G.fanT.textContent = "攔網擋住";
   G.ofanG = el("g",{"clip-path":"url(#oppc)",opacity:0},svg);
   G.ofanP = el("polygon",{fill:"url(#fg2)",stroke:"#6b7280","stroke-dasharray":"5 4","stroke-opacity":.7},G.ofanG);
   G.ofanT = el("text",{"text-anchor":"middle","font-size":13,"font-weight":800,fill:"var(--ink)"},G.ofanG); G.ofanT.textContent = "攔網擋住";
-  const ot = el("text",{x:X(4.5),y:Y(-8.4),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); ot.textContent = "對方"; G.theirs = ot;
+  const ot = el("text",{x:X(4.5),y:Y(-8.4),"text-anchor":"middle","font-size":15,"font-weight":800,fill:"#fff",opacity:.8},svg); ot.textContent = "對方"; G.theirs = ot;
   G.frames = el("g",{opacity:0},svg);
   const fr = (x0,y0,x1,y1,c) => el("rect",{x:X(x0),y:Y(y0),width:X(x1)-X(x0),height:Y(y1)-Y(y0),rx:6,fill:"none",stroke:c,"stroke-width":3},G.frames);
   const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c},G.frames); e.textContent = t; };
@@ -791,8 +802,13 @@ function drawStatic(){
   G.pl = {}; G.tag = {}; G.plT = {};
   ROLES.forEach(r=>{
     const g = el("g",{class:"pl","data-r":r},svg);
-    el("circle",{class:"b",r:21,fill:FRONT(r)?"#e48ad8":(r==="BM"?"#f5b942":"#5ccf72")},g);
-    const t = el("text",{"text-anchor":"middle","dominant-baseline":"central"},g); t.textContent = NAME[r]; G.plT[r] = t;
+    el("circle",{r:22,fill:"transparent"},g);   // 好拖
+    const b = el("g",{class:"bd"},g), ft = el("g",{class:"ft"},b);
+    el("ellipse",{class:"f1",rx:4.5,ry:8,fill:"#374151",stroke:"#111","stroke-width":1},ft); el("ellipse",{class:"f2",rx:4.5,ry:8,fill:"#374151",stroke:"#111","stroke-width":1},ft);
+    el("path",{class:"arm",d:ARMS.n,fill:"none",stroke:"#e8b58e","stroke-width":5,"stroke-linecap":"round"},b);
+    el("rect",{class:"sh",x:-19,y:-6,width:38,height:15,rx:7.5,fill:FRONT(r)?"#b91c5c":(r==="BM"?"#d97706":"#1d6f42")},b);
+    el("circle",{cx:0,cy:-2,r:8.5,fill:"#3b2a20",stroke:"#111","stroke-width":1.2},b);
+    const t = el("text",{"text-anchor":"middle",y:27},g); t.textContent = NAME[r]; G.plT[r] = t;
     G.pl[r] = g;
   });
   // 「我」：教學模式自己的那個人
@@ -829,6 +845,8 @@ function drawStatic(){
   G.tapT = el("text",{"text-anchor":"middle","font-size":19,"font-weight":900,fill:"var(--acc)",stroke:"var(--card)","stroke-width":6,"paint-order":"stroke","stroke-linejoin":"round",opacity:0,"pointer-events":"none"},svg);
   svg.appendChild(G.traj); svg.appendChild(G.hit); svg.appendChild(G.land); svg.appendChild(G.shadow); svg.appendChild(G.ball); svg.appendChild(G.tapT); svg.appendChild(G.hintT); svg.appendChild(G.hintS);
 }
+// 俯視的人：手（平常接球的平台、跳起來往上伸直、撲救伸單手）
+const ARMS = {n:"M-15 6 Q-21 -10 -10 -16 M15 6 Q21 -10 10 -16", up:"M-14 1 L-12 -27 M14 1 L12 -27", dl:"M-15 4 L-10 -32 M15 6 Q21 -10 10 -16", dr:"M-15 6 Q-21 -10 -10 -16 M15 4 L10 -32"};
 const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 function lerp(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]; }
 // 俯視：球越高畫得越大，影子留在地上、稍微偏一點
@@ -857,14 +875,14 @@ function paint(){
   const t = (i===0 || cur.setup) ? 1 : mq ? 0 : S.t, e = ease(t);
   BMM = !!cur.bmM;
   const cam = mq ? 0 : i===0 ? (cur.cam||0) : (prev.cam||0) + ((cur.cam||0)-(prev.cam||0))*e;
-  svg.setAttribute("viewBox", `0 ${(VB_OUR + (VB_OPP-VB_OUR)*cam).toFixed(1)} 330 368`);
+  svg.setAttribute("viewBox", `0 ${(VB_OUR + (VB_OPP-VB_OUR)*cam).toFixed(1)} 330 380`);
   const showArrow = !!cur.arrow;
   G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-2.55)})`); G.arrow.setAttribute("opacity", showArrow?1:0); G.cut.setAttribute("opacity", showArrow?1:0);
   const kind = activeKind(), tp = kind==="tap" ? TAPS[cur.ask.area] : null;
   G.tapR.setAttribute("opacity", tp?1:0); G.tapT.setAttribute("opacity", tp?1:0);
   if(tp){ G.tapR.setAttribute("x",X(0)+4); G.tapR.setAttribute("width",262); G.tapR.setAttribute("y",Y(tp.y0)+4); G.tapR.setAttribute("height",Y(tp.y1)-Y(tp.y0)-8);
     G.tapT.textContent = cur.ask.txt; G.tapT.setAttribute("x",X(4.5)); G.tapT.setAttribute("y",Y(tp.y0<0 ? -8.0 : 8.55)); }
-  G.ours.setAttribute("opacity", tp && tp.y0>=0 ? 0 : .8); G.theirs.setAttribute("opacity", tp && tp.y0<0 ? 0 : .8);
+  G.ours.setAttribute("opacity", (tp && tp.y0>=0) || S.mq ? 0 : .7); G.theirs.setAttribute("opacity", tp && tp.y0<0 ? 0 : .8);
   // 位置
   const P = {};
   ROLES.forEach(r=>{ P[r] = adj ? adj.pos[r] : (mq && r===S.me) ? S.mq.pos : (mq && cur.recvForm) ? cur.pos[r] : lerp((cur.from && cur.from[r]) || prev.pos[r], cur.pos[r], e); });
@@ -877,8 +895,24 @@ function paint(){
   const hideOpp = cur.noOpp || (mq && prev.noOpp);
   for(const k in G.opp) G.opp[k].setAttribute("opacity", hideOpp ? 0 : 1);
   G.plT.BM.textContent = BMM ? "攔中" : "自由";
+  svg.classList.toggle("wood", S.court==="wood"); G.wood.setAttribute("opacity", S.court==="wood" ? 1 : 0);
   const boxes = [];
-  ROLES.forEach(r=>{ const p = P[r]; G.pl[r].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-21,Y(p[1])-21,X(p[0])+21,Y(p[1])+21]); });
+  const bpNow = i===0 || mq ? (mq ? prev.ball : cur.ball) : ballAt(prev, cur, t);
+  const ready = !mq && t>=0.98 && (cur.recvForm || cur.defForm), blNet = cur.dbl || [];
+  ROLES.forEach(r=>{ const p = P[r], g = G.pl[r], bd = g.querySelector(".bd");
+    g.setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-21,Y(p[1])-21,X(p[0])+21,Y(p[1])+28]);
+    // 面向：看球；攔網的人面向網子
+    const atNet = blNet.includes(r) && p[1] < 1.3, dx = bpNow[0]-p[0], dy = bpNow[1]-p[1];
+    const ang = atNet || Math.hypot(dx,dy) < 0.9 ? 0 : Math.atan2(dx, -dy)*180/Math.PI;
+    const jumping = !mq && cur.jump && cur.jump.includes(r) && t>0 && t<1, js = jumping ? 1 + 0.3*Math.sin(Math.PI*t) : 1;
+    const diving = !mq && cur.dive && cur.dive.r===r && t>0.45;
+    bd.setAttribute("transform",`rotate(${ang.toFixed(1)}) scale(${js.toFixed(3)})${diving ? " scale(1,1.12)" : ""}`);
+    bd.querySelector(".arm").setAttribute("d", jumping && Math.sin(Math.PI*t) > 0.25 ? ARMS.up : diving ? (cur.dive.side < 0 ? ARMS.dl : ARMS.dr) : ARMS.n);
+    // 準備姿勢：畫腳。攔網的人兩腳平行；其他人外側腳在前（靠右右腳在前、靠左左腳在前）
+    const ft = bd.querySelector(".ft"); ft.setAttribute("opacity", ready ? 1 : 0);
+    if(ready){ const par = atNet, rf = p[0] > 4.5;
+      const f1 = ft.querySelector(".f1"), f2 = ft.querySelector(".f2");
+      f1.setAttribute("cx",-9); f1.setAttribute("cy", par ? -3 : (rf ? 5 : -9)); f2.setAttribute("cx",9); f2.setAttribute("cy", par ? -3 : (rf ? -9 : 5)); } });
   const meOn = (S.quiz || S.pickMe) && !!S.me;
   G.me.setAttribute("opacity", meOn?1:0); if(meOn) G.me.setAttribute("transform",`translate(${X(P[S.me][0])} ${Y(P[S.me][1])})`);
   const hit = b => boxes.some(o => b[0]<o[2] && b[2]>o[0] && b[1]<o[3] && b[3]>o[1]);
@@ -975,7 +1009,8 @@ function render(){
   if(S.adj && S.adj.k!==S.step) S.adj = null;
   if(S.mfb && S.mfb.k!==S.step) S.mfb = null;
   BMM = !!cur.bmM;
-  if(S.home){ $("home").hidden = false; $("app").hidden = true; $("themeSeg").innerHTML = [["跟手機","auto"],["淺色","light"],["深色","dark"]].map(([t,v])=>btn((S.theme===v?"✓ ":"")+t,"theme:"+v,{pressed:S.theme===v})).join(""); return; }
+  if(S.home){ $("home").hidden = false; $("app").hidden = true; $("themeSeg").innerHTML = [["跟手機","auto"],["淺色","light"],["深色","dark"]].map(([t,v])=>btn((S.theme===v?"✓ ":"")+t,"theme:"+v,{pressed:S.theme===v})).join("");
+    $("courtSeg").innerHTML = [["橘色場地","two"],["木地板","wood"]].map(([t,v])=>btn((S.court===v?"✓ ":"")+t,"court:"+v,{pressed:S.court===v})).join(""); return; }
   $("home").hidden = true; $("app").hidden = false;
   $("modeSeg").innerHTML = btn((teach?"✓ ":"")+"教學","mode:teach",{pressed:teach}) + btn((!teach?"✓ ":"")+"練習","mode:game",{pressed:!teach});
   $("rotSeg").innerHTML = ROT.map((r,k)=>btn((k===S.rot?"✓ ":"")+r.seg, "rot:"+k, {pressed:k===S.rot})).join("");
@@ -1024,7 +1059,7 @@ function animTo(i, then){
 function stopPlay(){ S.playing = false; cancelAnimationFrame(raf); clearTimeout(holdTimer); S.t = 1; }
 const qKey = st => st.title + "|" + st.qtxt + "|" + S.me;
 function needQ(k){ const st = S.steps[k], pv = S.steps[k-1]; if(!S.quiz || !S.me || !st || !pv || !st.q || st.qDone || S.qdone.has(qKey(st))) return false; return dist(pv.pos[S.me], st.pos[S.me]) > 0.8; }
-function openQ(k){ stopPlay(); S.step = k; S.t = 0; S.mfb = null; S.mq = {k, pos: S.steps[k].recvForm ? [4.5, 9.05] : S.steps[k-1].pos[S.me].slice()}; render(); }
+function openQ(k){ stopPlay(); S.step = k; S.t = 0; S.mfb = null; S.mq = {k, pos: S.steps[k].recvForm ? [4.5, 9.3] : S.steps[k-1].pos[S.me].slice()}; render(); }
 function confirmQ(show){
   const k = S.mq.k, st = S.steps[k], ans = st.pos[S.me], mine = S.mq.pos, d = dist(mine, ans);
   let html = show ? "虛線圈是正確位置。" : d <= 1.0 ? `<span class="ok">✓ 對了！</span>` : d <= 2.0 ? `<span class="ok">差不多</span>（差約 ${d.toFixed(1)} 公尺），虛線圈是正確位置。` : `<span class="bad">差比較多</span>（差約 ${d.toFixed(1)} 公尺），虛線圈是正確位置。`;
@@ -1117,6 +1152,7 @@ document.addEventListener("click", ev=>{
   const [a, v] = b.dataset.a.split(":"), cur = S.steps[S.step];
   if(a==="home"){ stopPlay(); S.home = true; S.pickMe = false; S.mq = null; render(); }
   else if(a==="go"){ S.home = false; S.mode = v; S.auto = v==="game"; S.quiz = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); fit(); }
+  else if(a==="court"){ S.court = v; saveUI(); render(); }
   else if(a==="theme"){ S.theme = v; saveUI(); applyTheme(); render(); }
   else if(a==="quiz"){ stopPlay(); S.mfb = null; if(S.quiz && S.me) startQuiz(); else { S.pickMe = true; S.step = Math.max(0, S.steps.findIndex(s=>s.recvForm) - 1); S.t = 1; render(); } }
   else if(a==="pmc"){ S.pickMe = false; S.step = S.steps.length-1; S.t = 1; render(); }

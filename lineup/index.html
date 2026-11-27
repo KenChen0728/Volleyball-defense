@@ -12,8 +12,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="站位練習">
 <style>
-:root{--fb:#1d6fb8;--lr:#b45309;--bg:#f4f1ea;--card:#fff;--ink:#1f2a37;--ink2:#4b5563;--line:#e5e7eb;--line2:#9ca3af;--acc:#1f4e8c;--acc-ink:#fff;--soft:#f3f4f6;--court:#dceef5;--cline:#1f2a37;--opp:#eef2f5;--bad:#b91c1c;--ok:#15803d}
-@media (prefers-color-scheme:dark){:root{--fb:#5aa2e6;--lr:#e0873a;--bg:#111418;--card:#1c2128;--ink:#eef0f3;--ink2:#b4bcc6;--line:#2d343d;--line2:#6b7280;--acc:#6ea8ff;--acc-ink:#0b1a33;--soft:#252b33;--court:#1d3440;--cline:#c9d3dc;--opp:#1a242c;--bad:#f87171;--ok:#4ade80}}
+:root{--fb:#1d6fb8;--lr:#b45309;--bg:#f4f1ea;--card:#fff;--ink:#1f2a37;--ink2:#4b5563;--line:#e5e7eb;--line2:#9ca3af;--acc:#c2410c;--acc-ink:#fff;--soft:#f3f4f6;--court:#f1e2cb;--cline:#3b3328;--opp:#ebe5db;--bad:#b91c1c;--ok:#15803d;--hl:#0369a1}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--fb:#5aa2e6;--lr:#e0873a;--bg:#111418;--card:#1c2128;--ink:#eef0f3;--ink2:#b4bcc6;--line:#2d343d;--line2:#6b7280;--acc:#f07a3e;--acc-ink:#1a0d05;--soft:#252b33;--court:#1f3140;--cline:#c9d3dc;--opp:#1a242c;--bad:#f87171;--ok:#4ade80;--hl:#38bdf8}}
+:root[data-theme=dark]{--fb:#5aa2e6;--lr:#e0873a;--bg:#111418;--card:#1c2128;--ink:#eef0f3;--ink2:#b4bcc6;--line:#2d343d;--line2:#6b7280;--acc:#f07a3e;--acc-ink:#1a0d05;--soft:#252b33;--court:#1f3140;--cline:#c9d3dc;--opp:#1a242c;--bad:#f87171;--ok:#4ade80;--hl:#38bdf8}
+.home{max-width:520px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px}
+.home .ht{font-size:30px;font-weight:900}
+.home .hs{color:var(--ink2);margin-top:-8px;font-weight:700}
+.home .card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:16px 18px;border-radius:16px;border:2px solid var(--line2);background:var(--card);min-height:92px}
+.home .card b{font-size:22px;font-weight:900}.home .card span{color:var(--ink2);font-size:15px;font-weight:600}
+.home .card.pri{border-color:var(--acc)}.home .card.pri b{color:var(--acc)}
+.lnk{background:none;border:none;text-decoration:underline;min-height:44px;color:var(--ink2);font-size:14px}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 html,body{min-height:100%}
@@ -90,8 +98,17 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="hd"><h1>站位練習</h1><div class="seg" id="modeSeg" role="group" aria-label="模式"></div><button class="btn ic" id="helpBtn" aria-label="怎麼用">?</button></div>
+<div class="home" id="home">
+  <h1 class="ht">站位練習</h1>
+  <p class="hs">社工女排・雙舉三種輪</p>
+  <button class="card pri" data-a="go:teach"><b>教學</b><span>先看大家怎麼站、怎麼跑，看完再換你試試看</span></button>
+  <button class="card" data-a="go:game"><b>練習</b><span>像比賽一樣打一球，結果會隨機，看站位哪裡有洞</span></button>
+  <div class="row" style="margin-top:6px"><span class="rl">外觀</span><div class="seg" id="themeSeg"></div></div>
+  <button class="lnk" id="help3">怎麼用・加到主畫面</button>
+  <div class="foot">版本 <span id="ver2"></span><br>© 2026 Ken Chen｜免費使用｜有問題請截圖（附版本號）給教練</div>
+</div>
+<div class="app" id="app" hidden>
+  <div class="hd"><button class="btn ic" data-a="home" aria-label="回首頁">⌂</button><h1>站位練習</h1><div class="seg" id="modeSeg" role="group" aria-label="模式"></div><button class="btn ic" id="helpBtn" aria-label="怎麼用">?</button></div>
   <div class="row rot"><span class="rl">雙舉，前排<br>舉球員在</span><div class="seg" id="rotSeg"></div></div>
   <div id="opt" hidden></div>
   <div class="main">
@@ -113,8 +130,8 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 <dialog id="help">
   <h2>怎麼用</h2>
   <ol>
-    <li>右上角選<b>教學</b>或<b>練習</b>，上面再選這一輪：前排的舉球員站在 4、3 還是 2 號位。</li>
-    <li><b>教學</b>：先點你打的位置。播放時，每到你要動的地方會停下來，把「我」拖到（或點）你覺得要去的地方，按「確定」，再看大家怎麼跑。</li>
+    <li>首頁或右上角選<b>教學</b>或<b>練習</b>，上面再選這一輪：前排的舉球員站在 4、3 還是 2 號位。</li>
+    <li><b>教學</b>：先按播放看大家怎麼站、怎麼跑。看完按「換你試」，點你打的位置，同一球再跑一次，每到你要動的地方會停下來，把「我」拖到你覺得要去的地方，按「確定」看對不對。</li>
     <li>要點場上的時候，場上會框起來、有手指在點：發球落點、我們要打哪裡、對方打哪裡。上面可以換一傳好壞、舉長攻或二號、對方怎麼攻擊。</li>
     <li><b>練習</b>：先設定對方怎麼守、有幾個人攔網，按「開始」就像比賽一樣打一球，結果會隨機。站位可以先拖人調整；要舉給誰、接噴要修去哪這些地方，會停下來讓你選。</li>
     <li>播放時場上不放字，想知道為什麼，按「為什麼？」。防守時按「為什麼這樣站」，看每個人負責哪裡：顏色深的一定是她接，淡的是別人也可以接，紅色是空檔。</li>
@@ -131,8 +148,8 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.16";
-document.getElementById("ver").textContent = VERSION;
+const VERSION = "2026.11.27.17";
+document.getElementById("ver").textContent = VERSION; document.getElementById("ver2").textContent = VERSION;
 
 /* ===================== 資料 =====================
    座標（公尺）：x 由左到右 0～9；y 是離網子多遠，我們這邊 0～9，對方那邊是負的。
@@ -176,6 +193,11 @@ const BLOCK = {
      tags:{FS:"攔網",FM:"攔網",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"<b>舉球員和攔中兩個人攔</b>，擋住的範圍比較寬。"}
 };
+// 對方攔中快攻（教練 11/27）：攔中攔中間；前排兩個往前、往攔中靠守小球；後排兩邊靠三米線；自由留後面補（位置暫擺）
+const AM = [4.5,-0.8];
+const MIDDEF = {bl:["FM"], def:{FM:[4.5,0.4],FO:[2.7,1.5],FS:[6.3,1.5],BO:[1.6,3.6],BS:[7.4,3.6],BM:[4.5,7.0]},
+  tags:{FM:"攔中間",FO:"守攔網旁小球",FS:"守攔網旁小球",BO:"靠三米線",BS:"靠三米線",BM:"後面補"},
+  cap:"對方快攻：<b>攔中攔中間</b>；前排兩個人往前、往攔中靠，守攔網旁邊的小球；後排兩邊靠近三米線（快攻的球最快落在那裡）；自由留在後面補。"};
 const DUMPS = [["4 號位的小球",[1.4,1.4]],["中間的短球",[4.4,1.6]],["2 號位的小球",[7.6,1.4]],["斜線",[2.6,3.0]]];
 const ZCOL = {FS:"#db2777",FM:"#0891b2",FO:"#7c3aed",BS:"#2563eb",BM:"#d97706",BO:"#16a34a"};
 
@@ -194,10 +216,10 @@ const OBLK = n => ["o2","o3"].slice(0,n);
 
 /* ===================== 狀態 ===================== */
 const S = {mode:"teach", rot:0, ver:"in", blk:"M", of:"back", on:2, set:"long", tq:"", atype:"spike", rel:"fb", me:"", why:false, slow:false, zones:false,
-  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set()};
+  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set(), home:true, quiz:false, pickMe:false, over:"save", theme:"auto"};
 try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.mode==="game") S.mode="game"; if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver==="out") S.ver="out"; if(BLOCK[o.blk]) S.blk=o.blk;
-  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; }catch(e){}
-function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why})); }catch(e){} }
+  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; if(["light","dark"].includes(o.theme)) S.theme=o.theme; }catch(e){}
+function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why,theme:S.theme})); }catch(e){} }
 
 const HINT = {srv:false, tap:false, mv:false};
 try{ ["srv","tap","mv"].forEach(k=>HINT[k] = localStorage.getItem("vblineup-hint-"+k)==="1"); }catch(e){}
@@ -298,8 +320,7 @@ function defend(o){
   const lim = type==="spike" ? 3.0 : type==="tip" ? 3.0 : 3.2;
   if(kind==="dig" && dd > lim) kind = "miss";
   let helper = null;
-  if(kind==="over"){ helper = defs.filter(k=>k!==who && !bl.includes(k)).sort((a,b)=>C[a]-C[b])[0] || null;
-    why = `球比較平、比較快，從${nm(who)}頭上過，她來不及退，只能<b>用高手擋看看</b>${helper?`；${nm(helper)}同時往球那邊補`:""}。兩個人都接不好，就會失分。`; }
+  if(kind==="over") why = `平快的球從${nm(who)}頭上過、落在她後面，她來不及退，只能<b>用高手擋看看</b>。這種球其他人來不及補。`;
   if(kind==="miss") why = `這裡離大家都太遠，${nm(who)}要跑約 ${C[who].toFixed(1)} 公尺，來不及。`;
   if(kind==="dig" && !why){ const deepest = defs.every(k=>k===who || (pos[k][1]-pos[who][1])*side < 0.3);
     why = type==="lob" ? `高吊的球在空中比較久，${nm(who)}跑過去來得及。${L[0] > 7.2 && Math.abs(L[1]) > 6.6 ? "直線角落的高球，舉球員來不及退，交給自由。" : ""}` : deepest && (L[1]-pos[who][1])*side > 0 ? `${nm(who)}後面已經沒有人了，<b>一定要擋起來</b>。` : `${nm(who)}離球最近、移動最順，所以是她接。`; }
@@ -316,7 +337,7 @@ function defMoves(r, pos){
     if(k===r.giveway){ mv[k] = clampP([pos[k][0] + (pos[k][0] > L[0] ? 1.2 : -1.2), pos[k][1]+0.2]); tags[k] = "讓開"; return; }
     if(r.bl.includes(k)){ mv[k] = [pos[k][0], 0.9]; tags[k] = "落地轉身"; return; }
     if(r.type==="tip"){ mv[k] = clampP(fr(k) ? toward(pos[k], L, 0.35) : [pos[k][0], pos[k][1]-1.0]); tags[k] = "往前"; return; }
-    if(k===r.helper){ mv[k] = clampP(toward(pos[k], L, 0.6)); tags[k] = "補"; helpers.push(k); return; }
+    if(r.kind==="over"){ mv[k] = clampP(toward(pos[k], L, 0.12)); return; }
     const near = r.C[k] !== undefined && r.who && r.C[k] < (r.C[r.who]||0) + 3.8;
     mv[k] = clampP(toward(pos[k], L, near ? 0.35 : 0.12)); if(near){ tags[k] = "補位"; helpers.push(k); }
   });
@@ -351,20 +372,19 @@ function runPh(name, c, ans){ const k = STEPS.length, snap = cp(c); PH[name](c, 
 function ask(s, a, c){ s.ask = Object.assign(a, {ctx: cp(c)}); }
 function finish(c, win){ const s = last(); if(c.mode==="game"){ if(win==="us") c.score[0]++; if(win==="them") c.score[1]++; }
   s.end = {win, score:c.score.slice(), next: win==="us" ? "us" : "opp"}; s.landed = s.landed || !!win; }
-function refresh(c){ Object.assign(c, {blk:S.blk, f:S.of, n:S.on, set:S.set, tq:S.tq, atype:S.atype, ver:S.ver, srvX:S.srvX}); }
+function refresh(c){ Object.assign(c, {over:S.over, blk:S.blk, f:S.of, n:S.on, set:S.set, tq:S.tq, atype:S.atype, ver:S.ver, srvX:S.srvX}); }
 function teachNext(c){ if(c.defDone){ add({title:"一個來回完成", cap:"接發球 → 攻擊 → 回防 → 攔網防守 → 再攻擊。按「再來一次」換個地方發球。"}); finish(c, null); return; } runPh("oppAttackPrep", c, {}); }
 
 // ---- 教學：選位置 → 前後左右 → 發球員 → 接發球站位
 PH.tStart = c => {
   const R = ROT[c.rot];
-  first({pos:zonePos(R), opp:oppServe(c.srvX), ball:[c.srvX,-2.4], noBall:true, noOpp:true, setup:true, trail:false, title:"點一下：你打哪個位置", cap:"點場上你的那個人。之後要動的時候，會先問你要去哪裡。", ask:{k:"me"}});
-  add({setup:true, frames:true, noBall:true, noOpp:true, trail:false, rel:true});
+  first({pos:zonePos(R), opp:oppServe(c.srvX), ball:[c.srvX,-2.4], noBall:true, noOpp:true, setup:true, frames:true, trail:false, rel:true});
   add({setup:true, arrow:true, noBall:true, noOpp:true, trail:false, title:"拖紅色三角形：對方發球員站哪裡", cap:"發球員在對方底線後面，中間的對方場地省略沒畫。"});
   runPh("tRecv", c);
 };
 PH.tRecv = c => {
   const sd = c.srvX < 3 ? "左邊" : c.srvX > 6 ? "右邊" : "中間";
-  const s = add({pos:recvPos(c.rot, c.srvX), arrow:true, noBall:true, noOpp:true, q:true, qtxt:"接發球的時候，你站哪裡？", tags:{FS:"不接",FM:"不接"}, tagsOn:true, recvForm:true,
+  const s = add({pos:recvPos(c.rot, c.srvX), arrow:true, noBall:true, noOpp:true, q:true, qtxt:"其他人都站好了。你接發球要站哪裡？", tags:{FS:"不接",FM:"不接"}, tagsOn:true, recvForm:true,
     title:"點我們的場上：發球落在哪裡", cap:`${sd==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${sd}，大家往${sd}移一點、身體轉向她。`}前排舉球員和攔中不接。`});
   ask(s, {k:"tap", area:"our", go:"tServe", txt:"點一下：發球落在哪裡", rand:"隨便發一球"}, c);
 };
@@ -553,8 +573,9 @@ PH.atkSet = (c, a) => {
     return finish(c, null);
   }
   const opos = odef(c.f, c.n, hp[0]), obl = OBLK(c.n), of = c.n ? fanP(-1, hp, obl.map(k=>opos[k][0]), false) : null;
-  const s = add({pos:Object.assign({[hitter]:hp.slice()}, cov), opp:opos, ball:[hp[0]+0.2,hp[1]], ballH: a.v==="two" ? 2.0 : 3.2, tags:tg, cam:1, ofan:of, hl:hitter, atkStep:true, setV:a.v,
-    q:true, qtxt:`${setName ? setName + "，" : ""}要攻擊了。你要去哪？`, title:"點對方的場上：要打哪裡",
+  add({pos:Object.assign({[hitter]:hp.slice()}, cov), ball:[hp[0]+0.2,hp[1]], ballH: a.v==="two" ? 2.0 : 3.2, tags:tg, hl:hitter,
+    q:true, qtxt:`${setName ? setName + "，" : ""}要攻擊了。你要去哪？`, title:`${setName ? setName + "給" + nm(hitter) : nm(hitter) + "攻擊"}，大家掩護`, cap:"攻擊手助跑，其他人靠過去掩護，準備接被攔回來的球。"});
+  const s = add({opp:opos, cam:1, ofan:of, atkStep:true, setV:a.v, title:"點對方的場上：要打哪裡",
     cap: note + (setName ? `${setName}給${nm(hitter)}。` : "") + (c.n ? `灰色是對方攔網擋住的地方（${c.n} 個人攔），找攔網沒擋到、離對方遠的地方。` : "對方沒有攔網：找離大家都遠的空檔。") + `對方${c.f==="up"?"後中靠前，後面中間比較空":"後中靠後，攔網後面的吊球比較空"}。`});
   ask(s, {k:"tap", area:"opp", go:"atkRes", txt:"點一下：要打哪裡", rand:"隨便打一球"}, c);
 };
@@ -622,25 +643,38 @@ PH.freeToUs = c => {
 // 回防 → 對方舉球 → 我們攔網、找線守
 PH.oppAttackPrep = c => {
   const D = BLOCK[c.blk], teach = c.mode==="teach", R = ROT[c.rot], B = R.key==="r4" && c.ver==="out" && !c.backDone;
-  const t6 = {}; ROLES.forEach(r=>{ if(R.zone[r]!==BZONE[r] && !FRONT(r)) t6[r] = "換到 "+BZONE[r]; }); if(B){ t6.FM = "換回中間"; t6.FO = "換回 4"; } t6.FS = "守 2";
+  const t6 = {}; ROLES.forEach(r=>t6[r] = `回 ${BZONE[r]} 號位`);
   c.outer = "FO"; c.mid = "FM"; c.backDone = true;
   add({pos:cp(BASE), ball:OSET.slice(), ballH:2.5, opp:{o3:OSET.slice(), o4:[8.4,-3.3]}, ohl:"o3", tags:t6, q:true, qtxt:"對方接起來了。你要回到哪裡？",
     title:"回防：回到固定位置", cap:`前排大砲 4、攔中 3、舉球員 2；後排大砲 5、自由 6、舉球員 1。${B?"這一輪攔中和大砲在這裡換回來。":""}`});
-  if(!teach && rnd(c) < 0.15){
-    const s = add({ball:[OSET[0],-0.4], ballH:1.4, opp:{o3:[OSET[0],-0.5]}, ohl:"o3", title:"對方舉球員在前排，可能直接吊！", cap:"舉球員也可以直接吊：兩邊、短的、斜線都有可能，不是只有中間。"});
-    ask(s, {k:"tap", area:"our", go:"gDump", txt:"點一下：你覺得她會吊哪裡", rand:"不知道"}, c); return;
+  if(teach){ ask(last(), {k:"pick", go:"oppSet", txt:"對方舉球員要？", opts:[["直接吊","dump"],["舉中間（快攻）","mid"],["舉長攻（4 號位）","long"]]}, c); return; }
+  const r = rnd(c); runPh("oppSet", c, {v: r < 0.15 ? "dump" : r < 0.37 ? "mid" : "long"});
+};
+// 對方舉球：直接吊／舉中間快攻／舉長攻；球真的飛過去，大家看球去防守
+PH.oppSet = (c, a) => {
+  const teach = c.mode==="teach";
+  if(a.v==="dump"){
+    const s = add({ball:[OSET[0],-0.4], ballH:1.4, opp:{o3:[OSET[0],-0.5]}, ohl:"o3", title: teach ? "點我們的場上：她吊到哪裡" : "對方舉球員在前排，可能直接吊！", cap:"舉球員也可以直接吊：兩邊、短的、斜線都有可能，不是只有中間。看到她要吊，大家往前。"});
+    if(teach) ask(s, {k:"tap", area:"our", go:"tDump", txt:"點一下：她吊到哪裡", rand:"隨便吊"}, c);
+    else ask(s, {k:"tap", area:"our", go:"gDump", txt:"點一下：你覺得她會吊哪裡", rand:"不知道"}, c);
+    return;
   }
-  const s = add({pos:cp(D.def), ball:A.slice(), ballH:3, opp:{o3:[2.7,-0.9], o4:A.slice()}, ohl:"o4", fan:fanP(1, A, D.bl.map(r=>D.def[r][0]), false), tags:cp(D.tags), defForm:true,
-    q:true, qtxt:"對方要從我們的右邊攻擊。你站哪裡？", title: teach ? "點我們的場上：對方打哪裡" : "對方要攻擊了：站好防守位置",
+  const mid = a.v==="mid", D = mid ? MIDDEF : BLOCK[c.blk], hp = mid ? AM : A;
+  c.oppMid = mid;
+  const s = add({pos:cp(D.def), ball:hp.slice(), ballH: mid ? 1.2 : 3, opp: mid ? {o3:[2.7,-0.9], o2:AM.slice()} : {o3:[2.7,-0.9], o4:A.slice()}, ohl: mid ? "o2" : "o4",
+    fan:fanP(1, hp, D.bl.map(r=>D.def[r][0]), false), tags:cp(D.tags), defForm:true, midForm:mid, dbl:D.bl.slice(), dhp:hp.slice(),
+    q:true, qtxt: mid ? "球舉到中間，對方攔中要快攻了。你站哪裡防守？" : "球舉到我們右邊，對方大砲要扣了。你站哪裡防守？",
+    title: teach ? "點我們的場上：對方打哪裡" : "對方要攻擊了：站好防守位置",
     cap: teach ? `${D.cap}灰色是攔網擋住的地方，其他人去守沒擋到的路線。` : `${D.cap}可以拖人調整站位，好了按「開始」。`});
   if(teach) ask(s, {k:"tap", area:"our", go:"tDig", txt:"點一下：對方打哪裡", rand:"隨便打一球"}, c);
   else ask(s, {k:"adjust", stage:"def", go:"oppAtk"}, c);
 };
-PH.tDig = (c, a) => { c.defDone = true; runPh("defRes", c, {pos:last().pos, L:a.L, type:c.atype}); };
+PH.tDump = (c, a) => { c.defDone = true; runPh("defRes", c, {pos:last().pos, L:a.L, type:"tip", hp:[OSET[0],-0.4], bl:[]}); };
+PH.tDig = (c, a) => { c.defDone = true; runPh("defRes", c, {pos:last().pos, L:a.L, type:c.atype, hp:c.oppMid ? AM : A, bl:c.oppMid ? ["FM"] : null}); };
 PH.oppAtk = (c, a) => {
-  const r = rnd(c), type = r < 0.62 ? "spike" : r < 0.82 ? "tip" : "lob";
+  const r = rnd(c), type = c.oppMid ? (r < 0.8 ? "spike" : "tip") : r < 0.62 ? "spike" : r < 0.82 ? "tip" : "lob";
   const L = type==="tip" ? [2.0 + rnd(c)*6.2, 1.0 + rnd(c)*2.2] : type==="lob" ? [0.7 + rnd(c)*7.6, 6.6 + rnd(c)*2.1] : [0.6 + rnd(c)*7.8, 3.4 + rnd(c)*5.2];
-  runPh("defRes", c, {pos:a.pos, L, type});
+  runPh("defRes", c, {pos:a.pos, L, type, hp:c.oppMid ? AM : A, bl:c.oppMid ? ["FM"] : null});
 };
 PH.gDump = (c, a) => { const d = DUMPS[Math.floor(rnd(c)*DUMPS.length)]; runPh("defRes", c, {pos:last().pos, L:d[1].slice(), type:"tip", hp:[OSET[0],-0.4], bl:[], pred:a.L||null, dname:d[0]}); };
 PH.defRes = (c, a) => {
@@ -664,10 +698,11 @@ PH.defRes = (c, a) => {
   if(r.kind==="soft"){ add({pos:{[r.who]:stopShort(pos[r.who], r.at, 0.75)}, ball:r.at, via:r.hand, hitMark:r.hand, ballH:2.2, fan, hl:r.who, title:`碰到攔網變小球，${nm(r.who)}接`, cap:"球碰到我們攔網的手變慢，很好接。"}); return runPh("passOut", c, {q:teach ? "good" : quality(c, 0.6), who:r.who, from:pos[r.who], at:r.at, src:"dig"}); }
   if(r.kind==="miss"){ add(Object.assign({pos:m.mv, ball:L.slice(), ballH:bh, fan, tags:m.tags, landed:true, title:`對方${verb}${where(L)}：空檔，失分`, cap: pred + r.why + "這是站位的洞，防守時按「為什麼這樣站」可以看紅色的空檔。"}, hit)); return finish(c, teach ? null : "them"); }
   if(r.kind==="over"){
-    add(Object.assign({pos:m.mv, ball:r.at, ballH:bh, fan, tags:m.tags, hl:r.who, title:`從${nm(r.who)}頭上過：高手擋看看`, cap: pred + r.why}, hit));
-    if(rnd(c) < 0.4){ add({ball:[Math.max(0.6, r.at[0]-0.8), Math.max(1.0, r.at[1]-1.6)], ballH:2.4, title:`${nm(r.who)}用高手擋起來了`, cap:"擋起來的球不好處理，要有人去修。"});
+    add(Object.assign({pos:m.mv, ball:r.at, ballH:bh, fan, tags:m.tags, hl:r.who, overStep:true, title:`從${nm(r.who)}頭上過：高手擋看看`, cap: pred + r.why}, hit));
+    if(teach ? c.over!=="miss" : rnd(c) < 0.4){ add({ball:[Math.max(0.6, r.at[0]-0.8), Math.max(1.0, r.at[1]-1.6)], ballH:2.4, title:`${nm(r.who)}用高手擋起來了`, cap:"擋起來的球不好處理，要有人去修。"});
       return runPh("shank", c, {who:r.who, sp:[Math.max(0.6, r.at[0]-0.8), Math.max(1.0, r.at[1]-1.6)], why:"高手擋起來的球不好處理"}); }
-    add({pos: r.helper ? {[r.helper]:clampP(toward(m.mv[r.helper]||pos[r.helper], L, 0.5))} : {}, ball:L.slice(), ballH:0.3, landed:true, title:"兩個人都沒接到，失分", cap:"這種球很容易失分。直線深處平平快快的球，後排舉球員擋、自由補；高的拋物線就交給自由。"});
+    const lob = defend({side:1, pos, bl:a.bl || D.bl, hp, L, type:"lob", rr:()=>0.99});
+    add({ball:L.slice(), ballH:0.3, landed:true, title:`${nm(r.who)}沒擋到，失分`, cap:`${where(L)}平快的球從${nm(r.who)}頭上過，只有她用高手擋才有機會。如果是高的拋物線，${lob.who && lob.kind==="dig" ? nm(lob.who) + "就有機會接" : "還是很難接"}。`});
     return finish(c, teach ? null : "them");
   }
   add(Object.assign({pos:m.mv, ball:r.at, ballH:bh, fan, tags:m.tags, hl:r.who, title:`對方${verb}${r.pinch ? "前面" : where(L)}：${nm(r.who)}接`, cap: pred + tipCap + r.why + (m.helpers.length ? `${m.helpers.map(nm).join("、")}往球靠過去補位。` : "")}, hit));
@@ -723,7 +758,7 @@ function drawStatic(){
   G.tapR = el("rect",{rx:10,fill:"var(--acc)","fill-opacity":.1,stroke:"var(--acc)","stroke-width":3,"stroke-dasharray":"8 6",opacity:0,"pointer-events":"none"},svg);
   G.opp = {};
   ["o1","o2","o3","o4","o5","o6"].forEach(k=>{ const g = el("g",{},svg); el("circle",{r:13,fill:"#9ca3af",stroke:"var(--cline)","stroke-width":2},g); G.opp[k]=g; });
-  G.ohl = el("g",{opacity:0,"pointer-events":"none"},svg); el("circle",{r:19,fill:"none",stroke:"#f59e0b","stroke-width":3.5},G.ohl); el("circle",{class:"hlp",r:19,fill:"none",stroke:"#f59e0b","stroke-width":3},G.ohl);
+  G.ohl = el("g",{opacity:0,"pointer-events":"none"},svg); el("circle",{r:19,fill:"none",stroke:"var(--hl)","stroke-width":3.5},G.ohl); el("circle",{class:"hlp",r:19,fill:"none",stroke:"var(--hl)","stroke-width":3},G.ohl);
   // 對方場地省略：網子上方畫鋸齒（中間省略），再一條對方底線，發球員在底線外面
   G.cut = el("g",{opacity:0,"pointer-events":"none"},svg);
   el("rect",{x:X(-1),y:Y(-2.7),width:330,height:Y(-0.06)-Y(-2.7),fill:"var(--bg)"},G.cut);
@@ -743,7 +778,7 @@ function drawStatic(){
   const hand = g => { el("path",{d:"M0 0 C-3 0 -4 2 -4 4 L-4 20 L-8 16 C-10 14 -13 15 -12 18 L-4 30 C-2 34 2 36 6 36 L12 36 C18 36 21 32 21 26 L21 14 C21 11 17 11 17 14 L17 12 C17 9 13 9 13 12 L13 10 C13 7 9 7 9 10 L4 10 L4 4 C4 2 3 0 0 0 Z",fill:"#fff",stroke:"#111","stroke-width":1.8,"stroke-linejoin":"round"},g); };
   G.hintS = el("g",{class:"hint",opacity:0},svg); const hs = el("g",{class:"sw"},G.hintS); el("circle",{r:9,fill:"#e5484d","fill-opacity":.35},hs); hand(hs);
   G.hintT = el("g",{class:"hint",opacity:0},svg); el("circle",{class:"rg",r:6,fill:"none",stroke:"var(--ink)","stroke-width":2.5},G.hintT); const ht = el("g",{class:"tp"},G.hintT); hand(ht);
-  G.hl = el("g",{opacity:0,"pointer-events":"none"},svg); el("circle",{r:27,fill:"none",stroke:"#f59e0b","stroke-width":4},G.hl); el("circle",{class:"hlp",r:27,fill:"none",stroke:"#f59e0b","stroke-width":3},G.hl);
+  G.hl = el("g",{opacity:0,"pointer-events":"none"},svg); el("circle",{r:27,fill:"none",stroke:"var(--hl)","stroke-width":4},G.hl); el("circle",{class:"hlp",r:27,fill:"none",stroke:"var(--hl)","stroke-width":3},G.hl);
   G.pl = {}; G.tag = {}; G.plT = {};
   ROLES.forEach(r=>{
     const g = el("g",{class:"pl","data-r":r},svg);
@@ -792,14 +827,13 @@ function setBall(p, h){ G.shadow.setAttribute("cx",X(p[0])+h*3); G.shadow.setAtt
 function ballAt(prev, cur, t){ if(!cur.via) return lerp(prev.ball, cur.ball, t); const d1 = dist(prev.ball, cur.via), d2 = dist(cur.via, cur.ball), k = d1/(d1+d2); return t < k ? lerp(prev.ball, cur.via, t/k) : lerp(cur.via, cur.ball, (t-k)/(1-k)); }
 const VB_OUR = 235, VB_OPP = 24;
 const TAPS = {our:{y0:0,y1:9}, opp:{y0:-9,y1:0}};
-function activeKind(){ if(S.mq) return "move"; if(S.playing || S.t < 1) return ""; const a = S.steps[S.step].ask; return a ? a.k : ""; }
+function activeKind(){ if(S.pickMe) return "me"; if(S.mq) return "move"; if(S.playing || S.t < 1) return ""; const a = S.steps[S.step].ask; return a ? a.k : ""; }
 // 每個人負責的範圍：深色＝一定她接，淡色＝別人也可以接，紅色＝空檔
 let zKey = "";
-function drawZones(pos){
-  const key = JSON.stringify(pos) + S.blk; if(key===zKey) return; zKey = key; G.zones.innerHTML = "";
-  const D = BLOCK[S.blk];
+function drawZones(pos, bl, hp){
+  const key = JSON.stringify([pos, bl, hp]); if(key===zKey) return; zKey = key; G.zones.innerHTML = "";
   for(let gx=0; gx<18; gx++) for(let gy=0; gy<18; gy++){
-    const L = [gx*0.5+0.25, gy*0.5+0.25], r = defend({side:1, pos, bl:D.bl, hp:A, L, type:"spike", rr:()=>0.99});
+    const L = [gx*0.5+0.25, gy*0.5+0.25], r = defend({side:1, pos, bl, hp, L, type:"spike", rr:()=>0.99});
     let col, op;
     if(r.kind==="miss"){ col = "#e5484d"; op = .3; }
     else if(r.kind==="dig" || r.kind==="over"){ const cs = Object.values(r.C).sort((a,b)=>a-b); col = ZCOL[r.who]; op = r.kind==="over" ? .2 : (!r.body && cs.length>1 && cs[1]-cs[0] < 0.7) ? .17 : .45; }
@@ -807,13 +841,13 @@ function drawZones(pos){
     el("rect",{x:X(gx*0.5), y:Y(gy*0.5), width:15, height:15, fill:col, "fill-opacity":op},G.zones);
   }
 }
-function fanAt(pos){ const bl = BLOCK[S.blk].bl.filter(r=>pos[r][1] < 1.3); return bl.length ? fanP(1, A, bl.map(r=>pos[r][0]), false) : null; }
+function fanAt(pos, bl0, hp){ const bl = bl0.filter(r=>pos[r][1] < 1.3); return bl.length ? fanP(1, hp, bl.map(r=>pos[r][0]), false) : null; }
 function paint(){
   const st = S.steps, i = S.step, cur = st[i], prev = st[Math.max(0,i-1)];
   const mq = !!S.mq && S.mq.k===i, adj = S.adj && S.adj.k===i ? S.adj : null;
   const t = (i===0 || cur.setup) ? 1 : mq ? 0 : S.t, e = ease(t);
   BMM = !!cur.bmM;
-  const cam = i===0 ? (cur.cam||0) : (prev.cam||0) + ((cur.cam||0)-(prev.cam||0))*e;
+  const cam = mq ? 0 : i===0 ? (cur.cam||0) : (prev.cam||0) + ((cur.cam||0)-(prev.cam||0))*e;
   svg.setAttribute("viewBox", `0 ${(VB_OUR + (VB_OPP-VB_OUR)*cam).toFixed(1)} 330 368`);
   const showArrow = !!cur.arrow;
   G.arrow.setAttribute("transform",`translate(${X(S.srvX)} ${Y(-2.55)})`); G.arrow.setAttribute("opacity", showArrow?1:0); G.cut.setAttribute("opacity", showArrow?1:0);
@@ -824,7 +858,7 @@ function paint(){
   G.ours.setAttribute("opacity", tp && tp.y0>=0 ? 0 : .8); G.theirs.setAttribute("opacity", tp && tp.y0<0 ? 0 : .8);
   // 位置
   const P = {};
-  ROLES.forEach(r=>{ P[r] = adj ? adj.pos[r] : (mq && r===S.me) ? S.mq.pos : lerp((cur.from && cur.from[r]) || prev.pos[r], cur.pos[r], e); });
+  ROLES.forEach(r=>{ P[r] = adj ? adj.pos[r] : (mq && r===S.me) ? S.mq.pos : (mq && cur.recvForm) ? cur.pos[r] : lerp((cur.from && cur.from[r]) || prev.pos[r], cur.pos[r], e); });
   const srvDrag = !S.playing && showArrow && (cur.setup || kind==="adjust");
   const hS = (srvDrag && !HINT.srv) || (mq && !HINT.mv), hT = !!tp;
   G.hintS.setAttribute("opacity", hS?1:0);
@@ -836,11 +870,11 @@ function paint(){
   G.plT.BM.textContent = BMM ? "攔中" : "自由";
   const boxes = [];
   ROLES.forEach(r=>{ const p = P[r]; G.pl[r].setAttribute("transform",`translate(${X(p[0])} ${Y(p[1])})`); boxes.push([X(p[0])-21,Y(p[1])-21,X(p[0])+21,Y(p[1])+21]); });
-  const meOn = S.mode==="teach" && !!S.me;
+  const meOn = (S.quiz || S.pickMe) && !!S.me;
   G.me.setAttribute("opacity", meOn?1:0); if(meOn) G.me.setAttribute("transform",`translate(${X(P[S.me][0])} ${Y(P[S.me][1])})`);
   const hit = b => boxes.some(o => b[0]<o[2] && b[2]>o[0] && b[1]<o[3] && b[3]>o[1]);
   const showTags = !mq && t>=0.98 && (S.why || cur.tagsOn || (S.zones && cur.defForm));
-  const tags = cur.defForm && S.zones ? BLOCK[S.blk].tags : cur.tags;
+  const tags = cur.tags;
   ROLES.forEach(r=>{
     const p = P[r], tg = G.tag[r], txt = showTags ? tags[r] : "";
     tg.setAttribute("opacity", txt?1:0);
@@ -873,7 +907,7 @@ function paint(){
   G.ball.setAttribute("opacity", hideBall?0:1); G.shadow.setAttribute("opacity", hideBall?0:1);
   const landOn = !mq && cur.landed && t>=0.98; G.land.setAttribute("opacity", landOn?1:0); if(landOn) G.land.setAttribute("transform",`translate(${X(bp[0])} ${Y(bp[1])})`);
   // 攔網擋住的範圍
-  const curFan = adj && adj.stage==="def" ? fanAt(adj.pos) : cur.fan;
+  const curFan = adj && adj.stage==="def" ? fanAt(adj.pos, cur.dbl, cur.dhp) : cur.fan;
   const fanPts = curFan || (i>0 ? prev.fan : null);
   const fo = mq ? (prev.fan?1:0) : curFan ? (prev.fan || adj ? 1 : e) : (prev.fan && i>0 ? 1-e : 0);
   if(fanPts){ G.fan.setAttribute("points", fanPts.map(p=>X(p[0])+","+Y(p[1])).join(" ")); G.fanT.setAttribute("x", X((fanPts[0][0]+fanPts[1][0]+fanPts[2][0]+fanPts[3][0])/4 - 0.3)); G.fanT.setAttribute("y", Y(3.4)); }
@@ -892,7 +926,7 @@ function paint(){
   }
   // 為什麼這樣站
   const zOn = S.zones && cur.defForm && (adj || t>=0.98) && !mq;
-  if(zOn) drawZones(adj ? adj.pos : cur.pos);
+  if(zOn) drawZones(adj ? adj.pos : cur.pos, cur.dbl, cur.dhp);
   G.zones.setAttribute("opacity", zOn?1:0);
   // 站位犯規的紅線
   G.bad.innerHTML = ""; let badL = [];
@@ -918,7 +952,8 @@ function renderOpt(cur, kind){
     if(cur.rel) seg("看", [["前後關係","rel:fb",S.rel==="fb"],["左右關係","rel:lr",S.rel==="lr"]]);
     else if(!teach && i===0) rows.push(`<div class="row"><span class="rl">對方</span>${btn(`${S.of==="up"?"後中靠前":"後中靠後"}・${["沒人攔網","一個人攔網","兩個人攔網"][S.on]}　更改 ›`,"oppdlg")}</div>`);
     else if(teach && cur.atkStep && (cur.setV==="long" || cur.setV==="two")){ seg("舉給", [["長攻（4 號位）","set:long",S.set==="long"],["二號（中間）","set:two",S.set==="two"]]); seg("對方攔網", [["沒人攔","on:0",S.on===0],["一個人","on:1",S.on===1],["兩個人","on:2",S.on===2]]); }
-    else if(cur.defForm){ seg("誰攔網", Object.keys(BLOCK).map(k=>[BLOCK[k].seg,"blk:"+k,S.blk===k])); if(teach) seg("對方", [["扣球","atype:spike",S.atype==="spike"],["高吊","atype:lob",S.atype==="lob"],["吊球","atype:tip",S.atype==="tip"]]); }
+    else if(cur.overStep && teach) seg("結果", [["擋起來","over:save",S.over!=="miss"],["沒擋到","over:miss",S.over==="miss"]]);
+    else if(cur.defForm){ if(!cur.midForm) seg("誰攔網", Object.keys(BLOCK).map(k=>[BLOCK[k].seg,"blk:"+k,S.blk===k])); if(teach) seg("對方", [["扣球","atype:spike",S.atype==="spike"],["高吊","atype:lob",S.atype==="lob"],["吊球","atype:tip",S.atype==="tip"]]); }
     else if(teach && inPass(i)) seg("一傳", [["照落點","tq:",!S.tq],["到位","tq:good",S.tq==="good"],["太貼網","tq:tight",S.tq==="tight"],["太開","tq:wide",S.tq==="wide"],["接噴","tq:shank",S.tq==="shank"]]);
     if(ROT[S.rot].key==="r4" && cur.recvForm) seg("這輪攔中", [["跑進中間","ver:in",S.ver==="in"],["先留外面","ver:out",S.ver==="out"]]);
   }
@@ -930,6 +965,8 @@ function render(){
   if(S.adj && S.adj.k!==S.step) S.adj = null;
   if(S.mfb && S.mfb.k!==S.step) S.mfb = null;
   BMM = !!cur.bmM;
+  if(S.home){ $("home").hidden = false; $("app").hidden = true; $("themeSeg").innerHTML = [["跟手機","auto"],["淺色","light"],["深色","dark"]].map(([t,v])=>btn((S.theme===v?"✓ ":"")+t,"theme:"+v,{pressed:S.theme===v})).join(""); return; }
+  $("home").hidden = true; $("app").hidden = false;
   $("modeSeg").innerHTML = btn((teach?"✓ ":"")+"教學","mode:teach",{pressed:teach}) + btn((!teach?"✓ ":"")+"練習","mode:game",{pressed:!teach});
   $("rotSeg").innerHTML = ROT.map((r,k)=>btn((k===S.rot?"✓ ":"")+r.seg, "rot:"+k, {pressed:k===S.rot})).join("");
   const kind = activeKind();
@@ -939,7 +976,7 @@ function render(){
   let doT = cur.title, cs = "";
   if(cur.rel){ doT = S.rel==="fb" ? `<span class="fb">前後關係</span>：前排要比後排更靠近網子` : `<span class="lr">左右關係</span>：左邊比中間靠左、右邊比中間靠右`;
     cs = (S.rel==="fb" ? "藍框裡是同一直排的兩個人。" : "橘框裡是同一橫排的三個人。") + "只在發球那一刻要遵守，看的是腳踩的位置。"; }
-  else if(kind==="me"){ doT = S.me ? `你打：${nm(S.me)}` : cur.title; cs = S.me ? "點別人可以換。之後你要動的時候，會先停下來問你要去哪裡。" : cur.cap; }
+  else if(kind==="me"){ doT = S.me ? `換你試：你打${nm(S.me)}` : "換你試：點一下你打哪個位置"; cs = S.me ? "點別人可以換。按「開始」，同一球再跑一次，每到你要動的時候會先停下來問你要去哪。" : "點場上你的那個人。"; }
   else if(kind==="move"){ doT = `換你想：${S.steps[S.mq.k].qtxt}`; cs = "把「我」拖到（或點）你覺得要去的地方，再按「確定」。"; }
   else if((kind==="tap" || kind==="pick") && cur.ask.txt && !cur.title.startsWith("點")){ doT = cur.ask.txt.replace("點一下：","點場上：") ; cs = `${cur.title}。${cur.cap}`; }
   else if(kind==="adjust" && S.adj.stage==="recv"){ const bad = legality(S.adj.pos, ROT[S.rot]); cs = cur.cap + (bad.length ? `<br><span class="bad">站位犯規（紅線）：${bad[0].msg}照這樣開始會被判失分。</span>` : ""); }
@@ -952,12 +989,12 @@ function render(){
   const W = btn(S.why?"✓ 為什麼？":"為什麼？","why",{pressed:S.why}), Z = btn(S.zones?"✓ 為什麼這樣站":"為什麼這樣站","zones",{pressed:S.zones});
   let h = "";
   if(kind==="move") h = P + btn("確定","qok",{cls:"pri"}) + btn("看答案","qans");
-  else if(kind==="me") h = btn("下一步 ›","next",{cls:"pri",dis:!S.me});
+  else if(kind==="me") h = btn("取消","pmc") + btn("開始 ›","pmgo",{cls:"pri",dis:!S.me});
   else if(cur.setup) h = P + btn("下一步 ›","next",{cls:"pri"});
-  else if(kind==="tap") h = P + (cur.ask.rand ? btn(cur.ask.rand,"rand",{cls:"pri"}) : "") + (cur.defForm ? Z : "") + (more ? Nx : "");
-  else if(kind==="pick") h = P + cur.ask.opts.map(([l,v])=>btn(l,"pick:"+v)).join("") + (more ? Nx : "");
+  else if(kind==="tap") h = P + (more ? btn("▶ 繼續","play",{cls:"pri play"}) : "") + (cur.ask.rand ? btn(cur.ask.rand,"rand",{cls:more?"":"pri"}) : "") + (cur.defForm ? Z : "");
+  else if(kind==="pick") h = P + (more ? btn("▶ 繼續","play",{cls:"pri play"}) : "") + cur.ask.opts.map(([l,v])=>btn(l,"pick:"+v)).join("");
   else if(kind==="adjust") h = P + btn("開始","start",{cls:"pri"}) + (S.adj.stage==="def" ? Z : btn("回到原本站位","reset"));
-  else if(cur.end) h = P + (teach ? btn("再來一次","again",{cls:"pri"}) + btn("換個地方打","redo") : btn("再打一球","again",{cls:"pri"}) + W);
+  else if(cur.end) h = P + (teach ? btn(S.quiz ? "再試一次" : "換你試","quiz",{cls:"pri"}) + btn("換個地方打","redo") + btn("再來一次","again") : btn("再打一球","again",{cls:"pri"}) + W);
   else h = P + btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:"pri play"}) + (more ? Nx : "") + W + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow}) + (teach && !S.playing && cur.pause ? btn("換個地方打","redo") : "");
   $("ctl").innerHTML = h;
   fitLater();
@@ -976,14 +1013,15 @@ function animTo(i, then){
 }
 function stopPlay(){ S.playing = false; cancelAnimationFrame(raf); clearTimeout(holdTimer); S.t = 1; }
 const qKey = st => st.title + "|" + st.qtxt + "|" + S.me;
-function needQ(k){ const st = S.steps[k], pv = S.steps[k-1]; if(S.mode!=="teach" || !S.me || !st || !pv || !st.q || st.qDone || S.qdone.has(qKey(st))) return false; return dist(pv.pos[S.me], st.pos[S.me]) > 0.8; }
-function openQ(k){ stopPlay(); S.step = k; S.t = 0; S.mfb = null; S.mq = {k, pos:S.steps[k-1].pos[S.me].slice()}; render(); }
+function needQ(k){ const st = S.steps[k], pv = S.steps[k-1]; if(!S.quiz || !S.me || !st || !pv || !st.q || st.qDone || S.qdone.has(qKey(st))) return false; return dist(pv.pos[S.me], st.pos[S.me]) > 0.8; }
+function openQ(k){ stopPlay(); S.step = k; S.t = 0; S.mfb = null; S.mq = {k, pos: S.steps[k].recvForm ? [4.5, 9.05] : S.steps[k-1].pos[S.me].slice()}; render(); }
 function confirmQ(show){
   const k = S.mq.k, st = S.steps[k], ans = st.pos[S.me], mine = S.mq.pos, d = dist(mine, ans);
   let html = show ? "虛線圈是正確位置。" : d <= 1.0 ? `<span class="ok">✓ 對了！</span>` : d <= 2.0 ? `<span class="ok">差不多</span>（差約 ${d.toFixed(1)} 公尺），虛線圈是正確位置。` : `<span class="bad">差比較多</span>（差約 ${d.toFixed(1)} 公尺），虛線圈是正確位置。`;
   if(!show && st.recvForm){ const P = cp(st.pos); P[S.me] = mine; const b = legality(P, ROT[S.rot]).filter(x=>x.a===S.me || x.c===S.me); if(b.length) html += ` <span class="bad">站位犯規：${b[0].msg}</span>`; }
   if(!show && st.recvForm) html += "（比賽時看的是腳踩的位置。）";
-  st.from = Object.assign({}, st.from, {[S.me]: show ? S.steps[k-1].pos[S.me] : mine}); st.qDone = true; S.qdone.add(qKey(st));
+  const from = {[S.me]: show ? S.steps[k-1].pos[S.me] : mine}; if(st.recvForm) ROLES.forEach(r=>{ if(r!==S.me) from[r] = st.pos[r].slice(); });
+  st.from = from; st.qDone = true; S.qdone.add(qKey(st));
   S.mfb = {k, html, ans:ans.slice(), mine: show ? null : mine.slice()}; S.mq = null;
   animTo(k, ()=>render());
 }
@@ -995,7 +1033,7 @@ function playFrom(i){
     if(needQ(k)){ openQ(k); return; }
     const st = S.steps[k];
     animTo(k, ()=>{
-      if(st.ask || st.end || st.pause || st.setup){ S.playing = false; render(); return; }
+      if((st.ask && k===S.steps.length-1) || st.end || st.pause || st.setup){ S.playing = false; render(); return; }
       holdTimer = setTimeout(()=>go(k+1), S.slow?1400:800); });
   };
   go(i);
@@ -1058,12 +1096,22 @@ svg.addEventListener("pointerup", endDrag);
 svg.addEventListener("pointercancel", endDrag);
 
 /* ===================== 按鈕 ===================== */
-function optRegen(){ const cur = S.steps[S.step]; S.mfb = null; if(S.mode==="teach" && cur.atkStep && regenFrom(S.step)){ stopPlay(); S.t = 1; } render(); }
+function optRegen(){ const cur = S.steps[S.step]; S.mfb = null;
+  if(S.mode==="teach" && cur.atkStep){ const k = findBack(S.step, s=>!!s.gen); if(k>=0 && regenFrom(k)){ stopPlay(); const j = S.steps.findIndex((s,x)=>x>=k && s.atkStep); S.step = j>=0 ? j : k; S.t = 1; } } render(); }
+function applyTheme(){ if(S.theme==="auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", S.theme); }
+function startQuiz(){ S.pickMe = false; S.quiz = true; S.qdone.clear(); S.steps.forEach(s=>{ s.qDone = false; s.from = null; }); S.mfb = null; S.mq = null; const k = S.steps.findIndex(s=>s.recvForm); playFrom(k>=0 ? k : 1); }
 document.addEventListener("click", ev=>{
   const b = ev.target.closest("[data-a]"); if(!b || b.disabled) return;
   const [a, v] = b.dataset.a.split(":"), cur = S.steps[S.step];
-  if(a==="mode"){ if(S.mode!==v){ S.mode = v; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); } }
-  else if(a==="rot"){ S.rot = +v; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); }
+  if(a==="home"){ stopPlay(); S.home = true; S.pickMe = false; S.mq = null; render(); }
+  else if(a==="go"){ S.home = false; S.mode = v; S.quiz = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); fit(); }
+  else if(a==="theme"){ S.theme = v; saveUI(); applyTheme(); render(); }
+  else if(a==="quiz"){ stopPlay(); S.mfb = null; if(S.quiz && S.me) startQuiz(); else { S.pickMe = true; S.step = Math.max(0, S.steps.findIndex(s=>s.recvForm) - 1); S.t = 1; render(); } }
+  else if(a==="pmc"){ S.pickMe = false; S.step = S.steps.length-1; S.t = 1; render(); }
+  else if(a==="pmgo"){ if(S.me) startQuiz(); }
+  else if(a==="over"){ S.over = v; const k = findBack(S.step, s=>s.overStep); if(k>=0 && regenFrom(k)){ stopPlay(); S.step = k; S.t = 1; S.mfb = null; playFrom(k+1); } else render(); }
+  else if(a==="mode"){ if(S.mode!==v){ S.mode = v; S.quiz = false; S.pickMe = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); } }
+  else if(a==="rot"){ S.quiz = false; S.pickMe = false; S.rot = +v; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); }
   else if(a==="rel"){ S.rel = v; render(); }
   else if(a==="of"){ S.of = v; saveUI(); optRegen(); oppDlg(); }
   else if(a==="on"){ S.on = +v; saveUI(); optRegen(); oppDlg(); }
@@ -1073,7 +1121,7 @@ document.addEventListener("click", ev=>{
   else if(a==="tq"){ S.tq = v; const k = findBack(S.step, s=>s.passStep); if(k>=0 && regenFrom(k)){ stopPlay(); S.step = k; S.t = 1; S.mfb = null; playFrom(k+1); } else render(); }
   else if(a==="blk"){ S.blk = v; saveUI(); zKey = ""; if(cur.defForm){ stopPlay(); const k = findBack(S.step, s=>!!s.gen); regenFrom(k); const d = S.steps.findIndex((s,j)=>j>=k && s.defForm); S.step = d>=0 ? d : k; S.t = 1; S.adj = null; S.mfb = null; } render(); }
   else if(a==="ver"){ S.ver = v; saveUI(); const k = S.steps.findIndex(s=>s.recvForm); if(k>=0){ stopPlay(); regenFrom(k); S.step = Math.min(S.step, k); S.t = 1; S.adj = null; } render(); }
-  else if(a==="prev"){ stopPlay(); S.mq = null; S.mfb = null; S.adj = null; S.step = Math.max(0, S.step-1); S.t = 1; render(); }
+  else if(a==="prev"){ stopPlay(); S.mq = null; S.pickMe = false; S.mfb = null; S.adj = null; S.step = Math.max(0, S.step-1); S.t = 1; render(); }
   else if(a==="next") doNext();
   else if(a==="play"){ if(S.playing){ stopPlay(); render(); } else playFrom(S.step+1); }
   else if(a==="slow"){ S.slow = !S.slow; saveUI(); render(); }
@@ -1090,8 +1138,8 @@ document.addEventListener("click", ev=>{
 });
 function oppDlg(){ $("ofSeg").innerHTML = [["後中靠後","back"],["後中靠前","up"]].map(([t,v])=>btn((S.of===v?"✓ ":"")+t,"of:"+v,{pressed:S.of===v})).join("");
   $("onSeg").innerHTML = [["沒人攔","0"],["一個人","1"],["兩個人","2"]].map(([t,v])=>btn((S.on===+v?"✓ ":"")+t,"on:"+v,{pressed:S.on===+v})).join(""); }
-$("helpBtn").onclick = $("help2").onclick = () => $("help").showModal();
-document.addEventListener("keydown", ev=>{ if($("help").open || $("oppDlg").open) return; if(ev.key==="ArrowRight") document.querySelector('[data-a="next"]')?.click(); if(ev.key==="ArrowLeft") document.querySelector('[data-a="prev"]')?.click(); });
+$("helpBtn").onclick = $("help2").onclick = $("help3").onclick = () => $("help").showModal();
+document.addEventListener("keydown", ev=>{ if(S.home || $("help").open || $("oppDlg").open) return; if(ev.key==="ArrowRight") document.querySelector('[data-a="next"]')?.click(); if(ev.key==="ArrowLeft") document.querySelector('[data-a="prev"]')?.click(); });
 
 // 版面：直的時候，球場高度＝螢幕剩下的高度（扣掉說明和按鈕），說明字多時球場自動縮小，不用上下滑
 function fit(){
@@ -1103,8 +1151,8 @@ function fit(){
 }
 let fitQ = 0; function fitLater(){ if(fitQ) return; fitQ = requestAnimationFrame(()=>{ fitQ = 0; fit(); }); }
 addEventListener("resize", fit);
-if(navigator.webdriver){ window.addEventListener("error", e=>{ document.title = "ERROR: " + e.message; }); window.__vb = {S, PH, answer, newRally, doNext, confirmQ, randAns, regenFrom, defend, odef, OBLK, fanP, BLOCK, A, ROT, recvPos, render, playFrom, stopPlay, activeKind}; }
-drawStatic(); newRally(); fit();
+if(navigator.webdriver){ window.addEventListener("error", e=>{ document.title = "ERROR: " + e.message; }); window.__vb = {S, PH, startQuiz, answer, newRally, doNext, confirmQ, randAns, regenFrom, defend, odef, OBLK, fanP, BLOCK, A, ROT, recvPos, render, playFrom, stopPlay, activeKind}; }
+applyTheme(); drawStatic(); newRally(); fit();
 
 /* 離線和更新 */
 if("serviceWorker" in navigator && location.protocol!=="file:"){

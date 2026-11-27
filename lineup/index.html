@@ -131,10 +131,10 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
   <h2>怎麼用</h2>
   <ol>
     <li>首頁或右上角選<b>教學</b>或<b>練習</b>，上面再選這一輪：前排的舉球員站在 4、3 還是 2 號位。</li>
-    <li><b>教學</b>：先按播放看大家怎麼站、怎麼跑。看完按「換你試」，點你打的位置，同一球再跑一次，每到你要動的地方會停下來，把「我」拖到你覺得要去的地方，按「確定」看對不對。</li>
+    <li><b>教學</b>：按「下一步」一步一步看大家怎麼站、怎麼跑（按「自動播」會自己往下走，字多的地方停久一點）。看完按「換你試」，點你打的位置，同一球再跑一次，每到你要動的地方會停下來，把「我」拖到你覺得要去的地方，按「確定」看對不對。</li>
     <li>要點場上的時候，場上會框起來、有手指在點：發球落點、我們要打哪裡、對方打哪裡。上面可以換一傳好壞、舉長攻或二號、對方怎麼攻擊。</li>
     <li><b>練習</b>：先設定對方怎麼守、有幾個人攔網，按「開始」就像比賽一樣打一球，結果會隨機。站位可以先拖人調整；要舉給誰、接噴要修去哪這些地方，會停下來讓你選。</li>
-    <li>播放時場上不放字，想知道為什麼，按「為什麼？」。防守時按「為什麼這樣站」，看每個人負責哪裡：顏色深的一定是她接，淡的是別人也可以接，紅色是空檔。</li>
+    <li>播放時場上不放字，想知道為什麼，按「為什麼？」。防守時按「誰守哪裡」，看每個人負責哪裡：顏色深的一定是她接，淡的是別人也可以接，紅色是空檔。</li>
     <li>練習的比分只是好玩，這裡不會換輪；要換輪按上面。</li>
   </ol>
   <h2 style="margin-top:10px">加到手機主畫面</h2>
@@ -148,7 +148,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.17";
+const VERSION = "2026.11.28.1";
 document.getElementById("ver").textContent = VERSION; document.getElementById("ver2").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -181,17 +181,21 @@ const OPASS = ["o1","o2","o4","o5","o6"];
 // 攔網：誰攔、其他人守哪裡（暫定，等教練確認）
 const BLOCK = {
   M:{seg:"攔中攔", bl:["FM"],
-     def:{FM:[7.3,0.4],FS:[8.2,2.5],FO:[1.3,1.8],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
+     def:{FM:[7.3,0.4],FS:[8.2,2.5],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
      tags:{FM:"攔網",FS:"守 2 號位小球",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"舉球員還不會攔網，先由<b>攔中一個人攔</b>；舉球員守 2 號位的小球。"},
   S:{seg:"舉球員攔", bl:["FS"],
-     def:{FS:[7.5,0.4],FM:[4.6,2.6],FO:[1.3,1.8],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
+     def:{FS:[7.5,0.4],FM:[4.6,2.6],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
      tags:{FS:"攔網",FM:"退下來",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
      cap:"<b>舉球員一個人攔</b>，攔中退到三米線附近守吊球。"},
   MS:{seg:"兩個人攔", bl:["FS","FM"],
-     def:{FS:[7.6,0.4],FM:[6.35,0.4],FO:[1.3,1.8],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
+     def:{FS:[7.6,0.4],FM:[6.35,0.4],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,5.6]},
      tags:{FS:"攔網",FM:"攔網",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
-     cap:"<b>舉球員和攔中兩個人攔</b>，擋住的範圍比較寬。"}
+     cap:"<b>舉球員和攔中兩個人攔</b>，擋住的範圍比較寬。"},
+  N:{seg:"攔中沒上去", bl:[],
+     def:{FM:[5.4,2.9],FS:[8.2,2.5],FO:[2.5,2.4],BO:[1.3,5.6],BM:[4.9,7.6],BS:[8.2,6.0]},
+     tags:{FM:"退下來守小球",FS:"守 2 號位小球",FO:"靠網守小斜線",BO:"守斜線",BM:"守後中",BS:"守直線"},
+     cap:"<b>攔中來不及就不要硬跳</b>，退到三米線附近守前面的吊球和小球；對方可以直接扣，後面的人要準備好。"}
 };
 // 對方攔中快攻（教練 11/27）：攔中攔中間；前排兩個往前、往攔中靠守小球；後排兩邊靠三米線；自由留後面補（位置暫擺）
 const AM = [4.5,-0.8];
@@ -216,10 +220,10 @@ const OBLK = n => ["o2","o3"].slice(0,n);
 
 /* ===================== 狀態 ===================== */
 const S = {mode:"teach", rot:0, ver:"in", blk:"M", of:"back", on:2, set:"long", tq:"", atype:"spike", rel:"fb", me:"", why:false, slow:false, zones:false,
-  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set(), home:true, quiz:false, pickMe:false, over:"save", theme:"auto"};
+  srvX:7.5, score:[0,0], serve:"opp", steps:[], step:0, t:1, playing:false, mq:null, mfb:null, adj:null, qdone:new Set(), home:true, auto:false, quiz:false, pickMe:false, over:"save", theme:"auto"};
 try{ const o = JSON.parse(localStorage.getItem("vblineup-ui")||"{}"); if(o.mode==="game") S.mode="game"; if(o.rot>=0&&o.rot<3) S.rot=o.rot; if(o.ver==="out") S.ver="out"; if(BLOCK[o.blk]) S.blk=o.blk;
-  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; if(["light","dark"].includes(o.theme)) S.theme=o.theme; }catch(e){}
-function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why,theme:S.theme})); }catch(e){} }
+  if(o.of==="up") S.of="up"; if([0,1,2].includes(o.on)) S.on=o.on; if(o.set==="two") S.set="two"; if(["spike","tip","lob"].includes(o.atype)) S.atype=o.atype; if(ROLES.includes(o.me)) S.me=o.me; if(o.slow) S.slow=true; if(o.why) S.why=true; if(o.auto) S.auto=true; if(["light","dark"].includes(o.theme)) S.theme=o.theme; }catch(e){}
+function saveUI(){ try{ localStorage.setItem("vblineup-ui", JSON.stringify({mode:S.mode,rot:S.rot,ver:S.ver,blk:S.blk,of:S.of,on:S.on,set:S.set,atype:S.atype,me:S.me,slow:S.slow,why:S.why,theme:S.theme,auto:S.auto})); }catch(e){} }
 
 const HINT = {srv:false, tap:false, mv:false};
 try{ ["srv","tap","mv"].forEach(k=>HINT[k] = localStorage.getItem("vblineup-hint-"+k)==="1"); }catch(e){}
@@ -294,8 +298,9 @@ function defend(o){
   const res = {side, bl, hand, L:L.slice(), type, C:{}};
   if(type==="spike" && inFan){
     const r = rr();
-    if(r < 0.45) return Object.assign(res, {kind:"blocked"});
-    if(r < 0.75) return Object.assign(res, {kind:"tool", out:[hand[0] > 4.5 ? 9.9 : -0.9, side*(4.5 + r*4)]});
+    if(r < 0.35){ const o2 = defend(Object.assign({}, o, {bl:[], rr})); o2.late = true; o2.why = "攔網的人移動比較慢，<b>來不及跟到</b>，球直接打過去。" + (o2.why||""); return o2; }
+    if(r < 0.60) return Object.assign(res, {kind:"blocked"});
+    if(r < 0.82) return Object.assign(res, {kind:"tool", out:[hand[0] > 4.5 ? 9.9 : -0.9, side*(4.5 + r*4)]});
     const pop = [Math.max(0.6, Math.min(8.4, hand[0] + 0.6)), side*2.4], k = defs.slice().sort((a,b)=>dist(pos[a],pop)-dist(pos[b],pop))[0];
     return Object.assign(res, {kind:"soft", who:k, at:pop, d:0.5, why:"球碰到攔網的手變慢，很好接。"});
   }
@@ -386,7 +391,7 @@ PH.tRecv = c => {
   const sd = c.srvX < 3 ? "左邊" : c.srvX > 6 ? "右邊" : "中間";
   const s = add({pos:recvPos(c.rot, c.srvX), arrow:true, noBall:true, noOpp:true, q:true, qtxt:"其他人都站好了。你接發球要站哪裡？", tags:{FS:"不接",FM:"不接"}, tagsOn:true, recvForm:true,
     title:"點我們的場上：發球落在哪裡", cap:`${sd==="中間" ? "發球員在中間，照原本的位置站。" : `發球員在${sd}，大家往${sd}移一點、身體轉向她。`}前排舉球員和攔中不接。`});
-  ask(s, {k:"tap", area:"our", go:"tServe", txt:"點一下：發球落在哪裡", rand:"隨便發一球"}, c);
+  ask(s, {k:"tap", area:"our", go:"tServe", txt:"點一下：發球落在哪裡", rand:"隨便發"}, c);
 };
 PH.tServe = (c, a) => { c.seed = seedOf(a.L); runPh("serveIn", c, {L:a.L}); };
 
@@ -406,7 +411,7 @@ PH.gUs = c => {
   c.bmM = srvR==="BM"; BMM = c.bmM; c.srvR = srvR;
   P0[srvR] = [ZC[1][0], 8.85];
   first({pos:P0, opp:cp(OR), ball:[ZC[1][0], 8.6], cam:1, bmM:c.bmM, title:"我們發球：點對方的場上，要發哪裡", cap:`發球的是${nm(srvR)}。看對方怎麼站，找人和人中間、或離大家都遠的地方。${c.bmM?"這一輪是後排攔中自己發球，這一分打完才換自由。":""}`});
-  ask(last(), {k:"tap", area:"opp", go:"gUsServe", txt:"點一下：要發哪裡", rand:"隨便發一球"}, c);
+  ask(last(), {k:"tap", area:"opp", go:"gUsServe", txt:"點一下：要發哪裡", rand:"隨便發"}, c);
 };
 PH.gUsServe = (c, a) => {
   const L = a.L, opos = last().opp;
@@ -453,7 +458,7 @@ PH.passOut = (c, a) => {
       title: setter==="BS" ? `${what}：後排舉球員衝上來舉` : `${what}，攻擊手退出去準備`,
       cap: setter==="BS" ? "前排舉球員接了第一球，原地把球接高就退開；後排舉球員看到就先衝上來舉。" : `球往舉球員飛了，攻擊手才退出去：${NAME[outer]}到左邊三米線外，${NAME[mid]}到中間。${B?"大砲接完球走進中間。":""}`});
     if(teach) return runPh("atkSet", c, {v:c.set, from:setter});
-    ask(last(), {k:"pick", go:"gSet", txt:"舉給誰？", opts:[["舉長攻（4 號位）","long"],["舉二號（中間）","two"]]}, c); return;
+    ask(last(), {k:"pick", go:"gSet", txt:"舉給誰？", opts:[["長攻","long"],["二號","two"]]}, c); return;
   }
   if(q==="tight"){
     const tp = [Math.max(3.6, Math.min(7.4, sp[0]-0.4)), 0.3];
@@ -504,7 +509,7 @@ PH.chase = (c, a) => {
 // 修球修到哪裡：場中間最好；修到舉球員那邊就變成舉球員要打
 PH.fixTo = (c, a) => {
   const L = clampP(a.L), fx = c.fixer, pos = last().pos;
-  const atk = ["FO","FM"].filter(r=>r!==fx && r!==c.dug);
+  const atk = ["FO","FM","FS"].filter(r=>r!==fx && r!==c.dug);
   const hitter = atk.length ? nearestOf(atk, L, pos) : (["FO","FM"].find(r=>r!==fx) || "FO");
   if(dist(L, T) < 1.6 && fx!=="FS"){
     add({pos:{FS:stopShort(pos.FS, L, 0.5)}, ball:L, ballH:3, hl:"FS", tags:{[fx]:"修",FS:"只能推過去"}, title:"修到舉球員那邊，變成舉球員要打", cap:"舉球員不一定好打、也不一定會打，只能把球推過去。修到場中間比較好，攻擊手有空間助跑。"});
@@ -563,7 +568,11 @@ PH.atkSet = (c, a) => {
   const spots = a.hp ? [[hp[0]-1.1,hp[1]+1.8],[hp[0]+1.1,hp[1]+1.8],[hp[0],hp[1]+3.6],[hp[0]-1.7,hp[1]+3.6],[hp[0]+1.7,hp[1]+3.6]]
     : hitter===outer ? [[2.2,2.6],[1.0,4.6],[3.6,4.2],[3.4,2.0],[2.4,6.0]] : [[3.3,2.4],[5.5,2.4],[4.4,4.2],[2.6,4.4],[6.2,4.4]];
   const covers = ROLES.filter(r=>r!==hitter && r!==a.from);
-  const cov = assign(covers, spots.map(clampP), pos);
+  let cov;
+  if(a.hp){ // 修球後：前排的人留在網前附近掩護，後排的人去後面
+    const fr = covers.filter(FRONT), bk = covers.filter(r=>!FRONT(r));
+    cov = Object.assign(assign(fr, [[hp[0]-1.3,hp[1]+1.0],[hp[0]+1.3,hp[1]+1.0]].map(clampP), pos), assign(bk, [[hp[0]-1.6,hp[1]+3.2],[hp[0]+1.6,hp[1]+3.2],[hp[0],hp[1]+4.4]].map(clampP), pos));
+  } else cov = assign(covers, spots.map(clampP), pos);
   const tg = {[hitter]:"攻擊"}; covers.forEach(r=>tg[r]="掩護");
   const setName = (a.v==="two" || a.v==="long") ? (hitter===outer ? "舉長攻" : "舉二號") : a.v==="high" ? "修高球" : "";
   c.hitter = hitter; c.hp = hp; c.setter = a.from;
@@ -577,7 +586,7 @@ PH.atkSet = (c, a) => {
     q:true, qtxt:`${setName ? setName + "，" : ""}要攻擊了。你要去哪？`, title:`${setName ? setName + "給" + nm(hitter) : nm(hitter) + "攻擊"}，大家掩護`, cap:"攻擊手助跑，其他人靠過去掩護，準備接被攔回來的球。"});
   const s = add({opp:opos, cam:1, ofan:of, atkStep:true, setV:a.v, title:"點對方的場上：要打哪裡",
     cap: note + (setName ? `${setName}給${nm(hitter)}。` : "") + (c.n ? `灰色是對方攔網擋住的地方（${c.n} 個人攔），找攔網沒擋到、離對方遠的地方。` : "對方沒有攔網：找離大家都遠的空檔。") + `對方${c.f==="up"?"後中靠前，後面中間比較空":"後中靠後，攔網後面的吊球比較空"}。`});
-  ask(s, {k:"tap", area:"opp", go:"atkRes", txt:"點一下：要打哪裡", rand:"隨便打一球"}, c);
+  ask(s, {k:"tap", area:"opp", go:"atkRes", txt:"點一下：要打哪裡", rand:"隨便打"}, c);
 };
 PH.atkRes = (c, a) => {
   const L = a.L, s0 = last(), opos = s0.opp, hp = c.hp, hitter = c.hitter, teach = c.mode==="teach", of = s0.ofan;
@@ -647,7 +656,7 @@ PH.oppAttackPrep = c => {
   c.outer = "FO"; c.mid = "FM"; c.backDone = true;
   add({pos:cp(BASE), ball:OSET.slice(), ballH:2.5, opp:{o3:OSET.slice(), o4:[8.4,-3.3]}, ohl:"o3", tags:t6, q:true, qtxt:"對方接起來了。你要回到哪裡？",
     title:"回防：回到固定位置", cap:`前排大砲 4、攔中 3、舉球員 2；後排大砲 5、自由 6、舉球員 1。${B?"這一輪攔中和大砲在這裡換回來。":""}`});
-  if(teach){ ask(last(), {k:"pick", go:"oppSet", txt:"對方舉球員要？", opts:[["直接吊","dump"],["舉中間（快攻）","mid"],["舉長攻（4 號位）","long"]]}, c); return; }
+  if(teach){ ask(last(), {k:"pick", go:"oppSet", txt:"對方舉球員要？", opts:[["直接吊","dump"],["中間快攻","mid"],["長攻","long"]]}, c); return; }
   const r = rnd(c); runPh("oppSet", c, {v: r < 0.15 ? "dump" : r < 0.37 ? "mid" : "long"});
 };
 // 對方舉球：直接吊／舉中間快攻／舉長攻；球真的飛過去，大家看球去防守
@@ -662,11 +671,11 @@ PH.oppSet = (c, a) => {
   const mid = a.v==="mid", D = mid ? MIDDEF : BLOCK[c.blk], hp = mid ? AM : A;
   c.oppMid = mid;
   const s = add({pos:cp(D.def), ball:hp.slice(), ballH: mid ? 1.2 : 3, opp: mid ? {o3:[2.7,-0.9], o2:AM.slice()} : {o3:[2.7,-0.9], o4:A.slice()}, ohl: mid ? "o2" : "o4",
-    fan:fanP(1, hp, D.bl.map(r=>D.def[r][0]), false), tags:cp(D.tags), defForm:true, midForm:mid, dbl:D.bl.slice(), dhp:hp.slice(),
+    fan:D.bl.length ? fanP(1, hp, D.bl.map(r=>D.def[r][0]), false) : null, tags:cp(D.tags), defForm:true, midForm:mid, dbl:D.bl.slice(), dhp:hp.slice(),
     q:true, qtxt: mid ? "球舉到中間，對方攔中要快攻了。你站哪裡防守？" : "球舉到我們右邊，對方大砲要扣了。你站哪裡防守？",
     title: teach ? "點我們的場上：對方打哪裡" : "對方要攻擊了：站好防守位置",
     cap: teach ? `${D.cap}灰色是攔網擋住的地方，其他人去守沒擋到的路線。` : `${D.cap}可以拖人調整站位，好了按「開始」。`});
-  if(teach) ask(s, {k:"tap", area:"our", go:"tDig", txt:"點一下：對方打哪裡", rand:"隨便打一球"}, c);
+  if(teach) ask(s, {k:"tap", area:"our", go:"tDig", txt:"點一下：對方打哪裡", rand:"隨便打"}, c);
   else ask(s, {k:"adjust", stage:"def", go:"oppAtk"}, c);
 };
 PH.tDump = (c, a) => { c.defDone = true; runPh("defRes", c, {pos:last().pos, L:a.L, type:"tip", hp:[OSET[0],-0.4], bl:[]}); };
@@ -696,7 +705,7 @@ PH.defRes = (c, a) => {
   }
   if(r.kind==="tool"){ add({ball:r.out, via:r.hand, hitMark:r.hand, ballH:1.5, fan, landed:true, title:"碰到我們攔網的手出界，失分", cap:"攔網的手碰到球往外彈出界，算對方得分。攔網的手要往內壓、把球包住。"}); return finish(c, teach ? null : "them"); }
   if(r.kind==="soft"){ add({pos:{[r.who]:stopShort(pos[r.who], r.at, 0.75)}, ball:r.at, via:r.hand, hitMark:r.hand, ballH:2.2, fan, hl:r.who, title:`碰到攔網變小球，${nm(r.who)}接`, cap:"球碰到我們攔網的手變慢，很好接。"}); return runPh("passOut", c, {q:teach ? "good" : quality(c, 0.6), who:r.who, from:pos[r.who], at:r.at, src:"dig"}); }
-  if(r.kind==="miss"){ add(Object.assign({pos:m.mv, ball:L.slice(), ballH:bh, fan, tags:m.tags, landed:true, title:`對方${verb}${where(L)}：空檔，失分`, cap: pred + r.why + "這是站位的洞，防守時按「為什麼這樣站」可以看紅色的空檔。"}, hit)); return finish(c, teach ? null : "them"); }
+  if(r.kind==="miss"){ add(Object.assign({pos:m.mv, ball:L.slice(), ballH:bh, fan, tags:m.tags, landed:true, title:`對方${verb}${where(L)}：空檔，失分`, cap: pred + r.why + "這是站位的洞，防守時按「誰守哪裡」可以看紅色的空檔。"}, hit)); return finish(c, teach ? null : "them"); }
   if(r.kind==="over"){
     add(Object.assign({pos:m.mv, ball:r.at, ballH:bh, fan, tags:m.tags, hl:r.who, overStep:true, title:`從${nm(r.who)}頭上過：高手擋看看`, cap: pred + r.why}, hit));
     if(teach ? c.over!=="miss" : rnd(c) < 0.4){ add({ball:[Math.max(0.6, r.at[0]-0.8), Math.max(1.0, r.at[1]-1.6)], ballH:2.4, title:`${nm(r.who)}用高手擋起來了`, cap:"擋起來的球不好處理，要有人去修。"});
@@ -959,6 +968,7 @@ function renderOpt(cur, kind){
   }
   $("opt").innerHTML = rows.join(""); $("opt").hidden = !rows.length;
 }
+const brief = t => { const i = (t||"").indexOf("。"); return i>=0 ? t.slice(0, i+1) : (t||""); };
 function render(){
   const cur = S.steps[S.step], teach = S.mode==="teach";
   if(!S.playing && S.t>=1 && !S.mq && cur.ask && cur.ask.k==="adjust" && !(S.adj && S.adj.k===S.step)) S.adj = {k:S.step, stage:cur.ask.stage, pos:cp(cur.pos), moved:false};
@@ -980,22 +990,22 @@ function render(){
   else if(kind==="move"){ doT = `換你想：${S.steps[S.mq.k].qtxt}`; cs = "把「我」拖到（或點）你覺得要去的地方，再按「確定」。"; }
   else if((kind==="tap" || kind==="pick") && cur.ask.txt && !cur.title.startsWith("點")){ doT = cur.ask.txt.replace("點一下：","點場上：") ; cs = `${cur.title}。${cur.cap}`; }
   else if(kind==="adjust" && S.adj.stage==="recv"){ const bad = legality(S.adj.pos, ROT[S.rot]); cs = cur.cap + (bad.length ? `<br><span class="bad">站位犯規（紅線）：${bad[0].msg}照這樣開始會被判失分。</span>` : ""); }
-  else cs = (S.why || cur.setup || kind || cur.end || cur.pause) ? cur.cap : "";
+  else cs = S.why ? cur.cap : (cur.setup || kind || cur.end || cur.pause) ? brief(cur.cap) : "";
   if(cur.defForm && S.zones && kind!=="move") cs = ZLEG + (S.why ? " " + cur.cap : "");
   if(S.mfb && kind!=="move") cs = S.mfb.html + (cs ? " " + cs : " " + cur.cap);
   $("cap").innerHTML = `<div class="no">${head}</div><div class="do">${doT}</div>${cs?`<div class="cs">${cs}</div>`:""}`;
   const n = S.steps.length, more = S.step < n-1;
   const P = btn("‹","prev",{cls:"ic2",aria:"上一步",dis:S.step===0}), Nx = btn("›","next",{cls:"ic2",aria:"下一步"});
-  const W = btn(S.why?"✓ 為什麼？":"為什麼？","why",{pressed:S.why}), Z = btn(S.zones?"✓ 為什麼這樣站":"為什麼這樣站","zones",{pressed:S.zones});
+  const W = btn(S.why?"✓ 為什麼？":"為什麼？","why",{pressed:S.why}), Z = btn(S.zones?"✓ 誰守哪裡":"誰守哪裡","zones",{pressed:S.zones});
   let h = "";
   if(kind==="move") h = P + btn("確定","qok",{cls:"pri"}) + btn("看答案","qans");
   else if(kind==="me") h = btn("取消","pmc") + btn("開始 ›","pmgo",{cls:"pri",dis:!S.me});
   else if(cur.setup) h = P + btn("下一步 ›","next",{cls:"pri"});
   else if(kind==="tap") h = P + (more ? btn("▶ 繼續","play",{cls:"pri play"}) : "") + (cur.ask.rand ? btn(cur.ask.rand,"rand",{cls:more?"":"pri"}) : "") + (cur.defForm ? Z : "");
   else if(kind==="pick") h = P + (more ? btn("▶ 繼續","play",{cls:"pri play"}) : "") + cur.ask.opts.map(([l,v])=>btn(l,"pick:"+v)).join("");
-  else if(kind==="adjust") h = P + btn("開始","start",{cls:"pri"}) + (S.adj.stage==="def" ? Z : btn("回到原本站位","reset"));
-  else if(cur.end) h = P + (teach ? btn(S.quiz ? "再試一次" : "換你試","quiz",{cls:"pri"}) + btn("換個地方打","redo") + btn("再來一次","again") : btn("再打一球","again",{cls:"pri"}) + W);
-  else h = P + btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:"pri play"}) + (more ? Nx : "") + W + btn(S.slow?"✓ 慢速":"慢速","slow",{pressed:S.slow}) + (teach && !S.playing && cur.pause ? btn("換個地方打","redo") : "");
+  else if(kind==="adjust") h = P + btn("開始","start",{cls:"pri"}) + (S.adj.stage==="def" ? Z : btn("重排","reset"));
+  else if(cur.end) h = P + (teach ? btn(S.quiz ? "再試一次" : "換你試","quiz",{cls:"pri"}) + btn("換地方打","redo") + btn("再來一次","again") : btn("再打一球","again",{cls:"pri"}) + W);
+  else h = P + (S.auto ? btn(S.playing?"❚❚ 暫停":"▶ 播放","play",{cls:"pri play"}) : btn("下一步 ›","play",{cls:"pri play"})) + W + btn(S.auto?"✓ 自動播":"自動播","auto",{pressed:S.auto}) + (teach && !S.playing && cur.pause ? btn("換地方打","redo") : "");
   $("ctl").innerHTML = h;
   fitLater();
   paint();
@@ -1033,8 +1043,10 @@ function playFrom(i){
     if(needQ(k)){ openQ(k); return; }
     const st = S.steps[k];
     animTo(k, ()=>{
-      if((st.ask && k===S.steps.length-1) || st.end || st.pause || st.setup){ S.playing = false; render(); return; }
-      holdTimer = setTimeout(()=>go(k+1), S.slow?1400:800); });
+      if((st.ask && k===S.steps.length-1) || st.end || st.pause || st.setup || !S.auto){ S.playing = false; render(); return; }
+      // 自動播：字越多停越久
+      const n = (st.title||"").length + (S.why ? (st.cap||"").length : 0);
+      holdTimer = setTimeout(()=>go(k+1), Math.min(5000, 1000 + n*55)); });
   };
   go(i);
 }
@@ -1104,13 +1116,13 @@ document.addEventListener("click", ev=>{
   const b = ev.target.closest("[data-a]"); if(!b || b.disabled) return;
   const [a, v] = b.dataset.a.split(":"), cur = S.steps[S.step];
   if(a==="home"){ stopPlay(); S.home = true; S.pickMe = false; S.mq = null; render(); }
-  else if(a==="go"){ S.home = false; S.mode = v; S.quiz = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); fit(); }
+  else if(a==="go"){ S.home = false; S.mode = v; S.auto = v==="game"; S.quiz = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); fit(); }
   else if(a==="theme"){ S.theme = v; saveUI(); applyTheme(); render(); }
   else if(a==="quiz"){ stopPlay(); S.mfb = null; if(S.quiz && S.me) startQuiz(); else { S.pickMe = true; S.step = Math.max(0, S.steps.findIndex(s=>s.recvForm) - 1); S.t = 1; render(); } }
   else if(a==="pmc"){ S.pickMe = false; S.step = S.steps.length-1; S.t = 1; render(); }
   else if(a==="pmgo"){ if(S.me) startQuiz(); }
   else if(a==="over"){ S.over = v; const k = findBack(S.step, s=>s.overStep); if(k>=0 && regenFrom(k)){ stopPlay(); S.step = k; S.t = 1; S.mfb = null; playFrom(k+1); } else render(); }
-  else if(a==="mode"){ if(S.mode!==v){ S.mode = v; S.quiz = false; S.pickMe = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); } }
+  else if(a==="mode"){ if(S.mode!==v){ S.mode = v; S.auto = v==="game"; S.quiz = false; S.pickMe = false; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); } }
   else if(a==="rot"){ S.quiz = false; S.pickMe = false; S.rot = +v; S.score = [0,0]; S.serve = "opp"; saveUI(); newRally(); }
   else if(a==="rel"){ S.rel = v; render(); }
   else if(a==="of"){ S.of = v; saveUI(); optRegen(); oppDlg(); }
@@ -1125,6 +1137,7 @@ document.addEventListener("click", ev=>{
   else if(a==="next") doNext();
   else if(a==="play"){ if(S.playing){ stopPlay(); render(); } else playFrom(S.step+1); }
   else if(a==="slow"){ S.slow = !S.slow; saveUI(); render(); }
+  else if(a==="auto"){ S.auto = !S.auto; saveUI(); if(S.auto) playFrom(S.step+1); else { stopPlay(); render(); } }
   else if(a==="why"){ S.why = !S.why; saveUI(); render(); }
   else if(a==="zones"){ S.zones = !S.zones; zKey = ""; render(); }
   else if(a==="qok") confirmQ(false);

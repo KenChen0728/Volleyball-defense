@@ -126,7 +126,7 @@ h3.st{font-size:17px;font-weight:800;margin:18px 0 8px}h3.st b{display:inline-fl
 <div class="wrap" id="app"></div>
 <script>
 "use strict";
-const VERSION = "2026.11.25.1";
+const VERSION = "2026.11.27.1";
 
 /* ===================== 內容 ===================== */
 // 今天的流程（每次練球前請 Claude 改這一段）
@@ -686,8 +686,8 @@ function ul(arr, ord){ return `<${ord?"ol":"ul"}>${arr.map(x=>`<li>${x}</li>`).j
 
 function viewHome(){
   return `<div class="hero"><div class="t">練球手冊</div><div class="s">社工女排｜練球前先看過，練完回來複習</div></div>
-  <button class="btn pri" data-go="today">今天的流程 <small>${esc(TODAY.date)}</small></button>
-  <button class="btn" style="margin-top:8px" data-go="plan">自己排菜單 <small style="font-weight:600;color:var(--ink2)">選場地、時間、項目</small></button>
+  <button class="btn pri" data-go="plan">自己排菜單 <small>選場地、時間、項目</small></button>
+  <button class="btn" style="margin-top:8px" data-go="today">今天的流程 <small style="font-weight:600;color:var(--ink2)">${esc(TODAY.date)}</small></button>
   <h2>每一段怎麼練</h2>
   ${SECTIONS.map(s=>`<button class="tile" data-go="s/${s.id}"><span class="bar" style="background:${s.color}"></span><span class="m"><span class="n">${esc(s.name)}<small>${s.time}</small></span><span class="d">${s.items.length ? s.items.map(i=>esc(i.name)).join("、") : esc(s.notes[0])}</span></span><span class="go">打開 ›</span></button>`).join("")}
   ${footer()}`;

@@ -117,7 +117,7 @@ dialog ol{padding-left:20px}dialog li{margin:4px 0}
 </dialog>
 <script>
 "use strict";
-const VERSION = "2026.11.27.10";
+const VERSION = "2026.11.27.11";
 document.getElementById("ver").textContent = VERSION;
 
 /* ===================== 資料 =====================
@@ -389,12 +389,12 @@ function drawStatic(){
   const ot = el("text",{x:X(4.5),y:Y(-8.4),"text-anchor":"middle","font-size":15,"font-weight":700,fill:"var(--ink2)",opacity:.8},svg); ot.textContent = "對方"; G.theirs = ot;
   G.frames = el("g",{opacity:0},svg);
   const fr = (x0,y0,x1,y1,c) => el("rect",{x:X(x0),y:Y(y0),width:X(x1)-X(x0),height:Y(y1)-Y(y0),rx:6,fill:"none",stroke:c,"stroke-width":3},G.frames);
-  const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c,stroke:"var(--court)","stroke-width":5,"paint-order":"stroke","stroke-linejoin":"round"},G.frames); e.textContent = t; };
+  const lab = (x,y,t,c,anc) => { const e = el("text",{x:X(x),y:Y(y),"text-anchor":anc||"middle","font-size":13,"font-weight":800,fill:c},G.frames); e.textContent = t; };
   const gF = el("g",{},G.frames), gL = el("g",{},G.frames); G.frFB = gF; G.frLR = gL;
   let tgt = gF; const fr2 = (...a)=>{ const r = fr(...a); tgt.appendChild(r); }, lab2 = (...a)=>{ lab(...a); tgt.appendChild(G.frames.lastChild); };
   [1.5,4.5,7.5].forEach(x=>{ fr2(x-0.95,0.55,x+0.95,6.95,"var(--fb)"); lab2(x,7.55,"前後關係","var(--fb)"); });
   tgt = gL;
-  [1.5,6.0].forEach(y=>{ fr2(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab2(0.3,y-0.92,"左右關係","var(--lr)","start"); });
+  [1.5,6.0].forEach(y=>{ fr2(0.2,y-0.8,8.8,y+0.8,"var(--lr)"); lab2(0.3,y-0.9,"左右關係","var(--lr)","start"); });
   G.ghost = el("g",{},svg);
   G.trail = el("g",{},svg);
   G.tapR = el("rect",{rx:10,fill:"var(--acc)","fill-opacity":.1,stroke:"var(--acc)","stroke-width":3,"stroke-dasharray":"8 6",opacity:0,"pointer-events":"none"},svg);
